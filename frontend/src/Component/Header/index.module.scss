@@ -1,0 +1,303 @@
+@import "../../Assets/Sass/variable.scss";
+@import url("https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400..700;1,400..700&display=swap");
+
+.offer {
+  background-color: #121212;
+  color: $white;
+  padding: 15px;
+  text-align: center;
+  font-weight: 700;
+  // width: 100%;
+  @media (max-width: 426px) {
+    // width: 109% !important;
+    width: 100% !important;
+  }
+  @media (max-width: 376px) {
+    // width: 110% !important;
+    width: 100% !important;
+  }
+  @media (max-width: 321px) {
+    // width: 119% !important;
+    width: 100% !important;
+  }
+}
+.headermain {
+  background-color: $white;
+  justify-content: center;
+  
+  // padding: 15px;
+  margin-bottom: 0px;
+  @media (max-width: 426px) {
+    padding: 10px;
+  }
+  @media (max-width: 321px) {
+    padding: 10px;
+  }
+  .headerlogo {
+    display: flex;
+    align-items: center;
+
+    > div {
+      cursor: pointer;
+      > img {
+        width: auto;
+        height: 50px;
+      }
+    }
+  }
+
+
+
+  // .searchinput2 {
+  //   display: flex;
+  //   align-items: center;
+  //   justify-content: center;
+  //   @media (max-width: 2560px) {
+  //     display: none !important;
+  //   }
+  //   @media (max-width: 1440px) {
+  //     display: none !important;
+  //   }
+  //   @media (max-width: 1024px) {
+  //     display: none !important;
+  //   }
+  //   @media (max-width: 768px) {
+  //     width: 100%;
+  //     margin-top: 20px;
+  //     display: flex !important;
+  //   }
+  //   @media (max-width: 426px) {
+  //     width: 100%;
+  //     margin-top: 20px;
+  //     display: flex !important;
+  //     margin-bottom: 10px;
+  //   }
+  //   @media (max-width: 426px) {
+  //     width: 100%;
+  //     margin-top: 20px;
+  //     display: flex !important;
+  //     margin-bottom: 10px;
+  //     margin-left: -15px;
+  //   }
+  //   > span {
+  //     border: 1px solid $darkgrey;
+  //     padding: 10px 20px;
+  //     border-radius: 20px;
+  //     > span {
+  //       margin-inline-end: 12px;
+  //     }
+  //   }
+  // }
+
+  .headericon {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: $lightgrey;
+    @media (max-width: 991px) {
+      display: none !important;
+    }
+    > div {
+      cursor: pointer;
+      > img {
+        width: 25px;
+        height: auto;
+      }
+    }
+    .hrDropdown {
+      > div {
+        cursor: pointer;
+        > img {
+          width: 20px;
+          height: auto;
+        }
+      }
+    }
+    .badge {
+      > div {
+        cursor: pointer;
+        > img {
+          width: 25px;
+          height: auto;
+        }
+      }
+    }
+  }
+
+
+  
+  .headericon2 {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    // display: none !important;
+  
+    @media (max-width: 2560px ) {
+      display: none;
+    }
+    @media (max-width: 992px ) {
+      display: none;
+    }
+    @media (max-width: 1440px) {
+      display: none;
+      // display: grid;
+    }
+    @media (max-width: 991px) {
+      // display: none;
+      display: flex;
+    }
+    @media (max-width: 768px) {
+      display: flex;
+    }
+    > div {
+      cursor: pointer;
+      > img {
+        width: 25px;
+        height: auto;
+      }
+    }
+    .hrDropdown {
+      > div {
+        cursor: pointer;
+        > img {
+          width: 25px;
+          height: auto;
+        }
+      }
+    }
+    .badge {
+      @media (max-width: 321px) {
+        margin-left: -10px !important;
+      }
+      > div {
+        cursor: pointer;
+        > img {
+          width: 25px;
+          height: auto;
+          @media (max-width: 321px) {
+            margin-left: 20px !important;
+          }
+        }
+      }
+    }
+  }
+  .navMenu {
+    .navItem {
+      font-size: 13px;
+    }
+    @media (max-width: 991px) {
+      display: none;
+    }
+  }
+}
+
+.headerSpacing {
+  padding: 20px 30px;
+}
+
+.tabs {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 30px;
+  margin-top: -50px;
+  margin-bottom: 40px;
+  @media (max-width: 1024px) {
+    display: grid !important;
+    grid-template-columns: repeat(6, 1fr) !important;
+  }
+  @media (max-width: 768px) {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    text-align: start;
+    align-items: center;
+    justify-content: center;
+  }
+  @media (max-width: 426px) {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    // margin-left: 95px !important;
+    text-align: start;
+  }
+  > div {
+    cursor: pointer;
+    > p {
+      color: #281008;
+      font-size: 18px;
+      font-weight: 600;
+      text-transform: uppercase;
+      @media (max-width: 1024px) {
+        font-size: 16px;
+      }
+      @media (max-width: 768px) {
+        width: 150px !important;
+      }
+    }
+  }
+}
+
+.search_sec {
+  width: 100%;
+  height: 500px;
+  position: relative;
+  .search_banner {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .search_banner_overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    // background: linear-gradient(180deg, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0.6) 100%);
+    z-index: 999;
+  }
+
+  .searchinput {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    z-index: 999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+
+    // @media (max-width: 768px) {
+    //   display: none;
+    // }
+    > p {
+      font-weight: 700;
+      font-style: normal;
+      font-size: 30px;
+      line-height: 30px;
+      color: $lightgrey;
+      text-align: center;
+      text-transform: capitalize;
+      @media (max-width: 768px) {
+        font-size: 20px;
+        line-height: 25px;
+      }
+    }
+    > div {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    > span {
+      width: 50%;
+      border: 1px solid $darkgrey;
+      padding: 10px 20px;
+      border-radius: 20px;
+      > span {
+        margin-inline-end: 12px;
+      }
+    }
+  }
+}

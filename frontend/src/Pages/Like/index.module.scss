@@ -1,0 +1,103 @@
+@import "../../Assets/Sass/variable.scss";
+
+.mainLine {
+  @media (max-width: 426px) {
+    width: 100%;
+  }
+  @media (max-width: 321px) {
+    width: 100% !important;
+  }
+  .wear {
+    margin-bottom: 50px;
+    .setMain {
+      width: 100%;
+      .slider {
+        position: relative;
+        .hearticon {
+          cursor: pointer;
+          > span {
+            font-size: 20px;
+            position: absolute;
+            margin-top: 10px;
+            color: $black;
+            border: 1px solid $white;
+            background: $white;
+            padding: 6px;
+            border-radius: 20px;
+            right: 50px;
+          }
+
+          .pink {
+            font-size: 20px;
+            position: absolute;
+            margin-top: 10px;
+            color: #f82212;
+            // border: 1px solid $white;
+            background: $white;
+            padding: 6px;
+            border-radius: 20px;
+            // right: 90px;
+            @media (max-width: 426px) {
+              right: 18px;
+            }
+          }
+
+          .normal {
+            font-size: 20px;
+            position: absolute;
+            margin-top: 10px;
+            color: $black;
+            border: 1px solid $white;
+            background: $white;
+            padding: 6px;
+            border-radius: 20px;
+            right: 90px;
+            @media (max-width: 426px) {
+              right: 18px;
+            }
+          }
+        }
+
+        > div {
+          position: static;
+          cursor: pointer;
+          width: 95%;
+          > img {
+            // width: 260px;
+            // height: 350px;
+            width: 100%;
+            height: 480px;
+            @media (max-width: 426px) {
+              height: 350px;
+            }
+          }
+        }
+
+        > p {
+          text-align: start;
+          font-size: 18px;
+          font-weight: 400;
+          padding-left: 10px;
+        }
+
+        .prices {
+          display: flex;
+          align-items: center;
+          gap: 20px;
+          margin-top: -30px;
+          padding-left: 10px;
+          > p {
+            text-align: start;
+            font-size: 18px;
+            font-weight: 400;
+          }
+
+          .secPrice {
+            text-decoration: line-through;
+            color: #998a85;
+          }
+        }
+      }
+    }
+  }
+}

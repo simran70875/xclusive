@@ -1,0 +1,39 @@
+@import url("https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400..700;1,400..700&display=swap");
+
+html, body, * {
+  font-family: 'Lora', serif !important;
+}
+
+body {
+  margin: 0;
+  font-family: "Lora", serif !important;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+:where(.ant-col) {
+  font-family: inherit !important;
+}
+
+code {
+  font-family: "Lora", serif !important;
+}
+
+.slick-slide slick-active slick-current {
+  width: 100% !important;
+}
+
+.ant-dropdown-menu {
+  border-radius: 0 !important;
+}
+
+.ant-dropdown-menu-item {
+  padding: 8px 24px !important;
+}
+
+/* .slick-prev:before, .slick-next:before {
+  font-size: 40px !important;
+  color: black !important;
+  position: relative !important;
+  margin-right: 50px;
+} */

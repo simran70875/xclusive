@@ -1,0 +1,19 @@
+@import "../../Assets/Sass/variable.scss";
+.scrollToTop {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #32140a;
+  padding: 12px;
+  border-radius: 100%;
+  position: fixed;
+  bottom: 40px;
+  right: 25px;
+  z-index: 20;
+  cursor: pointer;
+  span {
+    color: $white;
+  }
+}

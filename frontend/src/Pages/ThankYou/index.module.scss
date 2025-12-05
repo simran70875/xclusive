@@ -1,0 +1,119 @@
+.container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 20px;
+  background-color: #fff;
+}
+
+.card {
+  background-color: aliceblue;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
+}
+
+.cardCancle{
+  background-color: #fdeded;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
+}
+
+.successIcon {
+  font-size: 50px;
+  color: #52c41a;
+  margin-bottom: 20px;
+}
+
+h1 {
+  color: #52c41a;
+  font-size: 24px;
+  margin-bottom: 20px;
+}
+
+.message {
+  font-size: 16px;
+  margin-bottom: 20px;
+}
+
+.paymentDetails {
+  margin: 20px 0;
+  text-align: left;
+}
+
+.detailRow {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  font-size: 14px;
+  padding: 8px 0;
+  border-bottom: 1px solid #ddd;
+}
+
+.detailRow span:first-child {
+  font-weight: bold;
+  color: #333;
+}
+
+.contact {
+  font-size: 14px;
+  color: #888;
+  margin-bottom: 30px;
+}
+
+/* Media Queries for Mobile Responsiveness */
+@media (max-width: 768px) {
+  .card {
+    padding: 15px;
+  }
+
+  .successIcon {
+    font-size: 40px;
+  }
+
+  h1 {
+    font-size: 22px;
+  }
+
+  .message {
+    font-size: 15px;
+  }
+
+  .detailRow {
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 480px) {
+  .card {
+    padding: 10px;
+  }
+
+  .successIcon {
+    font-size: 35px;
+  }
+
+  h1 {
+    font-size: 20px;
+  }
+
+  .message {
+    font-size: 14px;
+  }
+
+  .detailRow {
+    font-size: 12px;
+  }
+
+  .contact {
+    font-size: 12px;
+  }
+}

@@ -1,0 +1,31 @@
+@import "../../../Assets/Sass/variable.scss";
+
+.main {
+  background-color: $primary;
+  height: 700px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  .user {
+    height: 500px;
+    background-color: $white;
+    padding: 10px 30px 10px 30px;
+    .forms {
+      .recieve {
+        font-size: 16px;
+        font-weight: 400;
+        margin-top: 30%;
+        > span {
+          font-weight: 500;
+          cursor: pointer;
+        }
+      }
+      .submit {
+        background-color: $black;
+        color: $white;
+        height: 40px;
+      }
+    }
+  }
+}

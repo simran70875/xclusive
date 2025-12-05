@@ -1,0 +1,39 @@
+@import "../../Assets/Sass/variable.scss";
+
+.mainLine {
+  @media (max-width: 426px) {
+    width: 100%;
+  }
+  @media (max-width: 321px) {
+    width: 100% !important;
+  }
+  .main {
+    box-shadow: 3px 2px 20px 0px #00000040;
+    margin-bottom: 80px;
+    border-radius: 10px;
+    // width: 100% !important;
+    @media (max-width: 768px) {
+      width: 150% !important;
+      overflow: auto !important;
+    }
+    .mainfix {
+      .order {
+        font-size: 24px;
+        font-weight: 700;
+        text-align: start;
+      }
+      .history {
+        display: flex;
+        align-items: center;
+        justify-content: space-around;
+        margin-bottom: 30px;
+        .tableContainer {
+          .ordertable {
+            font-size: 18px;
+            font-weight: 500;
+          }
+        }
+      }
+    }
+  }
+}

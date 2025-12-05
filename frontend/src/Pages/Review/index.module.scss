@@ -1,0 +1,38 @@
+.main {
+  height: 480px;
+  overflow-y: auto;
+  .setreview {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    .review1 {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      .blank {
+        border-radius: 30px;
+        width: 60px;
+        height: 60px;
+      }
+      > div {
+        > p {
+          text-align: start;
+        }
+      }
+    }
+    .date {
+      margin-right: 20px;
+    }
+  }
+}
+.reviewgraph {
+  font-size: 16px;
+  font-weight: 500;
+  text-align: start;
+}
+.line {
+  width: 100%;
+  border: 2px solid #e6e6e6;
+  margin-top: 20px;
+  margin-bottom: 20px;
+}

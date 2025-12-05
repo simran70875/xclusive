@@ -1,0 +1,203 @@
+@import "../../../Assets/Sass/variable.scss";
+
+.main {
+  background-color: $primary;
+  // height: 700px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  // height: 100vh;
+  padding: 50px;
+  .user {
+    height: 700px;
+    background-color: $white;
+    .setuser {
+      padding: 10px 30px 10px 30px;
+      text-align: start;
+      .phone {
+        border: 1px solid $black;
+        height: 40px;
+        margin-top: 20px;
+      }
+      .profile {
+        font-size: 18px;
+        font-weight: 500;
+        text-align: center;
+      }
+      .upload {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        margin: 0 75px 0 10px;
+        .uploadImg {
+          width: 160px !important;
+          height: 150px;
+          position: relative;
+          border-top-right-radius: 80px;
+          border-top-left-radius: 80px;
+          border-bottom-left-radius: 80px;
+          opacity: 0;
+          cursor: pointer;
+        }
+        > div {
+          width: 40px !important;
+          .showImg {
+            width: 150px;
+            height: 150px;
+            border-radius: 80px;
+            margin-left: -92px;
+            cursor: pointer;
+            object-fit: cover;
+          }
+        }
+        .selectImg {
+          width: 150px;
+          height: 150px;
+          border-radius: 80px;
+          border: 2px solid $black;
+          margin-left: -152px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer !important;
+        }
+        > div {
+          .uploadImg2 {
+            width: 30px !important;
+            height: 30px;
+            position: relative;
+            opacity: 0;
+            margin: 120px 24px 0px -14px;
+            cursor: pointer !important;
+          }
+          .uploadImg3 {
+            width: 30px !important;
+            height: 30px;
+            position: relative;
+            opacity: 0;
+            margin: 120px 24px 0px -14px;
+            cursor: pointer !important;
+          }
+          .icons {
+            font-size: 24px;
+            margin-top: 110px;
+            margin-left: -25px;
+            cursor: pointer !important;
+          }
+          .icons2 {
+            font-size: 24px !important;
+            margin-top: 118px !important;
+            margin-left: -12px !important;
+            cursor: pointer !important;
+          }
+        }
+      }
+      .upload2 {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        // margin: 0 50px 0 10px;
+        .uploadImg {
+          width: 160px !important;
+          height: 150px;
+          position: relative;
+          border-top-right-radius: 80px;
+          border-top-left-radius: 80px;
+          border-bottom-left-radius: 80px;
+          opacity: 0;
+          cursor: pointer;
+        }
+        > div {
+          // width: 30px;
+          .showImg {
+            width: 150px;
+            height: 150px;
+            border-radius: 80px;
+            margin-left: -100px;
+            cursor: pointer;
+          }
+        }
+        .selectImg {
+          width: 150px;
+          height: 150px;
+          border-radius: 80px;
+          border: 2px solid $black;
+          margin-left: -152px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .uploadImg2 {
+          width: 30px !important;
+          height: 30px;
+          position: relative;
+          opacity: 0;
+          margin: 120px 24px 0px -14px;
+          cursor: pointer !important;
+        }
+        .icons {
+          font-size: 24px;
+          margin-top: 110px;
+          margin-left: -25px;
+          cursor: pointer !important;
+        }
+        .icons2 {
+          font-size: 24px !important;
+          margin-top: 118px !important;
+          margin-left: -12px !important;
+          cursor: pointer !important;
+        }
+      }
+      .name {
+        margin: 0;
+        > div {
+          > div {
+            > div {
+              > div {
+                > input {
+                  border: 1px solid $black;
+                  height: 40px;
+                  margin-top: 20px;
+                  background-color: $white;
+                  color: $black;
+                }
+              }
+            }
+          }
+        }
+      }
+      .select {
+        margin: 0 0 8px 0;
+        > div {
+          > div {
+            > div {
+              > div {
+                > div {
+                  > div {
+                    border: 1px solid $black !important;
+                    height: 40px !important;
+                    margin-top: 20px !important;
+                    border-radius: 7px !important;
+                  }
+                  > span {
+                    margin-top: 18px !important;
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+      .mainbtn {
+        margin-top: 40px;
+        .save {
+          width: 100%;
+          height: 40px;
+          background-color: $black;
+          color: $white;
+          margin-top: 20px;
+        }
+      }
+    }
+  }
+}
