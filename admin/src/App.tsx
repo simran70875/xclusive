@@ -37,7 +37,7 @@ export default function App() {
         <Route element={<PrivateRoute />}>
           <Route element={<AppLayout />}>
             <Route index path="/" element={<Home />} />
-            <Route path="/customers" element={<CustomerPage />} />
+            <Route path="/Retailer" element={<CustomerPage />} />
             <Route path="/products" element={<ProductManagement />} />
             <Route path="/addProduct" element={<AddProductPage />} />
             <Route path="/editProduct" element={<EditProductPage />} />

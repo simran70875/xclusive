@@ -9,8 +9,8 @@ export default function Home() {
   return (
     <>
       <PageMeta
-        title="Work Safety - Work Wear and Safety Solutions "
-        description="Gear Up with Work Safety: Your Trusted Workwear"
+        title="Xclusive Diamond - Work Wear and Safety Solutions "
+        description="Gear Up with Xclusive Diamond: Your Trusted Workwear"
       />
       <div className="grid grid-cols-12 gap-4 md:gap-6">
         <div className="col-span-12 space-y-6 xl:col-span-7">

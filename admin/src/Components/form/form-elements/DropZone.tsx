@@ -26,12 +26,12 @@ const DropzoneComponent: React.FC<DropzoneProps> = ({
   });
 
   return (
-    <div className="transition border border-gray-300 border-dashed cursor-pointer dark:hover:border-brand-500 dark:border-gray-700 rounded-xl hover:border-brand-500">
+    <div className="transition border border-gray-300 border-dashed cursor-pointer dark:hover:border-yellow-500 dark:border-gray-700 rounded-xl hover:border-yellow-500">
       <form
         {...getRootProps()}
         className={`dropzone rounded-xl border-dashed border-gray-300 p-7 lg:p-10
           ${isDragActive
-            ? "border-brand-500 bg-gray-100 dark:bg-gray-800"
+            ? "border-yellow-500 bg-gray-100 dark:bg-gray-800"
             : "border-gray-300 bg-gray-50 dark:border-gray-700 dark:bg-gray-900"
           }
         `}
@@ -77,7 +77,7 @@ const DropzoneComponent: React.FC<DropzoneProps> = ({
               {helperText}
             </span>
           )}
-          <span className="font-medium underline text-theme-sm text-brand-500">
+          <span className="font-medium underline text-theme-sm text-yellow-500">
             Browse File
           </span>
 

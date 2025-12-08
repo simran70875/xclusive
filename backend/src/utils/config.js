@@ -1,1 +1,1 @@
-export const frontendUrl = 'https://work-safety.co.uk';
+export const frontendUrl = 'https://xclusive-diamonds.co.uk';

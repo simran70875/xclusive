@@ -14,7 +14,7 @@ const TermsPage = () => {
                     <p className="app-text-normal">
                         Work Wear Company<br />
                         {/* Unit Address (replace with correct address)<br /> */}
-                        Email: <a className="text-blue-600 underline" href="mailto:hello@worksafety.co.uk">hello@worksafety.co.uk</a>
+                        Email: <a className="text-blue-600 underline" href="mailto:hello@xclusivediamond.co.uk">hello@xclusivediamond.co.uk</a>
                     </p>
                     <p className="app-text-normal">
                         On occasion, we may share our customer list with carefully selected third parties for marketing purposes. If you would prefer not to receive such communications, please contact us using the details above.

@@ -37,7 +37,7 @@ const PolicyPage = () => {
 
                     <h3 className="font-semibold mt-4">3. Legal Basis for Processing</h3>
                     <p className="app-text-normal">
-                        Worksafety processes your personal data based on the following legal grounds:
+                        Xclusivediamond processes your personal data based on the following legal grounds:
                     </p>
                     <ul className="list-disc ml-6 app-text-normal">
                         <li>Performance of a contract (processing orders and providing services).</li>
@@ -83,7 +83,7 @@ const PolicyPage = () => {
                     </ul>
                     <p className="app-text-normal">
                         To exercise your rights, please contact us at:<br />
-                        Email: <a className="text-blue-600 underline" href="mailto:hello@worksafety.co.uk">hello@worksafety.co.uk</a>
+                        Email: <a className="text-blue-600 underline" href="mailto:hello@xclusivediamond.co.uk">hello@xclusivediamond.co.uk</a>
                     </p>
 
                     <h3 className="font-semibold mt-4">8. Cookies and Tracking</h3>
@@ -93,14 +93,14 @@ const PolicyPage = () => {
 
                     <h3 className="font-semibold mt-4">9. Changes to this Privacy Policy</h3>
                     <p className="app-text-normal">
-                        Worksafety may update this Privacy Policy periodically. We recommend reviewing it regularly. Updates will be posted on this page with an updated effective date.
+                        Xclusivediamond may update this Privacy Policy periodically. We recommend reviewing it regularly. Updates will be posted on this page with an updated effective date.
                     </p>
 
                     <h3 className="font-semibold mt-4">10. Contact Us</h3>
                     <p className="app-text-normal">
                         If you have any questions or concerns about this Privacy Policy or our data practices, please get in touch:<br />
-                        Worksafety<br />
-                        Email: <a className="text-blue-600 underline" href="mailto:hello@worksafety.co.uk">hello@worksafety.co.uk</a>
+                        Xclusivediamond<br />
+                        Email: <a className="text-blue-600 underline" href="mailto:hello@xclusivediamond.co.uk">hello@xclusivediamond.co.uk</a>
                     </p>
                 </section>
             </div>

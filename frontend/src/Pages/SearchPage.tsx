@@ -31,7 +31,7 @@ const SearchPage = () => {
 
             {/* Search Bar Container */}
             <div className="w-full max-w-4xl">
-                <div className="relative border-b border-gray-300 focus-within:border-pink-500 transition-colors">
+                <div className="relative border-b border-gray-300 focus-within:border-yellow-500 transition-colors">
                     <input
                         type="text"
                         placeholder="Search Product..."

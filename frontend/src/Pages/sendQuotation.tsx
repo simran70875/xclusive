@@ -127,7 +127,7 @@ const SendQuotation = () => {
             message="Just a Moment..."
             description="We're processing your request. Hang tight while we prepare your quote!"
             icon={
-              <Smile className="w-10 h-10 text-pink-500 animate-bounce transition-colors duration-300 group-hover:text-amber-500" />
+              <Smile className="w-10 h-10 text-yellow-500 animate-bounce transition-colors duration-300 group-hover:text-amber-500" />
             }
           />
         </div>
@@ -137,7 +137,7 @@ const SendQuotation = () => {
             message="Thank You For a Request"
             description="Your quote request has been submitted successfully. We’ll get back to you soon."
             icon={
-              <PartyPopper className="w-10 h-10 text-pink-500 animate-pulse transition-colors duration-300 group-hover:text-amber-500" />
+              <PartyPopper className="w-10 h-10 text-yellow-500 animate-pulse transition-colors duration-300 group-hover:text-amber-500" />
             }
           />
           <div className="mt-4">
@@ -236,7 +236,7 @@ const SendQuotation = () => {
                       )}
                     </label>
 
-                    <div className="relative border-b border-gray-300 focus-within:border-pink-500 transition-colors">
+                    <div className="relative border-b border-gray-300 focus-within:border-yellow-500 transition-colors">
                       <input
                         id={name}
                         type="text"
@@ -268,7 +268,7 @@ const SendQuotation = () => {
                     <br></br><br></br>
                     For example, you can mention: “Product 1 - Red (XL), Product 2 - Blue (XXL, S)” in your request.
                   </p>
-                  <div className="relative border-b border-gray-300 focus-within:border-pink-500 transition-colors">
+                  <div className="relative border-b border-gray-300 focus-within:border-yellow-500 transition-colors">
                     <textarea
                       id="message"
                       name="message"

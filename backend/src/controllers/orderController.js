@@ -285,7 +285,7 @@ Please find below your personalised quote, carefully prepared based on the items
         ? `<img src="${process.env.BASE_URL}${agent.signature}" style="width: 300px; height: auto;" />`
         : `<img src="${process.env.BASE_URL}/topBanners/SaleSupport.png" style="width: 100px; height: auto;" />`
       }<br />
-  ✉️ ${agent ? agent.email : "hello@work-safety.co.uk"}<br />
+  ✉️ ${agent ? agent.email : "hello@xclusive-diamonds.co.uk"}<br />
   🌐 workwearcompany.co.uk
 </p>
 
@@ -552,7 +552,7 @@ Please find below your personalised quote, carefully prepared based on the items
         ? `<img src="${process.env.BASE_URL}${agent.signature}" style="width: 400px; height: auto;" />`
         : `<img src="${process.env.BASE_URL}/topBanners/SaleSupport.png" style="width: 100px; height: auto;" />`
       }<br />
-  ✉️ ${agent ? agent.email : "hello@work-safety.co.uk"}<br />
+  ✉️ ${agent ? agent.email : "hello@xclusive-diamonds.co.uk"}<br />
   🌐 workwearcompany.co.uk
 </p>
 `;

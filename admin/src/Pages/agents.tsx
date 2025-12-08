@@ -312,7 +312,7 @@ export default function AgentsPage() {
                 width: 80,
                 renderCell: (params) => (
                     <>
-                        <div className="w-[32px] h-[32px] rounded-full bg-pink-200 uppercase flex items-center justify-center">
+                        <div className="w-[32px] h-[32px] rounded-full bg-yellow-200 uppercase flex items-center justify-center">
                             {params.row.firstName[0]} {params.row.lastName[0]}
                         </div>
                     </>

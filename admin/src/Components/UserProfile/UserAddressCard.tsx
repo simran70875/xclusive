@@ -203,7 +203,7 @@ export default function UserAddressCard() {
               </Button>
               <button
                 type="submit"
-                className="bg-pink-600 text-white px-6 py-2 rounded hover:bg-pink-700 transition"
+                className="bg-yellow-600 text-white px-6 py-2 rounded hover:bg-yellow-700 transition"
               >
                 Update Password
               </button>

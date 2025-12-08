@@ -215,7 +215,7 @@ export default function CustomerPage() {
     //     width: 80,
     //     renderCell: (params) => (
     //       <>
-    //         <div className="w-[32px] h-[32px] rounded-full bg-pink-200 uppercase flex items-center justify-center">
+    //         <div className="w-[32px] h-[32px] rounded-full bg-yellow-200 uppercase flex items-center justify-center">
     //           {params.row.firstName && params.row.lastName
     //             ? `${params.row.firstName[0]}${params.row.lastName[0]}`
     //             : "--"}
@@ -369,7 +369,7 @@ export default function CustomerPage() {
       {/* Title + Search + Add Button */}
       <div className="flex justify-between items-center ">
         <h2 className="text-xl font-semibold text-gray-800 dark:text-white">
-          Manage Users
+          Manage Retailer
         </h2>
 
         <div className="flex gap-3 items-center">

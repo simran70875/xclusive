@@ -52,8 +52,8 @@ const AppSidebar: React.FC = () => {
     },
     {
       icon: <UserCircleIcon />,
-      name: "Manage Customers",
-      path: "/customers",
+      name: "Manage Retailer",
+      path: "/Retailer",
     },
     {
       icon: <GridIcon />,
@@ -197,7 +197,7 @@ const AppSidebar: React.FC = () => {
                 <ChevronDownIcon
                   className={`ml-auto w-5 h-5 transition-transform duration-200 ${openSubmenu?.type === menuType &&
                     openSubmenu?.index === index
-                    ? "rotate-180 text-brand-500"
+                    ? "rotate-180 text-yellow-500"
                     : ""
                     }`}
                 />
@@ -301,11 +301,11 @@ const AppSidebar: React.FC = () => {
         <Link to="/">
           {(isExpanded || isHovered || isMobileOpen) ? (
             <span className="text-black-500 dark:text-white/90 font-bold text-3xl select-none">
-              WORKSAFETY<span className="text-pink-500">.</span>
+              XCLUSIVE DIAMONDS<span className="text-yellow-500">.</span>
             </span>
           ) : (
             <span className="text-black-500 dark:text-white/90 font-bold text-3xl select-none">
-              W<span className="text-pink-500">.</span>
+              W<span className="text-yellow-500">.</span>
             </span>
           )}
         </Link>

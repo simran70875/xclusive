@@ -32,7 +32,7 @@ const AboutPage = () => {
                     <div className="flex-1">
                         <img
                             src={images.about_top} // Replace with actual image path
-                            alt="Work Safety Gear"
+                            alt="Xclusive Diamond Gear"
                             className="max-w-md object-contain absolute bottom-0"
                         />
                     </div>
@@ -48,7 +48,7 @@ const AboutPage = () => {
                             About — <span className="span-word">WorkSafety.</span>
                         </>
                     }
-                    description="Welcome to Work Safety, where safeguarding your work environment is our utmost priority. Our company was born out of a passion for providing top-tier workwear that ensures safety, comfort, and style for professionals across all industries. We understand that workwear is not just about protection; it’s about empowering you to perform your best, day in and day out."
+                    description="Welcome to Xclusive Diamond, where safeguarding your work environment is our utmost priority. Our company was born out of a passion for providing top-tier workwear that ensures safety, comfort, and style for professionals across all industries. We understand that workwear is not just about protection; it’s about empowering you to perform your best, day in and day out."
 
                 />
 
@@ -66,7 +66,7 @@ const AboutPage = () => {
                                 To deliver superior workwear solutions that prioritize your safety
                             </p>
 
-                            <p className="app-text my-5">At Work Safety, our mission is clear: to deliver superior workwear solutions that prioritize your safety without compromising on style or comfort. We are dedicated to equipping you with the gear that allows you to focus on what truly matters—your work.</p>
+                            <p className="app-text my-5">At Xclusive Diamond, our mission is clear: to deliver superior workwear solutions that prioritize your safety without compromising on style or comfort. We are dedicated to equipping you with the gear that allows you to focus on what truly matters—your work.</p>
 
                             {/* <div className="flex items-center">
                                 <div className="w-20 h-1 bg-primary"></div>
@@ -79,7 +79,7 @@ const AboutPage = () => {
                     <div className="flex-1 hidden md:flex items-end justify-end">
                         <img
                             src={images.a1}
-                            alt="Work Safety Gear"
+                            alt="Xclusive Diamond Gear"
                             className="max-w-md object-contain"
                         />
                     </div>
@@ -92,7 +92,7 @@ const AboutPage = () => {
                     <div className="flex-1 hidden md:flex items-start justify-start">
                         <img
                             src={images.a2}
-                            alt="Work Safety Gear"
+                            alt="Xclusive Diamond Gear"
                             className="max-w-md object-contain"
                         />
                     </div>
@@ -145,7 +145,7 @@ const AboutPage = () => {
                                 Our comprehensive range of workwear is tailored to meet the diverse demands
                             </p>
 
-                            <p className="app-text my-5">From heavy-duty safety boots to ergonomic high-visibility jackets, our comprehensive range of workwear is tailored to meet the diverse demands of various professions. Whether you’re in construction, logistics, or any other industry, Work Safety has you covered.</p>
+                            <p className="app-text my-5">From heavy-duty safety boots to ergonomic high-visibility jackets, our comprehensive range of workwear is tailored to meet the diverse demands of various professions. Whether you’re in construction, logistics, or any other industry, Xclusive Diamond has you covered.</p>
 
                             {/* <div className="flex items-center">
                                 <div className="w-20 h-1 bg-primary"></div>
@@ -160,7 +160,7 @@ const AboutPage = () => {
                     <div className="flex-1 hidden md:flex items-end justify-end">
                         <img
                             src={images.full_width_1}
-                            alt="Work Safety Gear"
+                            alt="Xclusive Diamond Gear"
                             className="max-w-md object-contain"
                         />
                     </div>
@@ -173,7 +173,7 @@ const AboutPage = () => {
                     <div className="flex-1 hidden md:flex items-start justify-start">
                         <img
                             src={images.a4}
-                            alt="Work Safety Gear"
+                            alt="Xclusive Diamond Gear"
                             className="max-w-md object-contain"
                         />
                     </div>
@@ -191,9 +191,9 @@ const AboutPage = () => {
                             <p className="site-heading text-2xl text-left">
                                 We bring a wealth of knowledge and creativity to every product we create.
                             </p>
-                            <p className="app-text my-5">Our team at Work Safety is a dynamic group of experts dedicated to revolutionizing the workwear industry. With backgrounds in safety engineering, fashion design, and customer service, we bring a wealth of knowledge and creativity to every product we create.</p>
+                            <p className="app-text my-5">Our team at Xclusive Diamond is a dynamic group of experts dedicated to revolutionizing the workwear industry. With backgrounds in safety engineering, fashion design, and customer service, we bring a wealth of knowledge and creativity to every product we create.</p>
                             <p className="site-heading text-2xl text-left">
-                                Why Choose Work Safety?                            </p>
+                                Why Choose Xclusive Diamond?                            </p>
                             <ul className="my-5">
                                 <li className="app-text-normal mb-2"><span className="span-word font-semibold">Proven Reliability - </span>Trusted by professionals across numerous sectors, our workwear is synonymous with reliability and performance.</li>
                                 <li className="app-text-normal mb-2"><span className="span-word font-semibold">Customer-Centric Philosophy - </span> We value our customers’ feedback and continuously refine our offerings to better serve their needs.</li>

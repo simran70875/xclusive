@@ -132,7 +132,7 @@ const ContactUs = () => {
                         message="Just a Moment..."
                         description="We're processing your request. Hang tight while we prepare your quote!"
                         icon={
-                            <Smile className="w-10 h-10 text-pink-500 animate-bounce" />
+                            <Smile className="w-10 h-10 text-yellow-500 animate-bounce" />
                         }
                     />
                 </div>
@@ -142,7 +142,7 @@ const ContactUs = () => {
                         message="Thank You For Your Query"
                         description="Your query has been submitted successfully. Our team will get back to you shortly."
                         icon={
-                            <PartyPopper className="w-10 h-10 text-pink-500 animate-pulse" />
+                            <PartyPopper className="w-10 h-10 text-yellow-500 animate-pulse" />
                         }
                     />
                     <div className="mt-4">
@@ -189,7 +189,7 @@ const ContactUs = () => {
                                             <label htmlFor={name} className="block text-sm font-medium text-gray-700">
                                                 {placeholder} {name != "phone" && <span className="text-red-500">*</span>}
                                             </label>
-                                            <div className="relative flex items-center border-b border-gray-300 focus-within:border-pink-500">
+                                            <div className="relative flex items-center border-b border-gray-300 focus-within:border-yellow-500">
                                                 <span className="text-gray-400 mr-3">
                                                     {icon}
                                                 </span>
@@ -213,7 +213,7 @@ const ContactUs = () => {
                                     <label htmlFor="message" className="block text-sm font-medium text-gray-700">
                                         Message <span className="text-red-500">*</span>
                                     </label>
-                                    <div className="relative border-b border-gray-300 focus-within:border-pink-500">
+                                    <div className="relative border-b border-gray-300 focus-within:border-yellow-500">
                                         <textarea
                                             id="message"
                                             name="message"
@@ -232,7 +232,7 @@ const ContactUs = () => {
                                     <label htmlFor="document" className="block text-sm font-medium text-gray-700">
                                         Attach Document (Optional)
                                     </label>
-                                    <div className="relative border-b border-gray-300 focus-within:border-pink-500">
+                                    <div className="relative border-b border-gray-300 focus-within:border-yellow-500">
                                         <input
                                             type="file"
                                             id="document"
@@ -256,7 +256,7 @@ const ContactUs = () => {
                                         }}
                                     />
                                     <label htmlFor="document" className="block text-sm  text-gray-600">
-                                        Yes, I agree to receive newsletters, promotional offers, Vouchers and updates about new product launches from Work Safety. I understand I can unsubscribe at any time.
+                                        Yes, I agree to receive newsletters, promotional offers, Vouchers and updates about new product launches from Xclusive Diamond. I understand I can unsubscribe at any time.
                                     </label>
                                 </div>
 
@@ -271,7 +271,7 @@ const ContactUs = () => {
                                         }}
                                     />
                                     <label htmlFor="document" className="block text-sm  text-gray-600">
-                                        I consent to Work Safety storing and using my information for these purposes in accordance with the Privacy Policy.                                    </label>
+                                        I consent to Xclusive Diamond storing and using my information for these purposes in accordance with the Privacy Policy.                                    </label>
                                 </div>
 
                                 <div className="flex justify-center">

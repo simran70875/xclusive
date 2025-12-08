@@ -1,5 +1,5 @@
-export const BASE_URL = "https://api.work-safety.co.uk";
-export const IMAGE_URL = "https://api.work-safety.co.uk/static";
+export const BASE_URL = "http://192.168.29.183:5000";
+export const IMAGE_URL = "http://192.168.29.183:5000/static";
 
 export const API_PATHS = {
   LOGIN: `${BASE_URL}/api/auth/login`,

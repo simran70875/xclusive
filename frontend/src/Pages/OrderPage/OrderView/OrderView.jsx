@@ -256,7 +256,7 @@ function OrderView() {
                               <p className={styles.size}>
                                 Size - {item2?.SizeName}
                               </p>
-                              {/* <p className={styles.size}>color - pink</p> */}
+                              {/* <p className={styles.size}>color - yellow</p> */}
                             </div>
                             <div className={styles.set}>
                               <Image
@@ -273,7 +273,7 @@ function OrderView() {
                                 <p className={styles.size}>
                                   Size - {item2?.SizeName}
                                 </p>
-                                {/* <p className={styles.size}>color - pink</p> */}
+                                {/* <p className={styles.size}>color - yellow</p> */}
                               </div>
                             </div>
                             <div className={styles.seting}>

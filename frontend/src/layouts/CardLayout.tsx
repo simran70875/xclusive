@@ -172,7 +172,7 @@ const CardLayout: FC<CardProps> = ({ cardContent, loading }) => {
                                         />
                                     </div>
                                     <div className="w-full py-4 text-center">
-                                        <p className="font-semibold group-hover:text-pink-500 uppercase tracking-wide text-sm md:text-[16px]">{item.Category1}</p>
+                                        <p className="font-semibold group-hover:text-yellow-500 uppercase tracking-wide text-sm md:text-[16px]">{item.Category1}</p>
                                     </div>
                                 </div>
                             );

@@ -60,7 +60,7 @@ export default function UserMetaCard() {
       <div className="p-5 border border-gray-200 rounded-2xl dark:border-gray-800 lg:p-6">
         <div className="flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
           <div className="flex flex-col items-center w-full gap-6 xl:flex-row">
-            <div className="w-20 h-20 flex items-center justify-center overflow-hidden border bg-pink-800 rounded-full dark:border-gray-800 text-2xl text-white">
+            <div className="w-20 h-20 flex items-center justify-center overflow-hidden border bg-yellow-800 rounded-full dark:border-gray-800 text-2xl text-white">
               {adminUser?.firstName?.[0]} {adminUser?.lastName?.[0]}
             </div>
             <div className="order-3 xl:order-2">
@@ -194,7 +194,7 @@ export default function UserMetaCard() {
               </Button> */}
               <button
                 type="submit"
-                className="bg-pink-600 text-white px-6 py-2 rounded hover:bg-pink-700 transition"
+                className="bg-yellow-600 text-white px-6 py-2 rounded hover:bg-yellow-700 transition"
               >
                 Save Changes
               </button>

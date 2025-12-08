@@ -87,7 +87,7 @@ export default function SignInForm() {
                       <label htmlFor={"userId"} className="block text-sm font-medium text-gray-200 mb-2">
                         User ID <span className="text-red-500">*</span>
                       </label>
-                      <div className="relative border-b border-gray-300 focus-within:border-pink-500">
+                      <div className="relative border-b border-gray-300 focus-within:border-yellow-500">
                         <input
                           id={"userId"}
                           type="text"
@@ -148,11 +148,11 @@ export default function SignInForm() {
                   className="mb-5"
                 />
                 <span className="text-white dark:text-white/90 font-bold text-3xl select-none">
-                  WORKSAFETY<span className="text-pink-500">.</span>
+                  XCLUSIVEDIAMONDS<span className="text-yellow-500">.</span>
                 </span>
               </div>
               <p className="text-center text-gray-400 dark:text-white/60">
-                Welcome to Work Safety, where safeguarding your work environment is our utmost priority.
+                Welcome to Xclusive Diamond, where safeguarding your work environment is our utmost priority.
               </p>
             </div>
           </div>

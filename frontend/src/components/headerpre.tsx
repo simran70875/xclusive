@@ -63,7 +63,7 @@ const HeaderPre = () => {
                                                 <li key={label}>
                                                     <Link
                                                         to={`/shop/${label.toLowerCase().replace(/ & /g, "-").replace(/\s+/g, "-")}`}
-                                                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-pink-50 hover-item"
+                                                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-yellow-50 hover-item"
                                                     >
                                                         {label}
                                                     </Link>

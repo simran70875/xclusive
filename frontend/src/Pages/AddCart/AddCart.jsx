@@ -758,7 +758,7 @@ function AddCart() {
                       <div className={styles.hearticon}>
                         {getProductIsLikedOrNot(item?._id) ? (
                           <HeartFilled
-                            className={styles.pink}
+                            className={styles.yellow}
                             onClick={() => {
                               toggleLike(item?._id);
                             }}
@@ -813,7 +813,7 @@ function AddCart() {
                       <div className={styles.hearticon}>
                         {getProductIsLikedOrNot(data?._id) ? (
                           <HeartFilled
-                            className={styles.pink}
+                            className={styles.yellow}
                             onClick={() => {
                               toggleLike(data?._id);
                             }}
@@ -863,7 +863,7 @@ function AddCart() {
                       <div className={styles.hearticon}>
                         {getProductIsLikedOrNot(item?._id) ? (
                           <HeartFilled
-                            className={styles.pink}
+                            className={styles.yellow}
                             onClick={() => {
                               toggleLike(item?._id);
                             }}
@@ -918,7 +918,7 @@ function AddCart() {
                       <div className={styles.hearticon}>
                         {getProductIsLikedOrNot(data?._id) ? (
                           <HeartFilled
-                            className={styles.pink}
+                            className={styles.yellow}
                             onClick={() => {
                               toggleLike(data?._id);
                             }}

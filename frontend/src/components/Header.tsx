@@ -100,9 +100,9 @@ const Header = ({ cartItems }: HeaderProps) => {
             onClick={() => navigate("/cart")}
             className="relative cursor-pointer"
           >
-            <ShoppingCart className="w-5 h-5 text-pink-500" />
+            <ShoppingCart className="w-5 h-5 text-yellow-500" />
             {cartItems.length > 0 && (
-              <span className="absolute -top-1 -left-2 bg-pink-500 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center">
+              <span className="absolute -top-1 -left-2 bg-yellow-500 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center">
                 {cartItems.length}
               </span>
             )}
@@ -129,7 +129,7 @@ const Header = ({ cartItems }: HeaderProps) => {
 
             {/* Search Bar */}
             <div className="flex-1 max-w-xl w-full" ref={searchRef}>
-              <div className="flex items-center relative border-2 border-pink-400 focus-within:border-pink-500 transition-colors px-4 rounded-full">
+              <div className="flex items-center relative border-2 border-yellow-400 focus-within:border-yellow-500 transition-colors px-4 rounded-full">
                 <input
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
@@ -206,9 +206,9 @@ const Header = ({ cartItems }: HeaderProps) => {
                 className="flex items-center gap-1 cursor-pointer pr-4 text-gray-600 text-[13px]"
               >
                 <div className="relative">
-                  <ShoppingCart className="w-4 h-4 text-pink-500" />
+                  <ShoppingCart className="w-4 h-4 text-yellow-500" />
                   {cartItems.length > 0 && (
-                    <span className="absolute -top-2 -left-2 bg-pink-500 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center">
+                    <span className="absolute -top-2 -left-2 bg-yellow-500 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center">
                       {cartItems.length}
                     </span>
                   )}
@@ -217,13 +217,13 @@ const Header = ({ cartItems }: HeaderProps) => {
               </div>
 
               <div onClick={() => navigate("/terms")} className="flex items-center gap-1 space-x-1 cursor-pointer px-4 text-gray-600 text-[13px]">
-                <Bubbles className="w-4 h-4 text-pink-500" />
+                <Bubbles className="w-4 h-4 text-yellow-500" />
                 <p>Terms & Conditions</p>
               </div>
 
 
               <div onClick={() => navigate("/privacy")} className="flex items-center gap-1 space-x-1 cursor-pointer px-4 text-gray-600 text-[13px]">
-                <BadgeAlert className="w-4 h-4 text-pink-500" />
+                <BadgeAlert className="w-4 h-4 text-yellow-500" />
                 <p>Privacy Policy</p>
               </div>
 
@@ -234,7 +234,7 @@ const Header = ({ cartItems }: HeaderProps) => {
                   navigate("/login")
                 }
               }} className="flex items-center gap-1 space-x-1 cursor-pointer px-4 text-gray-600 text-[13px]">
-                <User className="w-4 h-4 text-pink-500" />
+                <User className="w-4 h-4 text-yellow-500" />
                 <p>{token ? "My Account" : "Login"}</p>
               </div>
 
@@ -311,9 +311,9 @@ const Header = ({ cartItems }: HeaderProps) => {
                         }} className="flex flex-row items-center">
                         {/* <img src={cat.image} className="w-10 h-10 mb-2 rounded-full" alt="" /> */}
 
-                        <p className="font-semibold text-[13x] group-hover:text-pink-500 transition-colors duration-200 uppercase tracking-wide whitespace-nowrap">
+                        <p className="font-semibold text-[13x] group-hover:text-yellow-500 transition-colors duration-200 uppercase tracking-wide whitespace-nowrap">
                           {cat.Category1}</p>
-                        <ChevronDown className="group-hover:text-pink-500 pl-2" />
+                        <ChevronDown className="group-hover:text-yellow-500 pl-2" />
                       </div>
 
                       {cat?.Categories2?.length > 0 && (
@@ -387,20 +387,20 @@ const Header = ({ cartItems }: HeaderProps) => {
         <div className="bg-blue-50 flex items-center justify-center">
           <div className="py-3 px-4 md:px-8 flex flex-nowrap gap-6 text-sm text-gray-700 hidden md:flex overflow-x-auto">
             <div className="flex items-center gap-1 space-x-1 cursor-pointer px-4 text-[13px]">
-              <CreditCard className="w-4 h-4 text-pink-500" />
+              <CreditCard className="w-4 h-4 text-yellow-500" />
               <p className="uppercase font-semibold text-sm whitespace-nowrap">Credit Accounts</p>
             </div>
 
             <div className="flex items-center gap-1 space-x-1 cursor-pointer px-4 text-[13px]">
-              <Flag className="w-4 h-4 text-pink-500" />
+              <Flag className="w-4 h-4 text-yellow-500" />
               <p className="uppercase font-semibold text-sm whitespace-nowrap">Certified Products</p>
             </div>
             <div className="flex items-center gap-1 space-x-1 cursor-pointer px-4 text-[13px]">
-              <LeafIcon className="w-4 h-4 text-pink-500" />
+              <LeafIcon className="w-4 h-4 text-yellow-500" />
               <p className="uppercase font-semibold text-sm whitespace-nowrap">1400+ Style</p>
             </div>
             <div className="flex items-center gap-1 space-x-1 cursor-pointer px-4 text-[13px]">
-              <BellElectric className="w-4 h-4 text-pink-500" />
+              <BellElectric className="w-4 h-4 text-yellow-500" />
               <p className="uppercase font-semibold text-sm whitespace-nowrap">Fast & Reliable</p>
             </div>
             <div
@@ -409,7 +409,7 @@ const Header = ({ cartItems }: HeaderProps) => {
               }}
               className="flex items-center gap-1 space-x-1 cursor-pointer px-4 text-[13px]"
             >
-              <Info className="w-4 h-4 text-pink-500" />
+              <Info className="w-4 h-4 text-yellow-500" />
               <p className="uppercase font-semibold text-sm whitespace-nowrap">About Us</p>
             </div>
           </div>

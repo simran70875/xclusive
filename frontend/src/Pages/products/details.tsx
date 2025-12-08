@@ -192,7 +192,7 @@ const ProjectDetails = ({ refreshCart }: ProductDetailsPageProps) => {
                   value={quantity}
                   min={1}
                   onChange={handleQuantityChange}
-                  className="ml-3 block w-20 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-pink-500 focus:border-pink-500 sm:text-sm"
+                  className="ml-3 block w-20 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-yellow-500 focus:border-yellow-500 sm:text-sm"
                 />
               </div>
 
@@ -201,7 +201,7 @@ const ProjectDetails = ({ refreshCart }: ProductDetailsPageProps) => {
                 <button
                   onClick={() => setActiveTab("description")}
                   className={`px-4 py-2 font-medium ${activeTab === "description"
-                    ? "border-b-2 border-pink-500 text-pink-500"
+                    ? "border-b-2 border-yellow-500 text-yellow-500"
                     : ""
                     }`}
                 >
@@ -210,7 +210,7 @@ const ProjectDetails = ({ refreshCart }: ProductDetailsPageProps) => {
                 <button
                   onClick={() => setActiveTab("technical")}
                   className={`px-4 py-2 font-medium ${activeTab === "technical"
-                    ? "border-b-2 border-pink-500 text-pink-500"
+                    ? "border-b-2 border-yellow-500 text-yellow-500"
                     : ""
                     }`}
                 >

@@ -55,7 +55,7 @@ const ProductGrid: React.FC<ProductGridProps> = ({ products, gridCols, loading }
                   className="w-full h-40 object-contain"
                 />
                 {/* Icons container */}
-                {/* <div className="absolute top-5 right-5 h-auto rounded-full flex flex-col items-center justify-start gap-6 p-2 opacity-0 group-hover:opacity-100 group-hover:bg-pink-500 transition-opacity duration-300">
+                {/* <div className="absolute top-5 right-5 h-auto rounded-full flex flex-col items-center justify-start gap-6 p-2 opacity-0 group-hover:opacity-100 group-hover:bg-yellow-500 transition-opacity duration-300">
                   <ShoppingCart className="text-gray-900 text-sm cursor-pointer group-hover:text-white" />
                 </div> */}
               </div>
@@ -64,7 +64,7 @@ const ProductGrid: React.FC<ProductGridProps> = ({ products, gridCols, loading }
                 {item.Category1?.Category1 || "No Category"}
               </p>
 
-              <h3 className="text-[12px] md:text-sm text-gray-700 group-hover:text-pink-500 font-semibold mt-1">
+              <h3 className="text-[12px] md:text-sm text-gray-700 group-hover:text-yellow-500 font-semibold mt-1">
                 {item.ExtendedCharacterDesc}
               </h3>
             </div>

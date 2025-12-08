@@ -1,9 +1,9 @@
 
-// export const BASE_URL = "https://work-safety-backend.onrender.com";
-// export const IMAGE_URL = "https://work-safety-backend.onrender.com/static";
+// export const BASE_URL = "https://xclusive-diamond-backend.onrender.com";
+// export const IMAGE_URL = "https://xclusive-diamond-backend.onrender.com/static";
 
-export const BASE_URL = "https://api.work-safety.co.uk";
-export const IMAGE_URL = "https://api.work-safety.co.uk/static";
+export const BASE_URL = "https://api.xclusive-diamond.co.uk";
+export const IMAGE_URL = "https://api.xclusive-diamond.co.uk/static";
 
 export const API_PATHS = {
   LOGIN: `${BASE_URL}/api/auth/login`,

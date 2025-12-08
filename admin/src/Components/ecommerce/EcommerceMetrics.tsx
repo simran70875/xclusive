@@ -41,7 +41,7 @@ export default function EcommerceMetrics() {
         <div className="flex items-end justify-between mt-5">
           <div>
             <span className="text-sm text-gray-500 dark:text-gray-400">
-              Customers
+              Retailer
             </span>
 
 
@@ -52,7 +52,7 @@ export default function EcommerceMetrics() {
           </div>
 
 
-          <div onClick={() => navigate("/customers")} className="cursor-pointer">
+          <div onClick={() => navigate("/Retailer")} className="cursor-pointer">
             <Badge color="success">
               {/* <ArrowUpIcon /> */}
               View

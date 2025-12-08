@@ -467,7 +467,7 @@ const OrderConfirmationPage = () => {
                       isCopied && <>
                         <label
                           htmlFor="invoiceAddress"
-                          className="text-pink-600 flex items-center gap-1 text-sm mt-1"
+                          className="text-yellow-600 flex items-center gap-1 text-sm mt-1"
                         >
                           <CheckCircle size={14} />  Billing address copied
                         </label>

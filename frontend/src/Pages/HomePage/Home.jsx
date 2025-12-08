@@ -326,7 +326,7 @@ function Home({ children }) {
                       <div className={styles.hearticon}>
                         {getProductIsLikedOrNot(item?._id) ? (
                           <HeartFilled
-                            className={styles.pink}
+                            className={styles.yellow}
                             onClick={() => {
                               toggleLike(item?._id);
                             }}
@@ -382,7 +382,7 @@ function Home({ children }) {
                         <div className={styles.hearticon}>
                           {getProductIsLikedOrNot(item?._id) ? (
                             <HeartFilled
-                              className={styles.pink}
+                              className={styles.yellow}
                               onClick={() => {
                                 toggleLike(item?._id);
                               }}
@@ -432,7 +432,7 @@ function Home({ children }) {
                       <div className={styles.hearticon}>
                         {getProductIsLikedOrNot(item?._id) ? (
                           <HeartFilled
-                            className={styles.pink}
+                            className={styles.yellow}
                             onClick={() => {
                               toggleLike(item?._id);
                             }}
@@ -487,7 +487,7 @@ function Home({ children }) {
                       <div className={styles.hearticon}>
                         {getProductIsLikedOrNot(data?._id) ? (
                           <HeartFilled
-                            className={styles.pink}
+                            className={styles.yellow}
                             onClick={() => {
                               toggleLike(data?._id);
                             }}
@@ -586,7 +586,7 @@ function Home({ children }) {
                       <div className={styles.hearticon}>
                         {getProductIsLikedOrNot(item?._id) ? (
                           <HeartFilled
-                            className={styles.pink}
+                            className={styles.yellow}
                             onClick={() => {
                               toggleLike(item?._id);
                             }}
@@ -641,7 +641,7 @@ function Home({ children }) {
                       <div className={styles.hearticon}>
                         {getProductIsLikedOrNot(data?._id) ? (
                           <HeartFilled
-                            className={styles.pink}
+                            className={styles.yellow}
                             onClick={() => {
                               toggleLike(data?._id);
                             }}
@@ -709,7 +709,7 @@ function Home({ children }) {
                       <div className={styles.hearticon}>
                         {getProductIsLikedOrNot(item?._id) ? (
                           <HeartFilled
-                            className={styles.pink}
+                            className={styles.yellow}
                             onClick={() => {
                               toggleLike(item?._id);
                             }}
@@ -764,7 +764,7 @@ function Home({ children }) {
                       <div className={styles.hearticon}>
                         {getProductIsLikedOrNot(data?._id) ? (
                           <HeartFilled
-                            className={styles.pink}
+                            className={styles.yellow}
                             onClick={() => {
                               toggleLike(data?._id);
                             }}

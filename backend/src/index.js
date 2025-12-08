@@ -16,13 +16,12 @@ app.use(morgan("short"));
 // DB connect
 mongoose.connect(process.env.MONGODB_URI).then(() => {
   app.listen(process.env.PORT, '0.0.0.0', () => {
-    console.log(`Server listening on http://0.0.0.0:${process.env.PORT}`);
+    console.log(`Server listening on http://${process.env.IpAddress}:${process.env.PORT}`);
   });
 }).catch((err) => {
   console.error('MongoDB connection error:', err);
 });
 
-console.log('Running from directory:', __dirname);
 
 // Static assets
 app.use('/static', express.static(path.join(__dirname, '../public')));

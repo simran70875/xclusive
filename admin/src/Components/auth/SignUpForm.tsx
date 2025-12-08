@@ -164,7 +164,7 @@ export default function SignUpForm() {
                 </div>
                 {/* <!-- Button --> */}
                 <div>
-                  <button className="flex items-center justify-center w-full px-4 py-3 text-sm font-medium text-white transition rounded-lg bg-brand-500 shadow-theme-xs hover:bg-brand-600">
+                  <button className="flex items-center justify-center w-full px-4 py-3 text-sm font-medium text-white transition rounded-lg bg-yellow-500 shadow-theme-xs hover:bg-yellow-600">
                     Sign Up
                   </button>
                 </div>
@@ -176,7 +176,7 @@ export default function SignUpForm() {
                 Already have an account? {""}
                 <Link
                   to="/signin"
-                  className="text-brand-500 hover:text-brand-600 dark:text-brand-400"
+                  className="text-yellow-500 hover:text-yellow-600 dark:text-yellow-400"
                 >
                   Sign In
                 </Link>

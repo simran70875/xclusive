@@ -30,7 +30,7 @@
 }
 
 .swiper-pagination-bullet-active {
-  @apply bg-pink-500;
+  @apply bg-yellow-500;
 }
 
 
@@ -38,23 +38,23 @@
 
   @layer components {
     .text-primary {
-      @apply text-pink-500;
+      @apply text-yellow-500;
     }
 
     .hover-item {
-      @apply hover:text-pink-500
+      @apply hover:text-yellow-500
     }
 
     .bg-primary {
-      @apply bg-pink-500;
+      @apply bg-yellow-500;
     }
 
     .border-primary {
-      @apply border-pink-500;
+      @apply border-yellow-500;
     }
 
     .hover-primary {
-      @apply hover:text-pink-600;
+      @apply hover:text-yellow-600;
     }
   }
 
@@ -68,7 +68,7 @@
   }
 
   .span-word {
-    @apply text-pink-400;
+    @apply text-yellow-400;
   }
 
   .col-aligned-center {
@@ -85,12 +85,12 @@
 
   /* Navigation link with hover underline */
   .nav-link {
-    @apply relative text-gray-700 h-full flex items-center text-sm hover:text-pink-500;
+    @apply relative text-gray-700 h-full flex items-center text-sm hover:text-yellow-500;
   }
 
   .nav-link::before {
     content: '';
-    @apply absolute -left-6 top-1/2 -translate-y-1/2 h-[2px] bg-pink-500 w-0 transition-all duration-300 ease-in-out pointer-events-none;
+    @apply absolute -left-6 top-1/2 -translate-y-1/2 h-[2px] bg-yellow-500 w-0 transition-all duration-300 ease-in-out pointer-events-none;
   }
 
   .nav-link:hover::before {
@@ -111,12 +111,12 @@
 
 
   .nav-link-2 {
-    @apply relative text-gray-700 h-full flex items-center text-sm hover:text-pink-500;
+    @apply relative text-gray-700 h-full flex items-center text-sm hover:text-yellow-500;
   }
 
   .nav-link-2::before {
     content: '';
-    @apply absolute -left-6 top-1/2 -translate-y-1/2 h-[2px] bg-pink-500 w-0 transition-all duration-300 ease-in-out pointer-events-none;
+    @apply absolute -left-6 top-1/2 -translate-y-1/2 h-[2px] bg-yellow-500 w-0 transition-all duration-300 ease-in-out pointer-events-none;
   }
 
   .group:hover .nav-link-2::before {
@@ -126,12 +126,12 @@
 
   /* Icon button style */
   .icon-btn {
-    @apply w-4 h-4 cursor-pointer text-gray-700 text-sm hover:text-pink-500;
+    @apply w-4 h-4 cursor-pointer text-gray-700 text-sm hover:text-yellow-500;
   }
 
   /* Primary button style (for reuse) */
   .btn-primary {
-    @apply bg-pink-400 hover:bg-pink-500 text-white px-4 py-2 rounded transition-colors duration-300;
+    @apply bg-yellow-400 hover:bg-yellow-500 text-white px-4 py-2 rounded transition-colors duration-300;
   }
 
 
@@ -142,7 +142,7 @@
 
   /* Footer social icon link */
   .footer-social-link {
-    @apply flex items-center space-x-2 text-gray-600 hover:text-pink-500 transition-colors duration-300;
+    @apply flex items-center space-x-2 text-gray-600 hover:text-yellow-500 transition-colors duration-300;
   }
 
   /* Subscribe input */
@@ -152,7 +152,7 @@
 
   /* Subscribe button */
   .subscribe-button {
-    @apply h-12 bg-pink-400 hover:bg-pink-500 transition-colors text-white px-6 text-sm font-normal rounded-none flex-shrink-0;
+    @apply h-12 bg-yellow-400 hover:bg-yellow-500 transition-colors text-white px-6 text-sm font-normal rounded-none flex-shrink-0;
   }
 }
 

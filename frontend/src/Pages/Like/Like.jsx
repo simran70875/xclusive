@@ -83,7 +83,7 @@ function Like() {
                   <div className={styles.slider} key={index}>
                     <div className={styles.hearticon}>
                       <HeartFilled
-                        className={isLiked ? styles.pink : styles.normal}
+                        className={isLiked ? styles.yellow : styles.normal}
                         onClick={() => toggleLike(item?._id)}
                       />
                     </div>

@@ -92,7 +92,7 @@ function SearchData() {
                         <div className={styles.hearticon}>
                           {getProductIsLikedOrNot(item?._id) ? (
                             <HeartFilled
-                              className={styles.pink}
+                              className={styles.yellow}
                               onClick={() => {
                                 toggleLike(item?._id);
                               }}

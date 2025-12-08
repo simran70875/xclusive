@@ -136,19 +136,19 @@ const UserProfilePage = () => {
                 <div className="flex justify-between border-b border-gray-300 mb-6 ">
                     <div className="flex flex-1 space-x-6 text-sm font-medium">
                         <button
-                            className={`pb-2 ${activeTab === "orders" ? "border-b-2 border-pink-600 text-pink-600" : "text-gray-500"}`}
+                            className={`pb-2 ${activeTab === "orders" ? "border-b-2 border-yellow-600 text-yellow-600" : "text-gray-500"}`}
                             onClick={() => setActiveTab("orders")}
                         >
                             Order History
                         </button>
                         <button
-                            className={`pb-2 ${activeTab === "profile" ? "border-b-2 border-pink-600 text-pink-600" : "text-gray-500"}`}
+                            className={`pb-2 ${activeTab === "profile" ? "border-b-2 border-yellow-600 text-yellow-600" : "text-gray-500"}`}
                             onClick={() => setActiveTab("profile")}
                         >
                             Edit Profile
                         </button>
                         <button
-                            className={`pb-2 ${activeTab === "password" ? "border-b-2 border-pink-600 text-pink-600" : "text-gray-500"}`}
+                            className={`pb-2 ${activeTab === "password" ? "border-b-2 border-yellow-600 text-yellow-600" : "text-gray-500"}`}
                             onClick={() => setActiveTab("password")}
                         >
                             Change Password
@@ -345,7 +345,7 @@ const UserProfilePage = () => {
                             <div className="md:col-span-2 flex justify-end mt-4">
                                 <button
                                     type="submit"
-                                    className="bg-pink-600 text-white px-6 py-2 rounded hover:bg-pink-700 transition"
+                                    className="bg-yellow-600 text-white px-6 py-2 rounded hover:bg-yellow-700 transition"
                                 >
                                     Save Changes
                                 </button>
@@ -416,7 +416,7 @@ const UserProfilePage = () => {
 
                             <button
                                 type="submit"
-                                className="bg-pink-600 text-white px-4 py-2 rounded hover:bg-pink-700"
+                                className="bg-yellow-600 text-white px-4 py-2 rounded hover:bg-yellow-700"
                             >
                                 Change Password
                             </button>

@@ -174,11 +174,11 @@ const CartPage = () => {
             loading ? <SummarySkeleton /> : <>
               <div className="flex justify-between text-gray-700 text-lg mb-4 font-medium">
                 <span>Total Products</span>
-                <span className="text-pink-600 font-bold">{cartItems.length}</span>
+                <span className="text-yellow-600 font-bold">{cartItems.length}</span>
               </div>
               <div className="flex justify-between text-gray-700 text-lg mb-4 font-medium">
                 <span>Total Items Quantity</span>
-                <span className="text-pink-600 font-bold">
+                <span className="text-yellow-600 font-bold">
                   {cartItems.reduce((acc, item) => acc + item.quantity, 0)}
                 </span>
               </div>

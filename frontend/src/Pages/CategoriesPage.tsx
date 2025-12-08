@@ -83,7 +83,7 @@ const CategoriesPage = () => {
 
                                 <button
                                     onClick={() => setSelectedSubCategory(null)}
-                                    className="text-sm text-pink-500 hover:underline"
+                                    className="text-sm text-yellow-500 hover:underline"
                                 >
                                     {selectedSubCategory.label}
                                 </button>
@@ -107,7 +107,7 @@ const CategoriesPage = () => {
                                                 navigate("/shop", { state: { category1: category?._id, category2: selectedSubCategory?._id, category3: item._id } });
                                                 window.scrollTo({ top: 0, behavior: "smooth" });
                                             }}
-                                            className="cursor-pointer bg-gray-50 text-gray-700 px-3 overflow-hidden hover:bg-pink-400 hover:text-white shadow flex flex-col items-center justify-center"
+                                            className="cursor-pointer bg-gray-50 text-gray-700 px-3 overflow-hidden hover:bg-yellow-400 hover:text-white shadow flex flex-col items-center justify-center"
                                         >
                                             <div className="w-full py-4 text-center">
                                                 <p className="text-sm">{item.Category3}</p>
@@ -129,7 +129,7 @@ const CategoriesPage = () => {
                                                     window.scrollTo({ top: 0, behavior: "smooth" });
                                                 }
                                             }}
-                                            className="cursor-pointer bg-gray-50 text-gray-700 px-3 overflow-hidden hover:bg-pink-400 hover:text-white shadow flex flex-col items-center justify-center"
+                                            className="cursor-pointer bg-gray-50 text-gray-700 px-3 overflow-hidden hover:bg-yellow-400 hover:text-white shadow flex flex-col items-center justify-center"
                                         >
                                             <div className="w-full py-4 text-center">
                                                 <p className="text-sm">{item.label}</p>
@@ -153,10 +153,10 @@ const CategoriesPage = () => {
                     </h2>
 
                     {/* Navigation arrows */}
-                    <div className="absolute top-1/2 -translate-y-1/2 left-0 md:-left-15 z-50 swiper-button-prev text-black hover:text-pink-500">
+                    <div className="absolute top-1/2 -translate-y-1/2 left-0 md:-left-15 z-50 swiper-button-prev text-black hover:text-yellow-500">
                         <ChevronLeft size={24} />
                     </div>
-                    <div className="absolute top-1/2 -translate-y-1/2 right-0 md:-right-15 z-10 swiper-button-next text-black hover:text-pink-500">
+                    <div className="absolute top-1/2 -translate-y-1/2 right-0 md:-right-15 z-10 swiper-button-next text-black hover:text-yellow-500">
                         <ChevronRight size={24} />
                     </div>
 
@@ -206,7 +206,7 @@ const CategoriesPage = () => {
                                             />
                                         </div>
                                         <p className="app-text h-auto mt-2">Category</p>
-                                        <h3 className="text-sm text-gray-700 group-hover:text-pink-500 font-semibold mt-1">
+                                        <h3 className="text-sm text-gray-700 group-hover:text-yellow-500 font-semibold mt-1">
                                             {item?.Category1}
                                         </h3>
                                     </div>
@@ -269,7 +269,7 @@ const CategoriesPage = () => {
                         <div className="w-20 h-2 bg-primary rounded-sm my-5 mx-auto"></div>
 
                         <p className="app-text">
-                            At Work Safety, we value open communication and are always eager to assist you with any inquiries or concerns you may have. Whether you need more information about our products, have a question about an order, or simply want to share feedback, our team is ready to help.
+                            At Xclusive Diamond, we value open communication and are always eager to assist you with any inquiries or concerns you may have. Whether you need more information about our products, have a question about an order, or simply want to share feedback, our team is ready to help.
                         </p>
 
 

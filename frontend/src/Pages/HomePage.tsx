@@ -198,7 +198,7 @@ const HomePage = () => {
                 <div className="hidden md:block absolute right-0">
                     <img
                         src={images.full_width_1} // Replace with actual image path
-                        alt="Work Safety Gear"
+                        alt="Xclusive Diamond Gear"
                         className="w-[550px] max-w-md object-contain"
                     />
                 </div>

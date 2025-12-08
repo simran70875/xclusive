@@ -22,16 +22,12 @@ exports.signUp = async (req, res) => {
 
     // Validate required fields
     if (!type || !password || !email) {
-      return res
-        .status(400)
-        .json({ message: "Type, email, and password are required." });
+      return res.status(400).json({ message: "Type, email, and password are required." });
     }
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      return res
-        .status(400)
-        .json({ message: "User with this email already exists" });
+      return res.status(400).json({ message: "User with this email already exists" });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -52,9 +48,7 @@ exports.signUp = async (req, res) => {
 
     await newUser.save();
 
-    res
-      .status(201)
-      .json({ message: "User registered successfully", data: newUser });
+    res.status(201).json({ message: "User registered successfully", data: newUser });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Failed to register user" });

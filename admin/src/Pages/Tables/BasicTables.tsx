@@ -7,8 +7,8 @@ export default function BasicTables() {
   return (
     <>
      <PageMeta
-        title="Work Safety - Work Wear and Safety Solutions "
-        description="Gear Up with Work Safety: Your Trusted Workwear"
+        title="Xclusive Diamond - Work Wear and Safety Solutions "
+        description="Gear Up with Xclusive Diamond: Your Trusted Workwear"
       />
       <PageBreadcrumb pageTitle="Basic Tables" />
       <div className="space-y-6">
