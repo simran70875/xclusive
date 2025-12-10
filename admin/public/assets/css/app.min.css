@@ -1752,7 +1752,7 @@ body[data-layout=horizontal][data-layout-size=boxed] .navbar-header {
     border-top-color: #f46a6a
 }
 
-.alert-border-yellow {
+.alert-border-pink {
     border-top-color: #e83e8c
 }
 
@@ -2122,17 +2122,17 @@ body[data-layout=horizontal][data-layout-size=boxed] .navbar-header {
     color: #f46a6a
 }
 
-.form-check-yellow .form-check-input:checked {
+.form-check-pink .form-check-input:checked {
     background-color: #e83e8c;
     border-color: #e83e8c
 }
 
-.form-radio-yellow .form-check-input:checked {
+.form-radio-pink .form-check-input:checked {
     border-color: #e83e8c;
     background-color: #e83e8c
 }
 
-.form-radio-yellow .form-check-input:checked:after {
+.form-radio-pink .form-check-input:checked:after {
     color: #e83e8c
 }
 
@@ -2989,7 +2989,7 @@ body[data-layout=horizontal][data-layout-size=boxed] .navbar-header {
     background-color: rgba(244, 106, 106, .8) !important
 }
 
-.toast-yellow {
+.toast-pink {
     border: 2px solid #e83e8c !important;
     background-color: rgba(232, 62, 140, .8) !important
 }

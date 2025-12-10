@@ -29,7 +29,7 @@ const AddMarquee = () => {
 
   async function handleSubmit(e) {
     e.preventDefault();
-
+    console.log("text ==>", text, id);
     try {
       let response;
       if (text === "") {

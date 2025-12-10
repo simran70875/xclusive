@@ -134,7 +134,7 @@ const DashBoard = () => {
                           <div className="card-body">
                             <div className="float-end mt-2">
                               <div
-                                id="Retailer-chart"
+                                id="customers-chart"
                                 data-colors='["--bs-primary"]'
                               >
                                 <img
@@ -311,7 +311,7 @@ const DashBoard = () => {
                           <div className="card-body">
                             <div className="float-end mt-2">
                               <div
-                                id="Retailer-chart"
+                                id="customers-chart"
                                 data-colors='["--bs-primary"]'
                               >
                                 <img

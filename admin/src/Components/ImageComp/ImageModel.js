@@ -1,6 +1,3 @@
-import React from 'react'
-import Modal from "@mui/material/Modal";
-
 const ImageModel = ({ isOpen, onClose, imageURL }) => {
 
     return (
@@ -13,7 +10,7 @@ const ImageModel = ({ isOpen, onClose, imageURL }) => {
                                 <div className="">
                                     <div className="card-body">
                                         <div style={{ textAlign: 'end', cursor: "pointer", color: "red" }} onClick={onClose}>
-                                            <i class="fas fa-window-close" aria-hidden="true"></i>
+                                            <i className="fas fa-window-close" aria-hidden="true"></i>
                                         </div>
                                         <div style={{ textAlign: 'center' }}>
                                             <img

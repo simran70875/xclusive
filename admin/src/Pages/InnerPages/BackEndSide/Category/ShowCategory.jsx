@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { DataGrid, GridToolbar } from "@mui/x-data-grid";
 import IconButton from "@mui/material/IconButton";
 import Stack from "@mui/material/Stack";
@@ -22,6 +22,11 @@ const ShowCategory = () => {
   const [selectedRows, setSelectedRows] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+  
+  const fileInputRef = useRef(null);
+  const [csvFile, setCsvFile] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
 
   // for big image
   const [selectedImage, setSelectedImage] = useState("");
@@ -75,14 +80,21 @@ const ShowCategory = () => {
       headerName: "Second Image",
       width: 150,
       renderCell: (params) => (
-        <img
-          src={params?.row?.Category_Sec_Image}
-          alt="Category Image"
-          height={35}
-          width={35}
-          style={{ borderRadius: "50%", cursor: "pointer" }}
-          onClick={() => handleImageClick(params?.row?.Category_Sec_Image)}
-        />
+        <>
+          {params?.row?.Category_Sec_Image ==
+          `${process.env.REACT_APP_API_URL}/undefined` ? (
+            <>NA</>
+          ) : (
+            <img
+              src={params?.row?.Category_Sec_Image}
+              alt="Category Image"
+              height={35}
+              width={35}
+              style={{ borderRadius: "50%", cursor: "pointer" }}
+              onClick={() => handleImageClick(params?.row?.Category_Sec_Image)}
+            />
+          )}
+        </>
       ),
       sortable: false,
     },
@@ -152,13 +164,13 @@ const ShowCategory = () => {
             aria-label="delete"
             onClick={() => handleCategoryDelete(params.row._id)}
           >
-            <i class="fas fa-trash-alt font-size-16 font-Icon-Del"></i>
+            <i className="fas fa-trash-alt font-size-16 font-Icon-Del"></i>
           </IconButton>
           <IconButton
             aria-label="edit"
             onClick={() => handleCategoryUpdate(params.row)}
           >
-            <i class="fas fa-pencil-alt font-size-16 font-Icon-Up"></i>
+            <i className="fas fa-pencil-alt font-size-16 font-Icon-Up"></i>
           </IconButton>
         </Stack>
       ),
@@ -168,23 +180,105 @@ const ShowCategory = () => {
     },
   ];
 
-  useEffect(() => {
-    async function getCategory() {
-      try {
-        const res = await axios.get(`${url}/category/get`, {
-          headers: {
-            Authorization: `${adminToken}`,
-          },
-        });
+  async function getCategory() {
+    try {
+      const res = await axios.get(`${url}/category/get`, {
+        headers: {
+          Authorization: `${adminToken}`,
+        },
+      });
 
-        setCategoryData(res?.data?.category || []);
-        setIsLoading(false);
-      } catch (error) {
-        setIsLoading(false);
-      }
+      console.log("res ", res);
+
+      setCategoryData(res?.data?.category || []);
+      setIsLoading(false);
+    } catch (error) {
+      setIsLoading(false);
     }
+  }
+
+  useEffect(() => {
     getCategory();
   }, []);
+
+  // Trigger hidden input
+  const handleButtonClick = () => {
+    fileInputRef.current.click();
+  };
+
+  // Validate file
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+
+    if (!file) return;
+
+    if (file.type !== "text/csv" && !file.name.endsWith(".csv")) {
+      Swal.fire({
+        icon: "error",
+        title: "Invalid File",
+        text: "Please upload a valid CSV file!",
+      });
+      e.target.value = ""; // reset
+      return;
+    }
+
+    setCsvFile(file);
+    handleUpload(file); // Automatically upload after selecting
+  };
+
+  const handleUpload = async (selectedFile) => {
+    const fileToUpload = selectedFile || csvFile;
+    if (!fileToUpload) {
+      Swal.fire({
+        icon: "warning",
+        title: "No File Selected",
+        text: "Please choose a CSV file before uploading.",
+      });
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("csvFile", fileToUpload);
+
+    try {
+      setLoading(true);
+      setUploadProgress(0);
+
+      await axios.post(`${url}/category/upload-csv`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: `${adminToken}`,
+        },
+        onUploadProgress: (event) => {
+          const percent = Math.round((event.loaded * 100) / event.total);
+          setUploadProgress(percent);
+        },
+      });
+
+      setLoading(false);
+      setUploadProgress(100);
+
+      Swal.fire({
+        icon: "success",
+        title: "CSV Uploaded Successfully!",
+        toast: true,
+        timer: 1500,
+        position: "top-end",
+        showConfirmButton: false,
+      });
+
+      getCategory();
+      setCsvFile(null);
+    } catch (err) {
+      setLoading(false);
+
+      Swal.fire({
+        icon: "error",
+        title: "Upload Failed",
+        text: "An error occurred while uploading.",
+      });
+    }
+  };
 
   const handleCategoryDelete = (id) => {
     Swal.fire({
@@ -347,13 +441,43 @@ const ShowCategory = () => {
           <div className="container-fluid">
             <div className="row">
               <div className="col-2 table-heading">Category List</div>
-              <div className="d-flex flex-wrap gap-2 mt-2">
+              <div className="d-flex gap-2 mt-2">
                 <button
                   onClick={() => Navigate("/addCategory")}
                   className="btn btn-primary waves-effect waves-light"
                 >
                   Add Category <i className="fas fa-arrow-right ms-2"></i>
                 </button>
+
+                <div className="flex flex-col gap-3">
+                  {/* Hidden Input */}
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    accept=".csv"
+                    style={{ display: "none" }}
+                    onChange={handleFileChange}
+                  />
+
+                  {/* Visible Button */}
+                  <button
+                    className="btn btn-primary"
+                    onClick={handleButtonClick}
+                    disabled={loading}
+                  >
+                    {loading ? "Uploading..." : "Import CSV"}
+                  </button>
+
+                  {/* Progress Bar */}
+                  {loading && (
+                    <div className="w-full bg-gray-300 rounded h-3 mt-1">
+                      <div
+                        className="bg-blue-600 h-3 rounded"
+                        style={{ width: `${uploadProgress}%` }}
+                      ></div>
+                    </div>
+                  )}
+                </div>
               </div>
               <div className="searchContainer mb-3">
                 <div className="searchBarcontainer">

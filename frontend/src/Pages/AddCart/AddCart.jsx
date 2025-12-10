@@ -635,13 +635,10 @@ function AddCart() {
                     <span className={styles.ganga}>{value?.Brand_Name}</span>
                   </div>
                   <div>
-                    <p className={styles.brand}>Fabric Type - </p>{" "}
-                    <span className={styles.ganga}>{value?.Fabric_Type}</span>
+                    <p className={styles.brand}>Collection - </p>{" "}
+                    <span className={styles.ganga}>{value?.Collections}</span>
                   </div>
-                  <div>
-                    <p className={styles.brand}>Occasion - </p>{" "}
-                    <span className={styles.ganga}>{value?.Occasions}</span>
-                  </div>
+              
                 </div>
                 <div className={styles.share}>
                   <p>Share On :</p>

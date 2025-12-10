@@ -75,10 +75,10 @@ RadialchartOrdersChartColors &&
     document.querySelector("#orders-chart"),
     options
   )).render());
-var RadialchartRetailerColors = getChartColorsArray("Retailer-chart");
-RadialchartRetailerColors &&
+var RadialchartCustomersColors = getChartColorsArray("customers-chart");
+RadialchartCustomersColors &&
   ((options = {
-    fill: { colors: RadialchartRetailerColors },
+    fill: { colors: RadialchartCustomersColors },
     series: [55],
     chart: {
       type: "radialBar",
@@ -96,7 +96,7 @@ RadialchartRetailerColors &&
     },
   }),
   (chart = new ApexCharts(
-    document.querySelector("#Retailer-chart"),
+    document.querySelector("#customers-chart"),
     options
   )).render());
 var options2,

@@ -303,7 +303,7 @@ const EditCoupon = () => {
                             onChange={(e) => setUserType(e.target.value)}
                           >
                             <option value="0">All</option>
-                            <option value="1">All Retailer</option>
+                            <option value="1">All Users</option>
                             <option value="2">All Resellers</option>
                             <option value="3">Particular User</option>
                             <option value="4">Particular Reseller</option>

@@ -315,7 +315,7 @@ function Home({ children }) {
           </Col>
         )} */}
 
-        {productFeatureListing?.length <= 4 ? (
+        {/* {productFeatureListing?.length <= 4 ? (
           <Col xs={22} md={22} lg={22} xl={22} xxl={22} className={styles.wear}>
             <h2>READY TO WEAR</h2>
             <Row justify="start">
@@ -420,7 +420,8 @@ function Home({ children }) {
               ))}
             </Slider>
           </Col>
-        )}
+        )} */}
+
         {productFeatureListing1?.length <= 4 ? (
           <Col xs={22} md={22} lg={22} xl={22} xxl={22} className={styles.wear}>
             <h2>TRENDY COLLACTION</h2>

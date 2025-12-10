@@ -401,7 +401,7 @@ const AddChargesSettings = () => {
                                                         htmlFor="example-text-input"
                                                         className="col-md-2 col-form-label"
                                                     >
-                                                        Usage Limit For Retailer :
+                                                        Usage Limit For Users :
                                                     </label>
                                                     <div className="col-md-10">
                                                         <input min="0"

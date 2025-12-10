@@ -167,7 +167,7 @@ const ShowReview = () => {
       // stars.push(<span key={i} className="star-icon" style={{ color: "gold" }}>★</span>);
       stars.push(
         <span key={i} className="star-icon" style={{ color: "gold" }}>
-          <i class="fas fa-star" aria-hidden="true"></i>
+          <i className="fas fa-star" aria-hidden="true"></i>
         </span>
       );
     }
@@ -176,7 +176,7 @@ const ShowReview = () => {
       // stars.push(<span key={fullStars} className="star-icon">½★</span>);
       stars.push(
         <span key={fullStars} className="star-icon" style={{ color: "gold" }}>
-          <i class="fas fa-star-half" aria-hidden="true"></i>
+          <i className="fas fa-star-half" aria-hidden="true"></i>
         </span>
       );
     }

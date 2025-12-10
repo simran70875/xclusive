@@ -114,7 +114,7 @@ const ShowProductNotify = () => {
                         aria-label="delete"
                         onClick={() => handleProductDelete(params.row._id)}
                     >
-                        <i class="fas fa-trash-alt font-size-16 font-Icon-Del"></i>
+                        <i className="fas fa-trash-alt font-size-16 font-Icon-Del"></i>
                     </IconButton>
                 </Stack>
             ),

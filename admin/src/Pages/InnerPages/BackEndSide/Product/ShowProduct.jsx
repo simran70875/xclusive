@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { DataGrid, GridToolbar } from "@mui/x-data-grid";
 import IconButton from "@mui/material/IconButton";
 import Stack from "@mui/material/Stack";
@@ -20,10 +20,13 @@ const ShowProduct = () => {
   const adminToken = localStorage.getItem("token");
 
   const [productData, setProductData] = useState([]);
-  const [productName, setProductName] = useState("");
   const [selectedRows, setSelectedRows] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+  const fileInputRef = useRef(null);
+  const [csvFile, setCsvFile] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
 
   // for big image
   const [selectedImage, setSelectedImage] = useState("");
@@ -43,21 +46,38 @@ const ShowProduct = () => {
 
   const columns = [
     {
-      field: "_id",
+      field: "Product_Images",
+      headerName: "Image",
       width: 90,
+      renderCell: (params) => (
+        <img
+          src={`${process.env.REACT_APP_API_URL}/${params?.row?.Product_Images[0].path}`}
+          alt="Product Image"
+          height={35}
+          width={35}
+          style={{ borderRadius: "50%", cursor: "pointer" }}
+          onClick={() => handleImageClick(params?.row?.Product_Image)}
+        />
+      ),
+      sortable: false,
+      filterable: false,
+    },
+    {
+      field: "_id",
+      flex: 2,
       headerName: "Id",
     },
     {
       field: "Product_Name",
       headerName: "Product Name",
-      width: 150,
+      flex: 2,
       filterable: true,
       sortable: true,
       filterType: "multiselect",
     },
     {
       field: "SKU_Code",
-      headerName: "Code",
+      headerName: "SKU Code",
       width: 90,
       filterable: true,
       sortable: true,
@@ -81,118 +101,36 @@ const ShowProduct = () => {
       filterType: "multiselect",
     },
     {
-      field: "fabric",
-      headerName: "Fabric",
+      field: "collection",
+      headerName: "collection",
       width: 90,
       filterable: true,
       sortable: true,
       filterType: "multiselect",
     },
-    {
-      field: "occasions",
-      headerName: "Occasions",
-      width: 120,
-      filterable: true,
-      sortable: true,
-      filterType: "multiselect",
-    },
-    {
-      field: "Product_Image",
-      headerName: "Image",
-      width: 90,
-      renderCell: (params) => (
-        <img
-          src={`${params?.row?.Product_Image}`}
-          alt="Product Image"
-          height={35}
-          width={35}
-          style={{ borderRadius: "50%", cursor: "pointer" }}
-          onClick={() => handleImageClick(params?.row?.Product_Image)}
-        />
-      ),
-      sortable: false,
-      filterable: false,
-    },
+
     {
       field: "Product_Ori_Price",
       headerName: "Original Price",
-      width: 90,
+      flex: 1,
       filterable: true,
       sortable: true,
       filterType: "multiselect",
     },
-    {
-      field: "Max_Dis_Price",
-      headerName: "Max Discount Price",
-      width: 90,
-      filterable: true,
-      sortable: true,
-      filterType: "multiselect",
-    },
+
     {
       field: "Product_Dis_Price",
       headerName: "Discount Price",
-      width: 90,
+      flex: 1,
       filterable: true,
       sortable: true,
       filterType: "multiselect",
     },
-    {
-      field: "Gold_Price",
-      headerName: "Gold Price",
-      width: 90,
-      filterable: true,
-      sortable: true,
-      filterType: "multiselect",
-    },
-    {
-      field: "Silver_Price",
-      headerName: "Silver Price",
-      width: 90,
-      filterable: true,
-      sortable: true,
-      filterType: "multiselect",
-    },
-    {
-      field: "PPO_Price",
-      headerName: "PPO Price",
-      width: 90,
-      filterable: true,
-      sortable: true,
-      filterType: "multiselect",
-    },
-    {
-      field: "Product_Status",
-      headerName: "Status",
-      width: 120,
-      renderCell: (params) => (
-        <div className="form-check form-switch">
-          <input
-            type="checkbox"
-            className="form-check-input"
-            id={`customSwitch-${params.id}`}
-            onChange={() => handleProductStatus(params.row, !params.value)}
-            checked={params.value}
-            onClick={(event) => event.stopPropagation()}
-          />
-          <label
-            className="form-check-label"
-            htmlFor={`customSwitch-${params.id}`}
-            style={{ color: params.value ? "green" : "grey" }}
-          >
-            {params.value ? "Enable" : "Disable"}
-          </label>
-        </div>
-      ),
-      filterable: false,
-      sortable: true,
-      // filterType: "dropdown",
-      // hide: false,
-    },
+
     {
       field: "Features",
       headerName: "Features",
-      width: 120,
+      flex: 1,
       renderCell: (params) => {
         const selectedFeature = params.row["Features"];
         return (
@@ -205,7 +143,6 @@ const ShowProduct = () => {
               }
             >
               <MenuItem value="none">None</MenuItem>
-              <MenuItem value="ready">Ready to Wear</MenuItem>
               <MenuItem value="popular">Popular Pick</MenuItem>
               <MenuItem value="trendy">Trendy Collection</MenuItem>
               <MenuItem value="home">Best Selling</MenuItem>
@@ -220,7 +157,7 @@ const ShowProduct = () => {
     {
       field: "Shipping",
       headerName: "Shipping",
-      width: 120,
+      flex: 1,
       renderCell: (params) => {
         return (
           <FormControl variant="outlined" size="small">
@@ -243,22 +180,48 @@ const ShowProduct = () => {
       editable: true, // Allow editing the features directly in the DataGrid
     },
     {
+      field: "Product_Status",
+      headerName: "Status",
+      flex: 1,
+      renderCell: (params) => (
+        <div className="form-check form-switch">
+          <input
+            type="checkbox"
+            className="form-check-input"
+            id={`customSwitch-${params.id}`}
+            onChange={() => handleProductStatus(params.row, !params.value)}
+            checked={params.value}
+            onClick={(event) => event.stopPropagation()}
+          />
+          <label
+            className="form-check-label"
+            htmlFor={`customSwitch-${params.id}`}
+            style={{ color: params.value ? "green" : "grey" }}
+          >
+            {params.value ? "Enable" : "Disable"}
+          </label>
+        </div>
+      ),
+      filterable: false,
+      sortable: true,
+    },
+    {
       field: "action",
       headerName: "Action",
-      width: 90,
+      flex: 1,
       renderCell: (params) => (
         <Stack direction="row">
           <IconButton
             aria-label="delete"
             onClick={() => handleProductDelete(params.row._id)}
           >
-            <i class="fas fa-trash-alt font-size-16 font-Icon-Del"></i>
+            <i className="fas fa-trash-alt font-size-16 font-Icon-Del"></i>
           </IconButton>
           <IconButton
             aria-label="edit"
             onClick={() => handleProductUpdate(params.row)}
           >
-            <i class="fas fa-pencil-alt font-size-16 font-Icon-Up"></i>
+            <i className="fas fa-pencil-alt font-size-16 font-Icon-Up"></i>
           </IconButton>
         </Stack>
       ),
@@ -286,22 +249,102 @@ const ShowProduct = () => {
     },
   ];
 
-  useEffect(() => {
-    async function getProduct() {
-      try {
-        const res = await axios.get(`${url}/product/get`, {
-          headers: {
-            Authorization: `${adminToken}`,
-          },
-        });
-        setProductData(res?.data?.product || []);
-        setIsLoading(false);
-      } catch (error) {
-        setIsLoading(false);
-      }
+  async function getProduct() {
+    try {
+      const res = await axios.get(`${url}/product/get`, {
+        headers: {
+          Authorization: `${adminToken}`,
+        },
+      });
+      setProductData(res?.data?.product || []);
+      setIsLoading(false);
+    } catch (error) {
+      setIsLoading(false);
     }
+  }
+
+  useEffect(() => {
     getProduct();
   }, []);
+
+  // Trigger hidden input
+  const handleButtonClick = () => {
+    fileInputRef.current.click();
+  };
+
+  // Validate file
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+
+    if (!file) return;
+
+    if (file.type !== "text/csv" && !file.name.endsWith(".csv")) {
+      Swal.fire({
+        icon: "error",
+        title: "Invalid File",
+        text: "Please upload a valid CSV file!",
+      });
+      e.target.value = ""; // reset
+      return;
+    }
+
+    setCsvFile(file);
+    handleUpload(file); // Automatically upload after selecting
+  };
+
+  const handleUpload = async (selectedFile) => {
+    const fileToUpload = selectedFile || csvFile;
+    if (!fileToUpload) {
+      Swal.fire({
+        icon: "warning",
+        title: "No File Selected",
+        text: "Please choose a CSV file before uploading.",
+      });
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("csvFile", fileToUpload);
+
+    try {
+      setLoading(true);
+      setUploadProgress(0);
+
+      await axios.post(`${url}/product/upload-csv`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: `${adminToken}`,
+        },
+        onUploadProgress: (event) => {
+          const percent = Math.round((event.loaded * 100) / event.total);
+          setUploadProgress(percent);
+        },
+      });
+
+      setLoading(false);
+      setUploadProgress(100);
+
+      Swal.fire({
+        icon: "success",
+        title: "CSV Uploaded Successfully!",
+        toast: true,
+        timer: 1500,
+        position: "top-end",
+        showConfirmButton: false,
+      });
+
+      getProduct();
+      setCsvFile(null);
+    } catch (err) {
+      setLoading(false);
+
+      Swal.fire({
+        icon: "error",
+        title: "Upload Failed",
+        text: "An error occurred while uploading.",
+      });
+    }
+  };
 
   const handleProductDelete = (id) => {
     Swal.fire({
@@ -400,14 +443,11 @@ const ShowProduct = () => {
   };
 
   const handleProductFeatures = async (product, newStatus, name) => {
-    let readyStatus = false;
     let trendyStatus = false;
     let popularStatus = false;
     let homeStatus = false;
 
-    if (name === "ready") {
-      readyStatus = newStatus;
-    } else if (name === "trendy") {
+    if (name === "trendy") {
       trendyStatus = newStatus;
     } else if (name === "popular") {
       popularStatus = newStatus;
@@ -419,7 +459,6 @@ const ShowProduct = () => {
       await axios.patch(
         `${url}/product/update/features/${product?._id}`,
         {
-          Ready_to_wear: readyStatus,
           Popular_pick: popularStatus,
           Trendy_collection: trendyStatus,
           HomePage: homeStatus,
@@ -435,7 +474,7 @@ const ShowProduct = () => {
         c._id === product._id
           ? {
               ...c,
-              Ready_to_wear: readyStatus,
+
               Popular_pick: popularStatus,
               Trendy_collection: trendyStatus,
               HomePage: homeStatus,
@@ -449,15 +488,6 @@ const ShowProduct = () => {
   };
 
   const handleProductShipping = async (product, newStatus, name) => {
-    // let preStatus = false;
-    // let readyStatus = false;
-
-    // if (name === "PRE LAUNCH") {
-    //     preStatus = newStatus;
-    // } else if (name === "READY TO SHIP") {
-    //     readyStatus = newStatus;
-    // }
-
     try {
       await axios.patch(
         `${url}/product/update/shipping/${product?._id}`,
@@ -486,9 +516,7 @@ const ShowProduct = () => {
   };
 
   const getSelectedFeatureValue = (product) => {
-    if (product?.Ready_to_wear) {
-      return "ready";
-    } else if (product?.Popular_pick) {
+    if (product?.Popular_pick) {
       return "popular";
     } else if (product?.Trendy_collection) {
       return "trendy";
@@ -510,22 +538,8 @@ const ShowProduct = () => {
   };
 
   const handleFilter = () => {
-    const filteredProductList = productData?.filter((product) => {
-      const formattedProductName = (product?.name || "")
-        .toUpperCase()
-        .replace(/\s/g, "");
-      let isProductName = true;
-      if (productName) {
-        isProductName = formattedProductName.includes(
-          productName.toUpperCase().replace(/\s/g, "")
-        );
-      }
-
-      return isProductName;
-    });
-
     // Apply search query filtering
-    const filteredData = filteredProductList.filter((product) => {
+    const filteredData = productData.filter((product) => {
       const formattedSearchQuery = searchQuery.toUpperCase().replace(/\s/g, "");
       const rowValues = Object.values(product);
       for (let i = 0; i < rowValues.length; i++) {
@@ -541,6 +555,7 @@ const ShowProduct = () => {
 
     return filteredData;
   };
+
   const getRowId = (row) => row._id;
 
   const handleCellClick = (params, event) => {
@@ -564,6 +579,35 @@ const ShowProduct = () => {
                 >
                   Add Product <i className="fas fa-arrow-right ms-2"></i>
                 </button>
+                <div className="flex flex-col gap-3">
+                  {/* Hidden Input */}
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    accept=".csv"
+                    style={{ display: "none" }}
+                    onChange={handleFileChange}
+                  />
+
+                  {/* Visible Button */}
+                  <button
+                    className="btn btn-primary"
+                    onClick={handleButtonClick}
+                    disabled={loading}
+                  >
+                    {loading ? "Uploading..." : "Import CSV"}
+                  </button>
+
+                  {/* Progress Bar */}
+                  {loading && (
+                    <div className="w-full bg-gray-300 rounded h-3 mt-1">
+                      <div
+                        className="bg-blue-600 h-3 rounded"
+                        style={{ width: `${uploadProgress}%` }}
+                      ></div>
+                    </div>
+                  )}
+                </div>
               </div>
               <div className="searchContainer mb-3">
                 <div className="searchBarcontainer">

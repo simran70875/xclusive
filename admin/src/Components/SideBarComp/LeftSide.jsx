@@ -205,7 +205,7 @@ const LeftSide = () => {
                   <i className="uil-book-alt">
                     <i className="fas fa-user"></i>
                   </i>
-                  <span>Retailer</span>
+                  <span>Users</span>
                 </a>
               </li>
 

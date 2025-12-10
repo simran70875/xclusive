@@ -41,9 +41,6 @@ const ShowData = () => {
       filterable: true,
       sortable: true,
       filterType: "multiselect",
-      renderCell: (params) => (
-        <>{params?.value === "Brand Name" ? "BRAND NAME" : params?.value}</>
-      ),
     },
     {
       field: "Data_Name",
@@ -90,13 +87,13 @@ const ShowData = () => {
             aria-label="delete"
             onClick={() => handleDataDelete(params.row._id)}
           >
-            <i class="fas fa-trash-alt font-size-16 font-Icon-Del"></i>
+            <i className="fas fa-trash-alt font-size-16 font-Icon-Del"></i>
           </IconButton>
           <IconButton
             aria-label="edit"
             onClick={() => handleDataUpdate(params.row)}
           >
-            <i class="fas fa-pencil-alt font-size-16 font-Icon-Up"></i>
+            <i className="fas fa-pencil-alt font-size-16 font-Icon-Up"></i>
           </IconButton>
         </Stack>
       ),

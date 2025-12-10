@@ -79,13 +79,13 @@ const ShowSubAdmin = () => {
             aria-label="delete"
             onClick={() => handleSubAdminDelete(params.row._id)}
           >
-            <i class="fas fa-trash-alt font-size-16 font-Icon-Del"></i>
+            <i className="fas fa-trash-alt font-size-16 font-Icon-Del"></i>
           </IconButton>
           <IconButton
             aria-label="edit"
             onClick={() => handleSubAdminUpdate(params.row)}
           >
-            <i class="fas fa-pencil-alt font-size-16 font-Icon-Up"></i>
+            <i className="fas fa-pencil-alt font-size-16 font-Icon-Up"></i>
           </IconButton>
         </Stack>
       ),
