@@ -54,7 +54,7 @@ function copyLocalImage(localPath, destFolder) {
 
   try {
     // Copy file from local system → backend storage
-    fs.copyFileSync(localPath, destPath);
+    fs.promises.copyFile(localPath, destPath);
 
     return {
       filename,
@@ -75,9 +75,7 @@ route.post("/upload-csv", checkAdminOrRole2, uploadcsv.single("csvFile"), (req, 
   const uploadFolder = "./imageUploads/backend/product";
   const rows = [];
 
-  fs.createReadStream(req.file.path)
-    .pipe(csv())
-    .on("data", (row) => rows.push(row))
+  fs.createReadStream(req.file.path).pipe(csv()).on("data", (row) => rows.push(row))
     .on("end", async () => {
       try {
         fs.unlinkSync(req.file.path);
@@ -99,6 +97,8 @@ route.post("/upload-csv", checkAdminOrRole2, uploadcsv.single("csvFile"), (req, 
         // 2️⃣ PROCESS EACH PRODUCT GROUP
         for (let sku in groupedByProduct) {
           const productRows = groupedByProduct[sku];
+
+
 
           const firstRow = productRows[0];
 
@@ -158,9 +158,7 @@ route.post("/upload-csv", checkAdminOrRole2, uploadcsv.single("csvFile"), (req, 
           // 4️⃣ PRODUCT IMAGES (only from 1st row)
           let productImagesArray = [];
           if (firstRow.Product_Images) {
-            productImagesArray = firstRow.Product_Images.split("|")
-              .map((img) => copyLocalImage(img, uploadFolder))
-              .filter(Boolean);
+            productImagesArray = firstRow.Product_Images.split("|").map((img) => copyLocalImage(img, uploadFolder)).filter(Boolean);
           }
 
           // 5️⃣ CREATE PRODUCT FIRST
@@ -191,41 +189,60 @@ route.post("/upload-csv", checkAdminOrRole2, uploadcsv.single("csvFile"), (req, 
             Shipping: firstRow.Shipping || "PRE LAUNCH",
           });
 
+          // 6️⃣ GROUP VARIATIONS BY Variation_Name
+          const variationGroups = productRows.reduce((acc, row) => {
+            const name = row.Variation_Name?.trim();
+
+            if (!name) return acc;
+
+            if (!acc[name]) acc[name] = [];
+            acc[name].push(row);
+
+            return acc;
+          }, {});
+
 
           // Store Variation IDs
           let variationIds = [];
 
-          // 6️⃣ LOOP ALL VARIATION ROWS FOR THIS PRODUCT
-          for (let row of productRows) {
-            // Variation Images
+          // 7️⃣ PROCESS EACH GROUP → ONE VARIATION
+          for (let varName in variationGroups) {
+            const rowsInVariation = variationGroups[varName];
+
+            // Variation images → take from first row
             let variationImages = [];
-            if (row.Variation_Images) {
-              variationImages = row.Variation_Images.split("|")
-                .map((img) => copyLocalImage(img, uploadFolder))
-                .filter(Boolean);
+            if (rowsInVariation[0].Variation_Images) {
+              variationImages = rowsInVariation[0].Variation_Images.split("|").map((img) => copyLocalImage(img, uploadFolder)).filter(Boolean);
             }
 
-            // Variation sizes
+            // Build Variation_Size array
             let sizeArray = [];
-            if (row.Variation_Size) {
-              const sizes = row.Variation_Size.split("|"); // XS:10|S:20
-              sizes.forEach((s) => {
-                const [size, stock] = s.split(":");
+
+            rowsInVariation.forEach((r) => {
+              if (r.Variation_Size) {
+                // Format: L(16.5-17.5)|100|2891
+                const sizeParts = r.Variation_Size.split("|");
+
+                const sizeName = sizeParts[0]?.trim();
+                const stock = Number(sizeParts[1] || 0);
+                const price = Number(sizeParts[2] || 0);
+
                 sizeArray.push({
-                  Size_Name: size,
-                  Size_Stock: Number(stock || 0),
+                  Size_Name: sizeName,
+                  Size_Stock: stock,
+                  Size_Price: price,
                   Size_Status: true,
                 });
-              });
-            }
+              }
+            });
 
-            // Create Variation
+            // Create single variation
             const createdVariation = await Variation.create({
-              Variation_Name: row.Variation_Name,
+              Variation_Name: varName,
               Variation_Images: variationImages,
               Variation_Size: sizeArray,
-              Variation_Label: row.Variation_Label,
-              Variation_Status: row.Variation_Status !== "false",
+              Variation_Label: rowsInVariation[0].Variation_Label,
+              Variation_Status: rowsInVariation[0].Variation_Status !== "false",
             });
 
             variationIds.push(createdVariation._id);

@@ -51,6 +51,14 @@ const ShowData = () => {
       filterType: "multiselect",
     },
     {
+      field: "productsCount",
+      headerName: "Total Products",
+      width: 220,
+      filterable: true,
+      sortable: true,
+      filterType: "multiselect",
+    },
+    {
       field: "Data_Status",
       headerName: "Status",
       width: 220,

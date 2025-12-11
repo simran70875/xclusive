@@ -24,10 +24,14 @@ const variationSchema = mongoose.Schema({
         Size_Stock: {
             type: Number
         },
+        Size_Price: {
+            type: Number
+        },
         Size_Status: {
             type: Boolean,
             default: true
         },
+
     }],
     Variation_Label: {
         type: String

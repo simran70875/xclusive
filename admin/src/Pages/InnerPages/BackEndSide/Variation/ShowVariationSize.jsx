@@ -91,6 +91,17 @@ const ShowVariationSize = () => {
       sortable: true,
       filterType: "multiselect",
     },
+    {
+      field: "Size_Price",
+      headerName: "Price",
+      width: 160,
+      filterable: true,
+      sortable: true,
+      filterType: "multiselect",
+      renderCell: (params) => {
+        return <p className="mb-0">£ {params.row.Size_Price}</p>;
+      },
+    },
     // {
     //     field: "Size_Status",
     //     headerName: "Status",

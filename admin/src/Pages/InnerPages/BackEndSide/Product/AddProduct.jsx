@@ -56,7 +56,7 @@ const AddProduct = () => {
         const formData = new FormData();
         formData.append("Product_Name", productName);
         formData.append("SKU_Code", SKUCode);
-        
+
         // 🔥 FIX: append images one-by-one
         productImages.forEach((img) => {
           formData.append("images", img);
@@ -72,7 +72,7 @@ const AddProduct = () => {
         }
 
         formData.append("Collection_Name", selectedCollection?.dataId);
-        
+
         formData.append("Product_Dis_Price", discountPrice);
         formData.append("Product_Ori_Price", originalPrice);
         formData.append("Max_Dis_Price", maxDisPrice);
@@ -98,16 +98,18 @@ const AddProduct = () => {
               for (const variation of variations) {
                 const variationFormData = new FormData();
                 variationFormData.append("Variation_Name", variation?.name);
+
                 variation?.sizes?.forEach((size) => {
                   variationFormData.append("Size_Name", size?.size);
                   variationFormData.append("Size_Stock", size?.stock);
+                  variationFormData.append("Size_Price", size?.price);
                 });
+
                 variation?.images?.forEach((image) => {
                   variationFormData.append("images", image);
                 });
 
-                await axios.post(
-                  `${url}/product/variation/add/${productId}`,
+                await axios.post(`${url}/product/variation/add/${productId}`,
                   variationFormData,
                   {
                     headers: {
@@ -554,14 +556,14 @@ const AddProduct = () => {
                           </div>
                         </div>
                       </div>
-
+                      {/* 
                       <Modal
                         className="main-content dark"
                         isOpen={isModalOpen}
                         onRequestClose={handleCloseModal}
                       >
                         <AddVariation />
-                      </Modal>
+                      </Modal> */}
 
                       {!variations.length <= 0 && (
                         <div className="mb-3 row">
@@ -700,6 +702,7 @@ const AddProduct = () => {
             variations={variations}
             setVariations={setVariations}
             handleCloseModal={handleCloseModal}
+            addOnBtnClick={false}
           />
         </Modal>
       </div>

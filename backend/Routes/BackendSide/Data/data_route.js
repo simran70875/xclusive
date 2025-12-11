@@ -35,15 +35,54 @@ route.post('/add', checkAdminOrRole2, async (req, res) => {
 // get all data 
 route.get('/get', checkAdminOrRole2, async (req, res) => {
     try {
-        const data = await Data.find().sort({ createdAt: -1 });
-        // for show frontend side 
-        const datas = await Data.find({ Data_Status: true }).sort({ createdAt: -1 });
-        res.status(201).json({ type: "success", message: " Data found successfully!", data: data, dataType: datas })
+        const data = await Data.aggregate([
+            {
+                $lookup: {
+                    from: "products",
+                    let: { dataId: "$_id", type: "$Data_Type" },
+                    pipeline: [
+                        {
+                            $match: {
+                                $expr: {
+                                    $or: [
+                                        { $and: [{ $eq: ["$$type", "Brand"] }, { $eq: ["$Brand_Name", "$$dataId"] }] },
+
+                                        { $and: [{ $eq: ["$$type", "Collection"] }, { $eq: ["$Collections", "$$dataId"] }] }
+                                    ]
+                                }
+                            }
+                        }
+                    ],
+                    as: "products"
+                }
+            },
+            {
+                $addFields: {
+                    productsCount: { $size: "$products" }
+                }
+            },
+            {
+                $sort: { createdAt: -1 }
+            }
+        ]);
+
+        console.log("specifications data ==> ", data);
+
+        res.status(200).json({
+            type: "success",
+            message: "Data found successfully!",
+            data
+        });
 
     } catch (error) {
-        res.status(500).json({ type: "error", message: "Server Error!", errorMessage: error })
+        res.status(500).json({
+            type: "error",
+            message: "Server Error!",
+            errorMessage: error
+        });
     }
 });
+
 
 // find data by id
 route.get('/get/:id', checkAdminOrRole2, async (req, res) => {

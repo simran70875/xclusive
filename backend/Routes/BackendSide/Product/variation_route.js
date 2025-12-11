@@ -3,17 +3,8 @@ const route = express.Router()
 const multer = require('multer')
 const { Variation, Product } = require('../../../Models/BackendSide/product_model');
 const fs = require('fs');
-const path = require('path');
-const checkAdminRole = require('../../../Middleware/adminMiddleWares')
-const { checkAdminWithMultRole354 } = require('../../../Middleware/checkAdminWithMultRole')
-const checkAdminOrRole1 = require('../../../Middleware/checkAdminOrRole1')
 const checkAdminOrRole2 = require('../../../Middleware/checkAdminOrRole2')
-const checkAdminOrRole4 = require('../../../Middleware/checkAdminOrRole4')
-const checkAdminOrRole5 = require('../../../Middleware/checkAdminOrRole5')
 
-
-
-// Set up multer middleware to handle file uploads
 // Set up multer storage and limits
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
@@ -29,7 +20,9 @@ const upload = multer({ storage, limits: { fileSize: 5 * 1024 * 1024 } }); // 5 
 // Create variations
 route.post("/add/:productId", checkAdminOrRole2, upload.array("images", 5), async (req, res) => {
     try {
-        const { Variation_Name, Size_Stock, Size_Name } = req.body;
+        const { Variation_Name, Size_Name, Size_Stock, Size_Price } = req.body;
+
+        console.log("variation ", Variation_Name, Size_Stock, Size_Name, Size_Price, req.files);
         const productId = req.params.productId;
 
         const images = req.files.map((file) => ({
@@ -38,15 +31,16 @@ route.post("/add/:productId", checkAdminOrRole2, upload.array("images", 5), asyn
             originalname: file.originalname,
         }));
 
-        const variationSizes = Array.isArray(Size_Name)
-            ? Size_Name.map((size, index) => ({
-                Size_Name: size,
-                Size_Stock: Size_Stock[index],
-            }))
+        const variationSizes = Array.isArray(Size_Name) ? Size_Name.map((size, index) => ({
+            Size_Name: size,
+            Size_Stock: Size_Stock[index],
+            Size_Price: Size_Price[index]
+        }))
             : [
                 {
                     Size_Name: Size_Name,
                     Size_Stock: Size_Stock,
+                    Size_Price: Size_Price,
                 },
             ];
 
@@ -411,7 +405,7 @@ route.patch("/update/size/:variationId/:sizeId", checkAdminOrRole2, async (req, 
     try {
         const variationId = req.params.variationId;
         const sizeId = req.params.sizeId;
-        const { Size_Name, Size_Stock } = req.body;
+        const { Size_Name, Size_Stock, Size_Price } = req.body;
 
         const variation = await Variation.findById(variationId);
         if (!variation) {
@@ -426,6 +420,7 @@ route.patch("/update/size/:variationId/:sizeId", checkAdminOrRole2, async (req, 
         // Update the variation size data
         variation.Variation_Size[sizeIndex].Size_Name = Size_Name;
         variation.Variation_Size[sizeIndex].Size_Stock = Size_Stock;
+        variation.Variation_Size[sizeIndex].Size_Price = Size_Price;
 
         // Save the updated variation to the database
         await variation.save();
@@ -441,7 +436,7 @@ route.patch("/update/size/:variationId/:sizeId", checkAdminOrRole2, async (req, 
 route.post("/add/size/:variationId", checkAdminOrRole2, async (req, res) => {
     try {
         const variationId = req.params.variationId;
-        const { Size_Name, Size_Stock } = req.body;
+        const { Size_Name, Size_Stock, Size_Price } = req.body;
 
         const variation = await Variation.findById(variationId);
         if (!variation) {
@@ -452,6 +447,7 @@ route.post("/add/size/:variationId", checkAdminOrRole2, async (req, res) => {
         const newSize = {
             Size_Name,
             Size_Stock,
+            Size_Price,
             Size_Status: true, // Set the default status to true (enabled)
         };
 

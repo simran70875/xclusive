@@ -42,19 +42,35 @@ const LeftSide = () => {
         <div className="navbar-brand-box">
           <a className="logo logo-dark">
             <span className="logo-sm">
-              <img src={"favicon.ico"} alt=""  style={{ width: "35px", height: "auto" }} />
+              <img
+                src={"favicon.ico"}
+                alt=""
+                style={{ width: "35px", height: "auto" }}
+              />
             </span>
             <span className="logo-lg">
-              <img src={settingsData?.app_logo} alt="" style={{ width: "140px", height: "auto" }} />
+              <img
+                src={settingsData?.app_logo}
+                alt=""
+                style={{ width: "140px", height: "auto" }}
+              />
             </span>
           </a>
 
           <a className="logo logo-light">
             <span className="logo-sm">
-            <img src={"favicon.ico"} alt=""  style={{ width: "40px", height: "auto" }} />
+              <img
+                src={"favicon.ico"}
+                alt=""
+                style={{ width: "40px", height: "auto" }}
+              />
             </span>
             <span className="logo-lg">
-            <img src={settingsData?.app_logo} alt="" style={{ width: "140px", height: "auto" }} />
+              <img
+                src={settingsData?.app_logo}
+                alt=""
+                style={{ width: "140px", height: "auto" }}
+              />
             </span>
           </a>
         </div>
@@ -131,7 +147,7 @@ const LeftSide = () => {
                   <img className="w-24" id="w-243" src={down_arrow} />
                 </a>
                 <ul className="sub-menu sub-menu1" aria-expanded="false">
-                <li
+                  <li
                     onClick={() => {
                       Navigate("/addMarquee");
                     }}
