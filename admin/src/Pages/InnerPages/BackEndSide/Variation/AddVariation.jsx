@@ -311,7 +311,7 @@ const AddVariation = ({
                                 style={{
                                   fontSize: "32px",
                                   cursor: "pointer",
-                                  color: "#672e93",
+                                  color: "#AB8000",
                                 }}
                                 onClick={handleAddSizeInput}
                               ></i>

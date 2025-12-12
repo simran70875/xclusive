@@ -76,7 +76,7 @@ const ShowUserAllMemberShip = () => {
                   <label
                     htmlFor="example-text-input"
                     className="col-md-3"
-                    style={{ color: "#672e93", textDecoration: "underline" }}
+                    style={{ color: "#AB8000", textDecoration: "underline" }}
                   >
                     MemberShip Details :
                   </label>
@@ -110,7 +110,7 @@ const ShowUserAllMemberShip = () => {
                               </td>
                               <td
                                 style={{
-                                  color: "#672e93",
+                                  color: "#AB8000",
                                   fontSize: "small",
                                   textDecoration: "underline",
                                   cursor: "pointer",

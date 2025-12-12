@@ -41,36 +41,50 @@ const LeftSide = () => {
       <div className="vertical-menu">
         <div className="navbar-brand-box">
           <a className="logo logo-dark">
-            <span className="logo-sm">
-              <img
-                src={"favicon.ico"}
-                alt=""
-                style={{ width: "35px", height: "auto" }}
-              />
+            <span
+              className="logo-sm"
+              style={{
+                textTransform: "uppercase",
+                fontWeight: "bolder",
+                fontSize: 30,
+                color: "#000",
+              }}
+            >
+              XD
             </span>
-            <span className="logo-lg">
-              <img
-                src={settingsData?.app_logo}
-                alt=""
-                style={{ width: "140px", height: "auto" }}
-              />
+            <span
+              className="logo-lg"
+              style={{
+                textTransform: "uppercase",
+                fontWeight: "bolder",
+                fontSize: 18,
+                color: "#000",
+              }}
+            >
+              XClusive Diamonds
             </span>
           </a>
 
           <a className="logo logo-light">
-            <span className="logo-sm">
-              <img
-                src={"favicon.ico"}
-                alt=""
-                style={{ width: "40px", height: "auto" }}
-              />
+            <span
+              className="logo-sm"
+              style={{
+                textTransform: "uppercase",
+                fontWeight: "bolder",
+                fontSize: 50,
+              }}
+            >
+              XClusive Diamonds
             </span>
-            <span className="logo-lg">
-              <img
-                src={settingsData?.app_logo}
-                alt=""
-                style={{ width: "140px", height: "auto" }}
-              />
+            <span
+              className="logo-lg"
+              style={{
+                textTransform: "uppercase",
+                fontWeight: "bolder",
+                fontSize: 50,
+              }}
+            >
+              XClusive Diamonds
             </span>
           </a>
         </div>
@@ -169,17 +183,7 @@ const LeftSide = () => {
                   >
                     <a>Add Charges Settings</a>
                   </li>
-                  <li
-                    onClick={() => {
-                      Navigate("/memberShipSettings");
-                    }}
-                    style={{ cursor: "pointer" }}
-                    className={`${
-                      activeMenu === "memberShipSettings" ? "mm-active" : ""
-                    }`}
-                  >
-                    <a>MemberShip Settings</a>
-                  </li>
+                 
                   <li
                     onClick={() => {
                       Navigate("/generalSettings");
@@ -221,7 +225,7 @@ const LeftSide = () => {
                   <i className="uil-book-alt">
                     <i className="fas fa-user"></i>
                   </i>
-                  <span>Users</span>
+                  <span>Retailers</span>
                 </a>
               </li>
 
@@ -240,34 +244,6 @@ const LeftSide = () => {
                     <i className="fas fa-user-edit"></i>
                   </i>
                   <span>Rating & Review</span>
-                </a>
-              </li>
-
-              <li
-                className={`${
-                  activeMenu === `showMemberShip` ||
-                  activeMenu === `showAllMemberShipOfUser`
-                    ? // activeMenu === `showSpecification`
-                      "mm-active"
-                    : ""
-                }`}
-                onClick={() => {
-                  Navigate("/showMemberShip");
-                }}
-              >
-                <a
-                  className={`${
-                    activeMenu === `showMemberShip` ||
-                    activeMenu === `showAllMemberShipOfUser`
-                      ? // activeMenu === `editSpecification`
-                        "active"
-                      : ""
-                  } waves-effect`}
-                >
-                  <i className="uil-book-alt">
-                    <i className="fa fa-user-plus"></i>
-                  </i>
-                  <span>MemberShip</span>
                 </a>
               </li>
 
@@ -299,57 +275,6 @@ const LeftSide = () => {
                 </a>
               </li>
 
-              <li
-                className={`${
-                  activeMenu === `showWalletHistory` ||
-                  activeMenu === `addWallet`
-                    ? "mm-active"
-                    : ""
-                }`}
-                onClick={() => {
-                  Navigate("/showWalletHistory");
-                }}
-              >
-                <a
-                  className={`${
-                    activeMenu === `showWalletHistory` ||
-                    activeMenu === `addWallet`
-                      ? "active"
-                      : ""
-                  } waves-effect`}
-                >
-                  <i className="uil-book-alt">
-                    <i className="fas fa-wallet"></i>
-                  </i>
-                  <span>Wallet</span>
-                </a>
-              </li>
-
-              <li
-                className={`${
-                  activeMenu === `showCoinsHistory` || activeMenu === `addCoins`
-                    ? "mm-active"
-                    : ""
-                }`}
-                onClick={() => {
-                  Navigate("/showCoinsHistory");
-                }}
-              >
-                <a
-                  className={`${
-                    activeMenu === `showCoinsHistory` ||
-                    activeMenu === `addCoins`
-                      ? "active"
-                      : ""
-                  } waves-effect`}
-                >
-                  <i className="uil-book-alt">
-                    <i className="fas fa-coins"></i>
-                  </i>
-                  <span>Coins</span>
-                </a>
-              </li>
-
               <li className="menu-title">Orders</li>
 
               <li
@@ -375,6 +300,32 @@ const LeftSide = () => {
                     <i className="fas fa-shopping-bag"></i>
                   </i>
                   <span>Orders</span>
+                </a>
+              </li>
+
+              <li
+                className={`${
+                  activeMenu === `showOrders` || activeMenu === `editOrders`
+                    ? // activeMenu === `showSpecification`
+                      "mm-active"
+                    : ""
+                }`}
+                onClick={() => {
+                  Navigate("/showOrders");
+                }}
+              >
+                <a
+                  className={`${
+                    activeMenu === `showOrders` || activeMenu === `editOrders`
+                      ? // activeMenu === `editSpecification`
+                        "active"
+                      : ""
+                  } waves-effect`}
+                >
+                  <i className="uil-book-alt">
+                    <i className="fas fa-shopping-bag"></i>
+                  </i>
+                  <span>Create New Order</span>
                 </a>
               </li>
 
@@ -404,7 +355,7 @@ const LeftSide = () => {
                   <i className="uil-book-alt">
                     <i className="fas fa-clipboard-list"></i>
                   </i>
-                  <span>Specification</span>
+                  <span>Collection & Brands</span>
                 </a>
               </li>
 

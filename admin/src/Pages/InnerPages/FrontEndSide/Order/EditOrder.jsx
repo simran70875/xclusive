@@ -106,7 +106,7 @@ const ShowOrderDetails = () => {
                           htmlFor="example-text-input"
                           className="col-md-3"
                           style={{
-                            color: "#672e93",
+                            color: "#AB8000",
                             textDecoration: "underline",
                           }}
                         >
@@ -153,7 +153,7 @@ const ShowOrderDetails = () => {
                           htmlFor="example-text-input"
                           className="col-md-3"
                           style={{
-                            color: "#672e93",
+                            color: "#AB8000",
                             textDecoration: "underline",
                           }}
                         >
@@ -266,7 +266,7 @@ const ShowOrderDetails = () => {
                           htmlFor="example-text-input"
                           className="col-md-3"
                           style={{
-                            color: "#672e93",
+                            color: "#AB8000",
                             textDecoration: "underline",
                           }}
                         >
@@ -461,7 +461,7 @@ const ShowOrderDetails = () => {
                           htmlFor="example-text-input"
                           className="col-md-3"
                           style={{
-                            color: "#672e93",
+                            color: "#AB8000",
                             textDecoration: "underline",
                           }}
                         >
@@ -564,7 +564,7 @@ const ShowOrderDetails = () => {
                           htmlFor="example-text-input"
                           className="col-md-3"
                           style={{
-                            color: "#672e93",
+                            color: "#AB8000",
                             textDecoration: "underline",
                           }}
                         >

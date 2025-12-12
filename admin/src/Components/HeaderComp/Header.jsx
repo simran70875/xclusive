@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
-
 let url = process.env.REACT_APP_API_URL;
 
 const Header = () => {
@@ -79,42 +78,6 @@ const Header = () => {
       <header id="page-topbar">
         <div className="navbar-header">
           <div className="d-flex">
-            <div className="navbar-brand-box">
-              <a className="logo logo-dark">
-                <span className="logo-sm">
-                  <img
-                    src={settingsData?.app_logo}
-                    alt=""
-                    style={{ width: "100px", height: "auto" }}
-                  />
-                </span>
-                <span className="logo-lg">
-                  <img
-                    src={settingsData?.app_logo}
-                    alt=""
-                    style={{ width: "100px", height: "auto" }}
-                  />
-                </span>
-              </a>
-
-              <a className="logo logo-light">
-                <span className="logo-sm">
-                  <img
-                    src={settingsData?.app_logo}
-                    alt=""
-                    style={{ width: "100px", height: "auto" }}
-                  />
-                </span>
-                <span className="logo-lg">
-                  <img
-                    src={settingsData?.app_logo}
-                    alt=""
-                    style={{ width: "100px", height: "auto" }}
-                  />
-                </span>
-              </a>
-            </div>
-
             <button
               type="button"
               className="btn btn-sm px-3 font-size-16 header-item waves-effect vertical-menu-btn"
@@ -330,17 +293,21 @@ const Header = () => {
             <div className="dropdown d-inline-block">
               <button
                 type="button"
-                className="btn header-item waves-effect"
+                className="btn header-item waves-effect d-flex align-items-center gap-10"
                 id="page-header-user-dropdown"
                 data-bs-toggle="dropdown"
                 aria-haspopup="true"
                 aria-expanded="false"
               >
-                <img
-                  className="rounded-circle header-profile-user"
-                  src={"favicon.ico"}
+                <div
+                  className="rounded-circle header-profile-user d-flex align-items-center justify-content-center"
+                  style={{
+                    fontWeight: "bolder",
+                  }}
                   alt="Admin"
-                />
+                >
+                  XD
+                </div>
                 <span className="d-none d-xl-inline-block ms-1 fw-medium font-size-15">
                   {adminName}
                 </span>

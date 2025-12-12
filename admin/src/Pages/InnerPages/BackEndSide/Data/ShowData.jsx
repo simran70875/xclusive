@@ -262,13 +262,13 @@ const ShowData = () => {
       <div className="page-content">
         <div className="container-fluid">
           <div className="row">
-            <div className="col-2 table-heading">Specification List</div>
+            <div className="col-2 table-heading">Collections & Brands List</div>
             <div className="d-flex flex-wrap gap-2 mt-2">
               <button
                 onClick={() => Navigate("/addSpecification")}
                 className="btn btn-primary waves-effect waves-light"
               >
-                Add Specification <i className="fas fa-arrow-right ms-2"></i>
+                Add New <i className="fas fa-arrow-right ms-2"></i>
               </button>
             </div>
             <div className="searchContainer mb-3">

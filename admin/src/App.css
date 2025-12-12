@@ -120,13 +120,13 @@
 }
 
 .settingsContainer{
-  border-bottom: 1px solid #672e93;
+  border-bottom: 1px solid #AB8000;
 }
 
 .settingsContainer .activateSettings {
-  background-color: #aab3e4;
+  background-color: #fcf0c9;
   /* border-radius: 5px; */
-  border-bottom: 5px solid #672e93;
+  border-bottom: 5px solid #AB8000;
 }
 
 .custom-no-rows-overlay {
