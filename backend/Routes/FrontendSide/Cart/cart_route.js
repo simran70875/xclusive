@@ -2,7 +2,7 @@ const express = require("express");
 const route = express.Router();
 const Cart = require("../../../Models/FrontendSide/cart_model");
 const User = require("../../../Models/FrontendSide/user_model");
-const {Product, Variation} = require("../../../Models/BackendSide/product_model");
+const { Product, Variation } = require("../../../Models/BackendSide/product_model");
 const Charges = require("../../../Models/Settings/add_charges_model");
 const authMiddleware = require("../../../Middleware/authMiddleWares");
 const checkAdminRole = require("../../../Middleware/adminMiddleWares");
@@ -49,10 +49,10 @@ route.post("/add", authMiddleware, async (req, res) => {
       user?.User_Type === "0"
         ? Products.Product_Dis_Price
         : user?.User_Type === "1"
-        ? Products.Gold_Price
-        : user?.User_Type === "2"
-        ? Products.Silver_Price
-        : Products.PPO_Price;
+          ? Products.Gold_Price
+          : user?.User_Type === "2"
+            ? Products.Silver_Price
+            : Products.PPO_Price;
 
     let originalPrice =
       user?.User_Type === "0"
@@ -110,38 +110,37 @@ route.get("/cartItems/get", authMiddleware, async (req, res) => {
       .populate({ path: "variation" });
 
     if (cartItems?.length <= 0) {
-     return res.status(200).json({type: "warning", message: "CartItem Not Found!", cartItems: []});
-    } 
+      return res.status(200).json({ type: "warning", message: "CartItem Not Found!", cartItems: [] });
+    }
 
     const result = cartItems.map((cart) => ({
-        _id: cart?._id,
-        userId: cart?.userId || "",
-        originalPrice: cart?.originalPrice * cart?.Quantity || 0,
-        discountPrice: cart?.discountPrice * cart?.Quantity || 0,
-        originalPrice_product: cart?.originalPrice || 0,
-        discountPrice_product: cart?.discountPrice || 0,
-        Quantity: cart?.Quantity || 0,
-        SizeName: cart?.SizeName || "",
-        Stock:
-          cart?.variation?.Variation_Size?.find(
-            (size) => size?.Size_Name === cart?.SizeName
-          )?.Size_Stock || 0,
-        Product: {
-          product_id: cart?.product?._id || "",
-          product_Name: cart?.product?.Product_Name || "",
-        },
-        Variation: {
-          variation_id: cart?.variation?._id || "",
-          variation_name: cart?.variation?.Variation_Name || "",
-          variation_Image: cart?.variation?.Variation_Images?.[0]?.path
-            ? `${
-                process.env.IP_ADDRESS
-              }/${cart?.variation?.Variation_Images[0]?.path.replace(
-                /\\/g,
-                "/"
-              )}`
-            : "",
-        },
+      _id: cart?._id,
+      userId: cart?.userId || "",
+      originalPrice: cart?.originalPrice * cart?.Quantity || 0,
+      discountPrice: cart?.discountPrice * cart?.Quantity || 0,
+      originalPrice_product: cart?.originalPrice || 0,
+      discountPrice_product: cart?.discountPrice || 0,
+      Quantity: cart?.Quantity || 0,
+      SizeName: cart?.SizeName || "",
+      Stock:
+        cart?.variation?.Variation_Size?.find(
+          (size) => size?.Size_Name === cart?.SizeName
+        )?.Size_Stock || 0,
+      Product: {
+        product_id: cart?.product?._id || "",
+        product_Name: cart?.product?.Product_Name || "",
+      },
+      Variation: {
+        variation_id: cart?.variation?._id || "",
+        variation_name: cart?.variation?.Variation_Name || "",
+        variation_Image: cart?.variation?.Variation_Images?.[0]?.path
+          ? `${process.env.IP_ADDRESS
+          }/${cart?.variation?.Variation_Images[0]?.path.replace(
+            /\\/g,
+            "/"
+          )}`
+          : "",
+      },
     }));
 
     const Charges = await getShippingCharges();
@@ -158,57 +157,57 @@ route.get("/cartItems/get", authMiddleware, async (req, res) => {
       ShippingCharge = Charges?.PPO_Ship_Charge;
     }
 
-      // Calculate total discount
-      const totalDiscount = cartItems.reduce((total, cart) => {
-        return total + cart?.discountPrice * cart?.Quantity || 0;
-      }, 0);
+    // Calculate total discount
+    const totalDiscount = cartItems.reduce((total, cart) => {
+      return total + cart?.discountPrice * cart?.Quantity || 0;
+    }, 0);
 
-      // Calculate total original Amount
-      const totalOriginalAmount = cartItems.reduce((total, cart) => {
-        return total + cart?.originalPrice * cart?.Quantity || 0;
-      }, 0);
+    // Calculate total original Amount
+    const totalOriginalAmount = cartItems.reduce((total, cart) => {
+      return total + cart?.originalPrice * cart?.Quantity || 0;
+    }, 0);
 
-     
-      // Calculate total amount
-      const SubTotalAmount = cartItems.reduce((total, cart) => {
-        return total + cart?.discountPrice * cart?.Quantity;
-      }, 0);
 
-      const totalAmount = SubTotalAmount + ShippingCharge;
+    // Calculate total amount
+    const SubTotalAmount = cartItems.reduce((total, cart) => {
+      return total + cart?.discountPrice * cart?.Quantity;
+    }, 0);
 
-      // Check cart for shippingStatus
-      const readyToShip = cartItems.every(
-        (cart) => cart.product?.Shipping === "READY TO SHIP"
-      );
-      const preLaunch = cartItems.every(
-        (cart) => cart.product?.Shipping === "PRE LAUNCH"
-      );
-      let shippingStatus;
+    const totalAmount = SubTotalAmount + ShippingCharge;
 
-      if (readyToShip) {
-        shippingStatus = "DISPATCH IN 24-48HRS";
-      } else if (preLaunch) {
-        shippingStatus = "DISPATCH STARTS WITHIN 3-7 DAYS";
-      } else {
-        shippingStatus =
-          "DISPATCH STARTS WITHIN 3-7 DAYS (If Shipped Together)";
-      }
+    // Check cart for shippingStatus
+    const readyToShip = cartItems.every(
+      (cart) => cart.product?.Shipping === "READY TO SHIP"
+    );
+    const preLaunch = cartItems.every(
+      (cart) => cart.product?.Shipping === "PRE LAUNCH"
+    );
+    let shippingStatus;
 
-      console.log("result CartItem ==> ", result);
+    if (readyToShip) {
+      shippingStatus = "DISPATCH IN 24-48HRS";
+    } else if (preLaunch) {
+      shippingStatus = "DISPATCH STARTS WITHIN 3-7 DAYS";
+    } else {
+      shippingStatus =
+        "DISPATCH STARTS WITHIN 3-7 DAYS (If Shipped Together)";
+    }
 
-      return res.status(200).json({
-        type: "success",
-        message: "All CartItem get successfully!",
-        totalAmount: totalAmount,
-        totalDiscount: totalDiscount,
-        totalOriginalAmount: totalOriginalAmount,
-        ShippingCharge: ShippingCharge,
-        cartItems: result || [],
-        Count: result?.length || 0,
-        shippingStatus,
-      });
-    
-    
+    console.log("result CartItem ==> ", result);
+
+    return res.status(200).json({
+      type: "success",
+      message: "All CartItem get successfully!",
+      totalAmount: totalAmount,
+      totalDiscount: totalDiscount,
+      totalOriginalAmount: totalOriginalAmount,
+      ShippingCharge: ShippingCharge,
+      cartItems: result || [],
+      Count: result?.length || 0,
+      shippingStatus,
+    });
+
+
   } catch (error) {
     console.log(error);
     return res.status(500).json({ type: "error", message: "Server Error!", errorMessage: error });

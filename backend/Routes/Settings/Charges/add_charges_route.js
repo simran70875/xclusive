@@ -8,39 +8,20 @@ route.post('/add', checkAdminRole, async (req, res) => {
 
     const {
         normalShipCharge,
-        goldShipCharge,
-        silverShipCharge,
-        ppoShipCharge,
         normalcoupdisc,
-        goldcoupdisc,
-        silvercoupdisc,
-        ppocoupdisc,
         coins_reward_user,
-        coins_reward_gold,
-        coins_reward_silver,
-        coins_reward_ppo,
         usage_limit_user,
-        usage_limit_reseller
     } = req.body
 
     try {
 
         const newCharges = new Charges({
             Normal_Ship_Charge: normalShipCharge,
-            Gold_Ship_Charge: goldShipCharge,
-            Silver_Ship_Charge: silverShipCharge,
-            PPO_Ship_Charge: ppoShipCharge,
             Normal_Coup_Disc: normalcoupdisc,
-            Gold_Coup_Disc: goldcoupdisc,
-            Silver_Coup_Disc: silvercoupdisc,
-            PPO_Coup_Disc: ppocoupdisc,
             coins_reward_user,
-            coins_reward_gold,
-            coins_reward_silver,
-            coins_reward_ppo,
             usage_limit_user,
-            usage_limit_reseller
-        })
+        });
+
         await newCharges.save()
         res.status(200).json({ type: "success", message: "Charges added successfully!" });
 
@@ -84,43 +65,23 @@ route.get('/get/:id', checkAdminRole, async (req, res) => {
 // update charges
 route.patch('/update/:id', checkAdminRole, async (req, res) => {
     const chargesId = req.params.id;
+
     const {
         normalShipCharge,
-        goldShipCharge,
-        silverShipCharge,
-        ppoShipCharge,
         normalcoupdisc,
-        goldcoupdisc,
-        silvercoupdisc,
-        ppocoupdisc,
         coins_reward_user,
-        coins_reward_gold,
-        coins_reward_silver,
-        coins_reward_ppo,
-        usage_limit_user,
-        usage_limit_reseller
+        usage_limit_user
     } = req.body;
-
-    console.log(usage_limit_user, "limit")
 
     try {
         const existingCharges = await Charges.findByIdAndUpdate(
             chargesId,
             {
                 Normal_Ship_Charge: normalShipCharge,
-                Gold_Ship_Charge: goldShipCharge,
-                Silver_Ship_Charge: silverShipCharge,
-                PPO_Ship_Charge: ppoShipCharge,
                 Normal_Coup_Disc: normalcoupdisc,
-                Gold_Coup_Disc: goldcoupdisc,
-                Silver_Coup_Disc: silvercoupdisc,
-                PPO_Coup_Disc: ppocoupdisc,
                 coins_reward_user: coins_reward_user,
-                coins_reward_gold: coins_reward_gold,
-                coins_reward_silver: coins_reward_silver,
-                coins_reward_ppo: coins_reward_ppo,
                 usage_limit_user: usage_limit_user,
-                usage_limit_reseller: usage_limit_reseller
+
             },
             { new: true }
         );

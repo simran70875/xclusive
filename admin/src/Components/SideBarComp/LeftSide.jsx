@@ -183,7 +183,7 @@ const LeftSide = () => {
                   >
                     <a>Add Charges Settings</a>
                   </li>
-                 
+
                   <li
                     onClick={() => {
                       Navigate("/generalSettings");
@@ -304,22 +304,14 @@ const LeftSide = () => {
               </li>
 
               <li
-                className={`${
-                  activeMenu === `showOrders` || activeMenu === `editOrders`
-                    ? // activeMenu === `showSpecification`
-                      "mm-active"
-                    : ""
-                }`}
+                className={`${activeMenu === "newOrder" ? "mm-active" : ""}`}
                 onClick={() => {
-                  Navigate("/showOrders");
+                  Navigate("/newOrder");
                 }}
               >
                 <a
-                  className={`${
-                    activeMenu === `showOrders` || activeMenu === `editOrders`
-                      ? // activeMenu === `editSpecification`
-                        "active"
-                      : ""
+                  className={` ${
+                    activeMenu === "newOrder" ? "active" : ""
                   } waves-effect`}
                 >
                   <i className="uil-book-alt">

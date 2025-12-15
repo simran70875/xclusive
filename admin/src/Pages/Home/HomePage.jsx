@@ -50,6 +50,7 @@ import ShowPopBanner from "../InnerPages/BackEndSide/Banner_popup/ShowPopBanner"
 import AddPopBanner from "../InnerPages/BackEndSide/Banner_popup/AddPopBanner";
 import EditPopBanner from "../InnerPages/BackEndSide/Banner_popup/EditPopBanner";
 import AddMarquee from "../SettingsPages/marquee";
+import CreateNewOrder from "../InnerPages/FrontEndSide/Order/CreateOrder";
 
 let url = process.env.REACT_APP_API_URL;
 
@@ -131,6 +132,7 @@ const HomePage = () => {
         {/* Order */}
         <Route exact path="/showOrders" element={<ShowOrder />} />
         <Route exact path="/editOrders" element={<EditOrder />} />
+        <Route exact path="/newOrder" element={<CreateNewOrder />} />
 
         {/* Settings */}
         <Route exact path="/addChargesSettings" element={<AddChargesSettings />}/>

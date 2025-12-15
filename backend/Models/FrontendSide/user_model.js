@@ -33,18 +33,7 @@ const UserSchema = mongoose.Schema(
             type: Boolean,
             default: false
         },
-        Wallet: {
-            type: Number,
-            default: 0
-        },
-        Coins: {
-            type: Number,
-            default: 0
-        },
-        User_Type: {
-            type: String,
-            default: "0"
-        },
+
         Block: {
             type: Boolean,
             default: false

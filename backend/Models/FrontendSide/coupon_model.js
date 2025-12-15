@@ -16,14 +16,7 @@ const CouponSchema = mongoose.Schema({
         type: String,
         unique: true
     },
-    type: {
-        type: String,
-        enum: ['0', '1', '2'],
-    },
     discountAmount: {
-        type: Number,
-    },
-    coinsReward: {
         type: Number,
     },
     creationDate: {
@@ -36,25 +29,6 @@ const CouponSchema = mongoose.Schema({
         type: Boolean,
         enum: [true, false],
         default: true
-    },
-    createFor: {
-        type: {
-            type: String,
-            enum: ['0', '1', '2', '3', '4'],
-        },
-        id: {
-            type: mongoose.Schema.Types.ObjectId,
-        }
-    },
-    createdBy: {
-        type: {
-            type: String,
-            enum: ['0', '1', '2'],
-        },
-        id: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'Users',
-        }
     },
     usageLimits: {
         type: Number,

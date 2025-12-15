@@ -1,14 +1,14 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 import "react-quill/dist/quill.snow.css";
 import AlertBox from "../../../Components/AlertComp/AlertBox";
 import axios from "axios";
 import GeneralSettings from "./GeneralSettings";
 import AppSettings from "./AppSettings";
-import NotificationSettings from "./NotificationSettings";
-import WalletCoinSettings from "./WalletCoinSettings";
-import PaymentSettings from "./PaymentSettings";
-import BankDetailsSettings from "./BankDetailsSettings";
+// import NotificationSettings from "./NotificationSettings";
+// import WalletCoinSettings from "./WalletCoinSettings";
+// import PaymentSettings from "./PaymentSettings";
+// import BankDetailsSettings from "./BankDetailsSettings";
 import PasswordChange from "./PasswordChange";
 
 let url = process.env.REACT_APP_API_URL;
@@ -38,33 +38,33 @@ const GeneralSettingsMain = () => {
   const [maintenance, setMetMaintenance] = useState(false);
   const [cancelOption, setCancelOption] = useState(false);
 
-  // notification settings
-  const [oneAppId, setOneAppId] = useState("");
-  const [restKey, setRestKey] = useState("");
-  const [serverKey, setServerKey] = useState("");
-  const [twoFecApiKey, setTwoFecApiKey] = useState("");
-  const [twoFecoptions, setTwoFecoptions] = useState(false);
+  // // notification settings
+  // const [oneAppId, setOneAppId] = useState("");
+  // const [restKey, setRestKey] = useState("");
+  // const [serverKey, setServerKey] = useState("");
+  // const [twoFecApiKey, setTwoFecApiKey] = useState("");
+  // const [twoFecoptions, setTwoFecoptions] = useState(false);
 
-  // coins & wallet settings
-  const [minCoinsAmount, setMinCoinsAmount] = useState(0);
-  const [minWalletAmount, setMinWalletAmount] = useState(0);
-  const [priceCovertCoins, setPriceCovertCoins] = useState(0);
-  const [reviewAmount, setReviewAmount] = useState(0);
+  // // coins & wallet settings
+  // const [minCoinsAmount, setMinCoinsAmount] = useState(0);
+  // const [minWalletAmount, setMinWalletAmount] = useState(0);
+  // const [priceCovertCoins, setPriceCovertCoins] = useState(0);
+  // const [reviewAmount, setReviewAmount] = useState(0);
 
-  // payment settings
-  const [razorKey, setRazorKey] = useState("");
-  const [mapkey, setMapkey] = useState("");
+  // // payment settings
+  // const [razorKey, setRazorKey] = useState("");
+  // const [mapkey, setMapkey] = useState("");
 
-  // Banking Settings
-  const [address, setaddress] = useState("");
-  const [gstNo, setGstNo] = useState("");
-  const [panNo, setpanNo] = useState("");
-  const [bankName, setBankName] = useState("");
-  const [accountNo, setAccountNo] = useState("");
-  const [ifscCode, setIfscCode] = useState("");
-  const [branch, setBranch] = useState("");
-  const [upiImage, setUpiImage] = useState("");
-  const [bankImage, setBankImage] = useState("");
+  // // Banking Settings
+  // const [address, setaddress] = useState("");
+  // const [gstNo, setGstNo] = useState("");
+  // const [panNo, setpanNo] = useState("");
+  // const [bankName, setBankName] = useState("");
+  // const [accountNo, setAccountNo] = useState("");
+  // const [ifscCode, setIfscCode] = useState("");
+  // const [branch, setBranch] = useState("");
+  // const [upiImage, setUpiImage] = useState("");
+  // const [bankImage, setBankImage] = useState("");
 
   const handleTabClick = (value) => {
     setActiveTab(value);
@@ -105,32 +105,32 @@ const GeneralSettingsMain = () => {
     setMetMaintenance(existingSettings?.app_maintenance_status);
     setCancelOption(existingSettings?.app_update_cancel_button);
 
-    // notification_setting
-    setOneAppId(existingSettings?.onesignal_app_id);
-    setRestKey(existingSettings?.onesignal_rest_key);
-    setServerKey(existingSettings?.firebase_server_key);
-    setTwoFecApiKey(existingSettings?.factor_apikey);
-    setTwoFecoptions(existingSettings?.app_update_factor_button);
+    // // notification_setting
+    // setOneAppId(existingSettings?.onesignal_app_id);
+    // setRestKey(existingSettings?.onesignal_rest_key);
+    // setServerKey(existingSettings?.firebase_server_key);
+    // setTwoFecApiKey(existingSettings?.factor_apikey);
+    // setTwoFecoptions(existingSettings?.app_update_factor_button);
 
-    // coins & wallet settings
-    setMinCoinsAmount(existingSettings?.coin_withdrawal_limit);
-    setMinWalletAmount(existingSettings?.min_wallet_amount_limit);
-    setPriceCovertCoins(existingSettings?.price_convert_coin);
-    setReviewAmount(existingSettings?.review_reward_amount);
+    // // coins & wallet settings
+    // setMinCoinsAmount(existingSettings?.coin_withdrawal_limit);
+    // setMinWalletAmount(existingSettings?.min_wallet_amount_limit);
+    // setPriceCovertCoins(existingSettings?.price_convert_coin);
+    // setReviewAmount(existingSettings?.review_reward_amount);
 
-    // payment settings
-    setRazorKey(existingSettings?.razorpay_key);
-    setMapkey(existingSettings?.map_api_key);
+    // // payment settings
+    // setRazorKey(existingSettings?.razorpay_key);
+    // setMapkey(existingSettings?.map_api_key);
 
-    // banking settings
-    setBankName(existingSettings?.bank_name);
-    setIfscCode(existingSettings?.ifsc_code);
-    setAccountNo(existingSettings?.account_no);
-    setBranch(existingSettings?.branch_name);
-    setBankImage(existingSettings?.app_upi_image);
-    setaddress(existingSettings?.address);
-    setpanNo(existingSettings?.pan_no);
-    setGstNo(existingSettings?.gst_no);
+    // // banking settings
+    // setBankName(existingSettings?.bank_name);
+    // setIfscCode(existingSettings?.ifsc_code);
+    // setAccountNo(existingSettings?.account_no);
+    // setBranch(existingSettings?.branch_name);
+    // setBankImage(existingSettings?.app_upi_image);
+    // setaddress(existingSettings?.address);
+    // setpanNo(existingSettings?.pan_no);
+    // setGstNo(existingSettings?.gst_no);
   }, [existingSettings]);
 
   const [settingsAddStatus, setSettingsAddStatus] = useState("");
@@ -159,32 +159,32 @@ const GeneralSettingsMain = () => {
     formData.append("app_maintenance_status", maintenance);
     formData.append("app_update_cancel_button", cancelOption);
 
-    // notification
-    formData.append("factor_apikey", twoFecApiKey);
-    formData.append("firebase_server_key", serverKey);
-    formData.append("onesignal_rest_key", restKey);
-    formData.append("onesignal_app_id", oneAppId);
-    formData.append("app_update_factor_button", twoFecoptions);
+    // // notification
+    // formData.append("factor_apikey", twoFecApiKey);
+    // formData.append("firebase_server_key", serverKey);
+    // formData.append("onesignal_rest_key", restKey);
+    // formData.append("onesignal_app_id", oneAppId);
+    // formData.append("app_update_factor_button", twoFecoptions);
 
-    // wallete & coins
-    formData.append("price_convert_coin", priceCovertCoins);
-    formData.append("min_wallet_amount_limit", minWalletAmount);
-    formData.append("coin_withdrawal_limit", minCoinsAmount);
-    formData.append("review_reward_amount", reviewAmount);
+    // // wallete & coins
+    // formData.append("price_convert_coin", priceCovertCoins);
+    // formData.append("min_wallet_amount_limit", minWalletAmount);
+    // formData.append("coin_withdrawal_limit", minCoinsAmount);
+    // formData.append("review_reward_amount", reviewAmount);
 
-    // payment
-    formData.append("map_api_key", mapkey);
-    formData.append("razorpay_key", razorKey);
+    // // payment
+    // formData.append("map_api_key", mapkey);
+    // formData.append("razorpay_key", razorKey);
 
-    // bank details
-    formData.append("upi_image", upiImage);
-    formData.append("branch_name", branch);
-    formData.append("account_no", accountNo);
-    formData.append("ifsc_code", ifscCode);
-    formData.append("bank_name", bankName);
-    formData.append("address", address);
-    formData.append("gst_no", gstNo);
-    formData.append("pan_no", panNo);
+    // // bank details
+    // formData.append("upi_image", upiImage);
+    // formData.append("branch_name", branch);
+    // formData.append("account_no", accountNo);
+    // formData.append("ifsc_code", ifscCode);
+    // formData.append("bank_name", bankName);
+    // formData.append("address", address);
+    // formData.append("gst_no", gstNo);
+    // formData.append("pan_no", panNo);
 
     try {
       const response = await axios.patch(
@@ -199,7 +199,7 @@ const GeneralSettingsMain = () => {
       if (response.data.type === "success") {
         setSettingsAddStatus(response.data.type);
         setStatusMessage(response.data.message);
-        setTimeout(() => {}, 900);
+        setTimeout(() => { }, 900);
       } else {
         setSettingsAddStatus(response.data.type);
         setStatusMessage(response.data.message);
@@ -269,7 +269,7 @@ const GeneralSettingsMain = () => {
                       App Settings
                     </a>
                   </li>
-                  <li
+                  {/* <li
                     style={{ padding: "4px 22px" }}
                     role="presentation"
                     className={
@@ -286,8 +286,8 @@ const GeneralSettingsMain = () => {
                     >
                       Notification Setting
                     </a>
-                  </li>
-                  <li
+                  </li> */}
+                  {/* <li
                     style={{ padding: "4px 22px" }}
                     role="presentation"
                     className={
@@ -337,11 +337,11 @@ const GeneralSettingsMain = () => {
                       aria-controls="bank_details"
                       role="tab"
                       onClick={() => handleTabClick("bank_details")}
-                      // style={{color: activeTab === 'bank_details' ? 'white' : ""}}
+                    // style={{color: activeTab === 'bank_details' ? 'white' : ""}}
                     >
                       Bank Details
                     </a>
-                  </li>
+                  </li> */}
                   <li
                     style={{ padding: "4px 22px" }}
                     role="presentation"
@@ -403,7 +403,7 @@ const GeneralSettingsMain = () => {
                       />
                     )}
 
-                    {activeTab === "notification_setting" && (
+                    {/* {activeTab === "notification_setting" && (
                       <NotificationSettings
                         oneAppId={oneAppId}
                         restKey={restKey}
@@ -460,7 +460,7 @@ const GeneralSettingsMain = () => {
                         setUpiImage={setUpiImage}
                         bankImage={bankImage}
                       />
-                    )}
+                    )} */}
 
                     {activeTab != "password_change" && (
                       <div className="row mb-10">
@@ -483,11 +483,7 @@ const GeneralSettingsMain = () => {
                   </form>
 
                   {activeTab === "password_change" && (
-                    <PasswordChange
-                      setOldPassword={setOneAppId}
-                      setNewPassword={setRestKey}
-                      setConfirmPassword={setServerKey}
-                    />
+                    <PasswordChange />
                   )}
                 </div>
               </div>

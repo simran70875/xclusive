@@ -39,40 +39,42 @@ const OrderSchema = mongoose.Schema(
       type: String,
       default: "0",
     },
-    
+
     OrderType: {
       type: String,
       default: "1",
     },
-    cod_advance_amt:{
+    cod_advance_amt: {
       type: Number,
     },
-   
+
     ActualPayment: {
       type: Number,
     },
+
     OriginalPrice: {
       type: Number,
       default: 0,
     },
+
     DiscountPrice: {
       type: Number,
       default: 0,
     },
-    // CouponPrice: {
-    //   type: Number,
-    //   default: 0,
-    // },
+
     FinalPrice: {
       type: Number,
     },
-    FinalAdavnceCodPrice :{
+
+    FinalAdavnceCodPrice: {
       type: Number,
     },
+
     processed: {
       type: Boolean,
       default: false,
     },
+
     reason: {
       type: String,
     },
@@ -81,36 +83,29 @@ const OrderSchema = mongoose.Schema(
     tracking_id: {
       type: String,
     },
+
     bank_ref_no: {
       type: String,
     },
+
     order_status: {
       type: String,
     },
+
     payment_status: {
       type: String,
       default: "Unpaid",
     },
-    cod_status:{
+
+    cod_status: {
       type: String,
       default: "Unpaid",
     },
+
     payment_mode: {
       type: String,
     },
-    card_name: {
-      type: String,
-    },
-    wallet:{
-      type:Boolean,
-    },
-    walletAmount:{
-      type:Number,
-      default:0
-    },
-    device:{
-      type:String
-    }
+
   },
   {
     timestamps: true,

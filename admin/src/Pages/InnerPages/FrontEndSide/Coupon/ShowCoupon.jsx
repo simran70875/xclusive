@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { DataGrid, GridToolbar } from "@mui/x-data-grid";
 import IconButton from "@mui/material/IconButton";
 import Stack from "@mui/material/Stack";
@@ -24,7 +24,10 @@ const ShowCoupon = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [startDateFilter, setStartDateFilter] = useState("");
   const [endDateFilter, setEndDateFilter] = useState("");
-  const [paginationModel, setPaginationModel] = useState({page: 0,pageSize: 100,});
+  const [paginationModel, setPaginationModel] = useState({
+    page: 0,
+    pageSize: 100,
+  });
   const [rowCount, setRowCount] = useState(0);
 
   const Navigate = useNavigate();
@@ -36,47 +39,35 @@ const ShowCoupon = () => {
 
   const columns = [
     {
+      field: "createdAt",
+      headerName: "Created At",
+      flex: 1,
+      filterable: true,
+      sortable: true,
+      filterType: "multiselect",
+      renderCell: (params) =>
+        params.row.createdAt
+          ? new Date(params.row.createdAt).toLocaleDateString()
+          : "",
+    },
+    {
       field: "_id",
-      width: 240,
+      flex: 1.5,
       headerName: "Id",
     },
     {
       field: "couponCode",
       headerName: "Coupon Name",
-      width: 140,
+      flex: 1,
       filterable: true,
       sortable: true,
       filterType: "multiselect",
     },
-    {
-      field: "createdAt",
-      headerName: "Created At",
-      width: 140,
-      filterable: true,
-      sortable: true,
-      filterType: "multiselect",
-      renderCell: (params) => (params.row.createdAt ? new Date(params.row.createdAt).toLocaleDateString() : ""),
-    },
-    {
-      field: "createdBy",
-      headerName: "Creation",
-      width: 120,
-      filterable: true,
-      sortable: true,
-      filterType: "multiselect",
-    },
+
     {
       field: "discountAmount",
       headerName: "Discount Amount",
-      width: 120,
-      filterable: true,
-      sortable: true,
-      filterType: "multiselect",
-    },
-    {
-      field: "coinsReward",
-      headerName: "Coins Reward",
-      width: 120,
+      flex: 1,
       filterable: true,
       sortable: true,
       filterType: "multiselect",
@@ -84,7 +75,7 @@ const ShowCoupon = () => {
     {
       field: "creationDate",
       headerName: "Start Date",
-      width: 120,
+      flex: 1,
       filterable: true,
       sortable: true,
       filterType: "multiselect",
@@ -92,7 +83,7 @@ const ShowCoupon = () => {
     {
       field: "expiryDate",
       headerName: "End Date",
-      width: 120,
+      flex: 1,
       filterable: true,
       sortable: true,
       filterType: "multiselect",
@@ -100,7 +91,7 @@ const ShowCoupon = () => {
     {
       field: "usageLimits",
       headerName: "Limits",
-      width: 90,
+      flex: 1,
       filterable: true,
       sortable: true,
       filterType: "multiselect",
@@ -108,7 +99,7 @@ const ShowCoupon = () => {
     {
       field: "status",
       headerName: "Status",
-      width: 120,
+      flex: 1,
       renderCell: (params) => (
         <div className="form-check form-switch">
           <input
@@ -135,7 +126,7 @@ const ShowCoupon = () => {
     {
       field: "action",
       headerName: "Action",
-      width: 90,
+      flex: 1,
       renderCell: (params) => (
         <Stack direction="row">
           <IconButton
@@ -158,12 +149,11 @@ const ShowCoupon = () => {
     },
   ];
 
-
-  async function getCoupon(page,pageSize) {
+  async function getCoupon(page, pageSize) {
     setIsLoading(true);
     try {
       const res = await axios.get(`${url}/coupon/get`, {
-        params: { page: page+1, pageSize },
+        params: { page: page + 1, pageSize },
         headers: {
           Authorization: `${adminToken}`,
         },
@@ -180,10 +170,9 @@ const ShowCoupon = () => {
     try {
       const res = await axios.get(`${url}/coupon/get`, {
         params: {},
-        headers: {Authorization: `${adminToken}`},
+        headers: { Authorization: `${adminToken}` },
       });
       setAllCouponData(res?.data?.coupon || []);
-      console.log("all coupon data ",res?.data?.coupon);
       setIsLoading(false);
     } catch (error) {
       setIsLoading(false);
@@ -191,10 +180,9 @@ const ShowCoupon = () => {
   }
 
   useEffect(() => {
-  
     getCoupon(paginationModel.page, paginationModel.pageSize);
     getCouponWithoutPagination();
-  }, [adminToken,paginationModel.page, paginationModel.pageSize]);
+  }, [adminToken, paginationModel.page, paginationModel.pageSize]);
 
   const handleCouponUpdate = (coupon) => {
     dispatch(editCoupon(coupon));
@@ -278,8 +266,16 @@ const ShowCoupon = () => {
         }
       );
 
-      setCouponData(couponData.map((c) =>c._id === coupon._id ? { ...c, status: newStatus } : c) || []);
-      setAllCouponData(couponAllData.map((c) =>c._id === coupon._id ? { ...c, status: newStatus } : c) || []);
+      setCouponData(
+        couponData.map((c) =>
+          c._id === coupon._id ? { ...c, status: newStatus } : c
+        ) || []
+      );
+      setAllCouponData(
+        couponAllData.map((c) =>
+          c._id === coupon._id ? { ...c, status: newStatus } : c
+        ) || []
+      );
     } catch (error) {
       console.log(error);
     }
@@ -287,15 +283,20 @@ const ShowCoupon = () => {
 
   const handleFilter = () => {
     const filteredCouponList = couponAllData?.filter((coupon) => {
-      const formattedCouponName = (coupon?.name || "").toUpperCase().replace(/\s/g, "");
+      const formattedCouponName = (coupon?.name || "")
+        .toUpperCase()
+        .replace(/\s/g, "");
       let isCouponName = true;
-      if (couponName) isCouponName = formattedCouponName.includes(couponName.toUpperCase().replace(/\s/g, ""));
+      if (couponName)
+        isCouponName = formattedCouponName.includes(
+          couponName.toUpperCase().replace(/\s/g, "")
+        );
       return isCouponName;
     });
 
     // Apply date filtering
     let filteredByDate = filteredCouponList;
-    
+
     if (startDateFilter || endDateFilter) {
       filteredByDate = filteredCouponList?.filter((coupon) => {
         let couponDate = coupon?.creationDate;
@@ -416,7 +417,13 @@ const ShowCoupon = () => {
               <div className="datagrid-container">
                 <DataGrid
                   style={{ textTransform: "capitalize" }}
-                  rows={searchQuery === "" && startDateFilter === "" && endDateFilter === "" ? couponData : handleFilter()}
+                  rows={
+                    searchQuery === "" &&
+                    startDateFilter === "" &&
+                    endDateFilter === ""
+                      ? couponData
+                      : handleFilter()
+                  }
                   columns={columns}
                   checkboxSelection
                   disableSelectionOnClick
@@ -434,13 +441,26 @@ const ShowCoupon = () => {
                   loading={isLoading}
                   onCellClick={handleCellClick}
                   onRowSelectionModelChange={(e) => setSelectedRows(e)}
-                  
                   pagination
-                  paginationMode={searchQuery === "" && startDateFilter === "" && endDateFilter === "" ? "server" : "client"} // Use client pagination during search
-                  rowCount={searchQuery === "" && startDateFilter === "" && endDateFilter === "" ? rowCount : handleFilter().length}
+                  paginationMode={
+                    searchQuery === "" &&
+                    startDateFilter === "" &&
+                    endDateFilter === ""
+                      ? "server"
+                      : "client"
+                  } // Use client pagination during search
+                  rowCount={
+                    searchQuery === "" &&
+                    startDateFilter === "" &&
+                    endDateFilter === ""
+                      ? rowCount
+                      : handleFilter().length
+                  }
                   paginationModel={paginationModel}
                   onPaginationModelChange={(e) => setPaginationModel(e)}
-                  initialState={{pagination: { paginationModel: { pageSize: 100 } }}}
+                  initialState={{
+                    pagination: { paginationModel: { pageSize: 100 } },
+                  }}
                   pageSizeOptions={[10, 25, 50, 100]}
                 />
                 {selectedRows.length > 0 && (

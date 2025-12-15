@@ -1,19 +1,16 @@
 import axios from "axios";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import AlertBox from "../../../Components/AlertComp/AlertBox";
-import { useNavigate } from "react-router-dom";
 let url = process.env.REACT_APP_API_URL;
 
 const PasswordChange = () => {
   const [settingsAddStatus, setSettingsAddStatus] = useState("");
   const [statusMessage, setStatusMessage] = useState("");
   const adminToken = localStorage.getItem("token");
-  const Navigate = useNavigate();
 
   const [old_password, setOldPassword] = useState({});
   const [password, setNewPassword] = useState("");
   const [confirm_password, setConfirmPassword] = useState("");
-  const [error, setError] = useState("");
 
   const handlePasswordSubmit = async (e) => {
     e.preventDefault();
@@ -46,12 +43,6 @@ const PasswordChange = () => {
       setStatusMessage("Failed to update password");
     }
   };
-
-  function closeError() {
-    setTimeout(() => {
-      setError("");
-    }, 2500);
-  }
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -130,7 +121,7 @@ const PasswordChange = () => {
           </button>
         </div>
       </form>
-    
+
       <AlertBox status={settingsAddStatus} statusMessage={statusMessage} />
     </>
   );

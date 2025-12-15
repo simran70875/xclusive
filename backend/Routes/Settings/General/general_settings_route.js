@@ -5,7 +5,6 @@ const GeneralSettingsModel = require("../../../Models/Settings/general_settings_
 const AdminModel = require("../../../Models/Admin/admin_model");
 const bcrypt = require("bcrypt");
 const fs = require("fs");
-const path = require("path");
 const checkAdminRole = require("../../../Middleware/adminMiddleWares");
 
 // Set up multer middleware to handle file uploads
@@ -33,9 +32,7 @@ const uploadFields = multer({
 });
 
 // Add route for adding data from request body
-route.post(
-  "/add",
-  checkAdminRole,
+route.post("/add", checkAdminRole,
   upload.fields([
     { name: "image", maxCount: 1 },
     { name: "upi_image", maxCount: 1 },
@@ -272,19 +269,15 @@ route.delete("/delete", checkAdminRole, async (req, res) => {
 });
 
 // Update route for updating specific fields of general settings
-route.patch(
-  "/update",
-  checkAdminRole,
+route.patch( "/update", checkAdminRole,
   uploadFields.fields([
     { name: "image", maxCount: 1 },
     { name: "upi_image", maxCount: 1 },
   ]),
   async (req, res) => {
     const updateFields = req.body;
-    const updateImage =
-      req.files && req.files["image"] ? req.files["image"][0] : null;
-    let updateUpiImage =
-      req.files && req.files["upi_image"] ? req.files["upi_image"][0] : null;
+    const updateImage = req.files && req.files["image"] ? req.files["image"][0] : null;
+    let updateUpiImage = req.files && req.files["upi_image"] ? req.files["upi_image"][0] : null;
 
     try {
       const existingSetting = await GeneralSettingsModel.findOne({});
@@ -487,7 +480,7 @@ route.post("/passwordChange", checkAdminRole, async (req, res) => {
   try {
     // Fetch the admin user from the database (assuming user is authenticated and you have their ID)
     const admin = await AdminModel.findById(req.admin.id); // Replace `req.user.id` with actual admin identifier
-  
+
     // Check if old password matches the stored hashed password
     const isMatch = await bcrypt.compare(old_password, admin.password);
     if (!isMatch) {

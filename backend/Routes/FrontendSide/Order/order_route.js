@@ -1,6 +1,5 @@
 const express = require("express");
 const route = express.Router();
-const { Product } = require("../../../Models/BackendSide/product_model");
 const { Variation } = require("../../../Models/BackendSide/product_model");
 const Order = require("../../../Models/FrontendSide/order_model");
 const Cart = require("../../../Models/FrontendSide/cart_model");
@@ -9,12 +8,9 @@ const User = require("../../../Models/FrontendSide/user_model");
 const Coupons = require("../../../Models/FrontendSide/coupon_model");
 const Review = require("../../../Models/FrontendSide/review_model");
 const Coins = require("../../../Models/FrontendSide/coins_model");
-const Notification = require("../../../Models/FrontendSide/notification_model");
 const authMiddleware = require("../../../Middleware/authMiddleWares");
 const checkAdminOrRole1 = require("../../../Middleware/checkAdminOrRole1");
 const checkAdminRole = require("../../../Middleware/adminMiddleWares");
-const axios = require("axios");
-const admin = require("firebase-admin");
 const moment = require("moment-timezone");
 
 // ************************************************************************************************
@@ -28,6 +24,157 @@ async function generateUniqueKey() {
 
   return uniqueOrderId;
 }
+
+
+const sendQuotationEmail = async ({
+  email,
+  firstName,
+  products,
+  subtotal,
+  tax,
+  deliveryCharges,
+  total,
+  orderId,
+  userId, // optional (for confirm order)
+}) => {
+  try {
+    /* ---------------- ATTACH PRODUCT IMAGES ---------------- */
+    const attachments = [];
+    const cidMap = await Promise.all(
+      products.map(async (p, i) => {
+        try {
+          const response = await axios.get(p.image, {
+            responseType: "arraybuffer",
+          });
+
+          const cid = `product-${i}@quote`;
+          const ext = path.extname(p.image).slice(1) || "jpg";
+
+          attachments.push({
+            filename: `product-${i}.${ext}`,
+            content: Buffer.from(response.data, "binary"),
+            cid,
+          });
+
+          return cid;
+        } catch (error) {
+          console.warn(`Image load failed: ${p.code}`);
+          return null;
+        }
+      })
+    );
+
+    /* ---------------- CONFIRM ORDER LINK ---------------- */
+    let confirmOrderUrl = frontendUrl;
+
+    if (userId) {
+      const token = jwt.sign(
+        { userId, orderId },
+        JWT_SECRET,
+        { expiresIn: "7d" }
+      );
+
+      confirmOrderUrl = `${frontendUrl}/confirm-order/${token}`;
+    }
+
+    /* ---------------- PRODUCT TABLE ---------------- */
+    const productRows = products
+      .map((p, i) => {
+        const cid = cidMap[i];
+
+        return `
+<tr>
+  <td style="border:1px solid #ddd;padding:8px;text-align:center">
+    ${cid ? `<img src="cid:${cid}" width="80"/>` : "N/A"}
+  </td>
+  <td style="border:1px solid #ddd;padding:8px">
+    ${p.code}
+  </td>
+  <td style="border:1px solid #ddd;padding:8px">
+    ${p.description}
+  </td>
+  <td style="border:1px solid #ddd;padding:8px;text-align:center">
+    ${p.quantity}
+  </td>
+  <td style="border:1px solid #ddd;padding:8px;text-align:right">
+    £${p.unitPrice?.toFixed(2)}
+  </td>
+  <td style="border:1px solid #ddd;padding:8px;text-align:right">
+    £${p.totalPrice?.toFixed(2)}
+  </td>
+</tr>`;
+      })
+      .join("");
+
+    /* ---------------- EMAIL HTML ---------------- */
+    const mailHtml = `
+<p>Hi ${firstName || "Customer"},</p>
+
+<p>
+Thank you for reaching out to us – we’re delighted to support your PPE needs.
+Below is your personalised quotation:
+</p>
+
+<h3>🛒 Quotation Summary</h3>
+
+<table style="border-collapse:collapse;width:100%">
+  <thead>
+    <tr>
+      <th style="border:1px solid #ddd;padding:8px">Image</th>
+      <th style="border:1px solid #ddd;padding:8px">Product</th>
+      <th style="border:1px solid #ddd;padding:8px">Description</th>
+      <th style="border:1px solid #ddd;padding:8px">Qty</th>
+      <th style="border:1px solid #ddd;padding:8px">Unit</th>
+      <th style="border:1px solid #ddd;padding:8px">Total</th>
+    </tr>
+  </thead>
+  <tbody>
+    ${productRows}
+  </tbody>
+</table>
+
+<p>
+<strong>Subtotal:</strong> £${subtotal.toFixed(2)}<br/>
+<strong>VAT (20%):</strong> £${tax.toFixed(2)}<br/>
+<strong>Delivery:</strong> £${deliveryCharges.toFixed(2)}<br/>
+<strong>Total Payable:</strong> £${total.toFixed(2)}
+</p>
+
+<p>
+👉 <a href="${confirmOrderUrl}" target="_blank">
+Confirm / Place Your Order
+</a>
+</p>
+
+<p>
+If you need any changes or have questions, just reply to this email.
+</p>
+
+<p>
+Best regards,<br/>
+<b>Workwear Admin Team</b><br/>
+Work Wear Pvt. Ltd.<br/>
+📞 +44 17996 11006<br/>
+✉️ hello@work-safety.co.uk<br/>
+🌐 workwearcompany.co.uk
+</p>
+`;
+
+    /* ---------------- SEND MAIL ---------------- */
+    await transporter.sendMail({
+      from: process.env.SMTP_FROM_EMAIL,
+      to: email,
+      subject: `Quotation – Order ${orderId}`,
+      html: mailHtml,
+      attachments,
+    });
+
+    return true;
+  } catch (error) {
+    console.error("sendQuotationMail error:", error);
+    throw error;
+  }
+};
 
 // function for get cart data for user
 async function getCartData(userId) {
@@ -110,6 +257,7 @@ route.post("/add", authMiddleware, async (req, res) => {
       walletAmount,
       device,
     } = req.body;
+
     const userId = req.user.userId;
 
 
@@ -125,7 +273,7 @@ route.post("/add", authMiddleware, async (req, res) => {
     if (!isNaN(cod_advance_amt)) walcod_advance_amtletAmount = Number(cod_advance_amt);
 
     console.log("Order Route", req.body, typeof wallet, wallet);
-    if (PaymentType === "0" || (PaymentType === "1" && ActualPayment == 0) ||  (PaymentType === "2" && FinalAdavnceCodPrice === 0)) orderId = await generateUniqueKey();
+    if (PaymentType === "0" || (PaymentType === "1" && ActualPayment == 0) || (PaymentType === "2" && FinalAdavnceCodPrice === 0)) orderId = await generateUniqueKey();
 
     if (Coupon === "") Coupon = "not";
 
@@ -153,7 +301,7 @@ route.post("/add", authMiddleware, async (req, res) => {
       // Calculate the cart amount including shipping charge
       cartAmount = (CartData?.map((item) => item.discountPrice * item.Quantity).reduce((acc, curr) => acc + curr, 0)) + Shipping_Charge;
       currentOrderAmount = cartAmount - extraAmount;
-    
+
       console.log("cartAmount (with shipping) ==> ", cartAmount);
       console.log("currentOrderAmount (after extraAmount deduction) ==> ", currentOrderAmount);
       console.log("ActualPayment ==> ", ActualPayment, "FinalPrice ==> ", FinalPrice);
@@ -162,30 +310,30 @@ route.post("/add", authMiddleware, async (req, res) => {
       let final_price = 0;
 
       if (Coupon && wallet === true) final_price = FinalPrice - walletAmount;
-      else if(Coupon) final_price = FinalPrice;
+      else if (Coupon) final_price = FinalPrice;
       else final_price = FinalPrice - extraAmount;
-      
+
       if ((currentOrderAmount != ActualPayment) || (currentOrderAmount != final_price)) {
         console.log("Error: Mismatch in payment calculations for PaymentType 1");
         return res.status(400).json({ type: "error", message: "Cart data has been modified" });
       }
     } else if (PaymentType === "2") {
-       // Calculate the cart amount without discount (fixed price assumption)
-        cartAmount = CartData?.map((item) => 100 * item.Quantity).reduce((acc, curr) => acc + curr, 0);
-        currentOrderAmount = cartAmount - extraAmount;
+      // Calculate the cart amount without discount (fixed price assumption)
+      cartAmount = CartData?.map((item) => 100 * item.Quantity).reduce((acc, curr) => acc + curr, 0);
+      currentOrderAmount = cartAmount - extraAmount;
 
-        console.log("cartAmount (fixed price) ==> ", cartAmount);
-        console.log("currentOrderAmount (after extraAmount deduction) ==> ", currentOrderAmount);
-        console.log("ActualPayment ==> ", FinalAdavnceCodPrice || 0, "COD Advance ==> ", cod_advance_amt);
+      console.log("cartAmount (fixed price) ==> ", cartAmount);
+      console.log("currentOrderAmount (after extraAmount deduction) ==> ", currentOrderAmount);
+      console.log("ActualPayment ==> ", FinalAdavnceCodPrice || 0, "COD Advance ==> ", cod_advance_amt);
 
-        // Ensure values are of the same type (convert to numbers if necessary)
-        const codAdvanceAmtNum = Number(cod_advance_amt);
+      // Ensure values are of the same type (convert to numbers if necessary)
+      const codAdvanceAmtNum = Number(cod_advance_amt);
 
-        // Validate if the current order amount matches ActualPayment or COD advance
-        if ((cartAmount != codAdvanceAmtNum ) || (currentOrderAmount != (codAdvanceAmtNum - extraAmount))) {
-          console.log("Error: Mismatch in payment calculations for PaymentType 2");
-          return res.status(400).json({ type: "error", message: "Cart data has been modified" });
-        }
+      // Validate if the current order amount matches ActualPayment or COD advance
+      if ((cartAmount != codAdvanceAmtNum) || (currentOrderAmount != (codAdvanceAmtNum - extraAmount))) {
+        console.log("Error: Mismatch in payment calculations for PaymentType 2");
+        return res.status(400).json({ type: "error", message: "Cart data has been modified" });
+      }
     }
     // something wrong with cart data
 
@@ -196,7 +344,7 @@ route.post("/add", authMiddleware, async (req, res) => {
     // Check if a valid coupon is provided
     if (Coupon !== "not") {
       const coupon = await Coupons.findOne({ _id: Coupon });
-      const userCouponUsage = coupon.UserCouponUsage.find((usage) =>usage.userId.equals(userId));
+      const userCouponUsage = coupon.UserCouponUsage.find((usage) => usage.userId.equals(userId));
       if (userCouponUsage) {
         // If user already used the coupon
         if (userCouponUsage.usageCount >= coupon.usageLimits) {
@@ -285,9 +433,9 @@ route.post("/add", authMiddleware, async (req, res) => {
       //   existUser.save();
       //   addWalletHistory(userId, orderId, cod_advance_amt);
       // }else{
-        existUser.Wallet -= FinalPrice;
-        existUser.save();
-        addWalletHistory(userId, orderId, FinalPrice);
+      existUser.Wallet -= FinalPrice;
+      existUser.save();
+      addWalletHistory(userId, orderId, FinalPrice);
       //  }
     }
 
@@ -299,12 +447,12 @@ route.post("/add", authMiddleware, async (req, res) => {
     }
 
     if (PaymentType === "2" && wallet === true && ActualPayment === 0) {
-        console.log("wallet", cod_advance_amt);
-        existUser.Wallet -= cod_advance_amt;
-        existUser.save();
-        addWalletHistory(userId, orderId, cod_advance_amt);
+      console.log("wallet", cod_advance_amt);
+      existUser.Wallet -= cod_advance_amt;
+      existUser.save();
+      addWalletHistory(userId, orderId, cod_advance_amt);
     }
-    
+
 
     await CartData?.forEach((data) => {
       reduceStock(data?.variation, data?.SizeName, data?.Quantity);
@@ -322,6 +470,149 @@ route.post("/add", authMiddleware, async (req, res) => {
     return res.status(500).json({ type: "error", message: "Server Error!", errorMessage: error });
   }
 });
+
+const validateAndReserveStock = async (products) => {
+  for (const item of products) {
+    const variation = await Variation.findById(item.variationId);
+
+    if (!variation) {
+      throw new Error(`Variation not found for ${item.code}`);
+    }
+
+    const size = variation.Variation_Size.find(
+      (s) => s._id.toString() === item.sizeId
+    );
+
+    if (!size) {
+      throw new Error(`Size not found for ${item.code}`);
+    }
+
+    if (size.Size_Stock < item.quantity) {
+      throw new Error(
+        `Insufficient stock for ${item.code} (${size.Size_Name})`
+      );
+    }
+  }
+};
+
+const deductStock = async (products) => {
+  for (const item of products) {
+    await Variation.updateOne(
+      {
+        _id: item.variationId,
+        "Variation_Size._id": item.sizeId,
+      },
+      {
+        $inc: {
+          "Variation_Size.$.Size_Stock": -item.quantity,
+        },
+      }
+    );
+  }
+};
+
+exports.createOrderByAdmin = async (req, res) => {
+  try {
+    const {
+      userId, // optional (existing retailer)
+      email,
+      firstName,
+      lastName,
+      phone,
+      products,
+      deliveryCharges = 0,
+      subtotal,
+      tax,
+      total,
+      paymentStatus = "Unpaid", // Send invoice / Mark as paid
+    } = req.body;
+
+    /* ---------------- BASIC VALIDATION ---------------- */
+    if (!products || !products.length) {
+      return res.status(400).json({ message: "Products are required" });
+    }
+
+    if (!email) {
+      return res.status(400).json({ message: "Email is required" });
+    }
+
+    /* ---------------- STOCK CHECK ---------------- */
+    await validateAndReserveStock(products);
+
+    /* ---------------- USER (RETAILER) ---------------- */
+    let user;
+
+    if (!userId) {
+      // Create guest retailer
+      user = await User.create({
+        User_Name: `${firstName || ""} ${lastName || ""}`.trim(),
+        User_Email: email,
+        User_Mobile_No: phone,
+        User_Label: "Retailer",
+        User_Status: true,
+      });
+    } else {
+      // Update existing retailer
+      user = await User.findByIdAndUpdate(
+        userId,
+        {
+          User_Name: `${firstName || ""} ${lastName || ""}`.trim(),
+          User_Email: email,
+          User_Mobile_No: phone,
+        },
+        { new: true }
+      );
+
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+    }
+
+    /* ---------------- ORDER ---------------- */
+    const orderId = await generateOrderId();
+
+    const newOrder = await Order.create({
+      orderId,
+      userId: user._id,
+      cartData: products,
+      Shipping_Charge: deliveryCharges,
+      is_Shipping_ChargeAdd: deliveryCharges > 0,
+      OriginalPrice: subtotal,
+      DiscountPrice: tax,
+      FinalPrice: total,
+      payment_status: paymentStatus,
+      order_status: "Quotation Sent",
+      PaymentType: paymentStatus === "Paid" ? "Manual" : "Pending",
+      processed: paymentStatus === "Paid",
+    });
+
+    /* ---------------- DEDUCT STOCK ---------------- */
+    await deductStock(products);
+
+    /* ---------------- SEND QUOTATION EMAIL ---------------- */
+    await sendQuotationEmail({
+      email,
+      firstName,
+      products,
+      subtotal,
+      tax,
+      deliveryCharges,
+      total,
+      orderId,
+      userId,
+    });
+
+    return res.status(201).json({
+      message: "Order created and quotation sent successfully",
+      order: newOrder,
+    });
+  } catch (error) {
+    console.error("createOrderByAdmin error:", error);
+    return res.status(500).json({
+      message: error.message || "Internal server error",
+    });
+  }
+};
 
 // get all upcomin orders for particular user
 route.get("/get/upcoming", authMiddleware, async (req, res) => {
@@ -369,15 +660,14 @@ route.get("/get/upcoming", authMiddleware, async (req, res) => {
         reason: order?.reason || "",
         cartData: order?.cartData.map((cartItem) => ({
           ...cartItem,
-          variationImage: `${
-            process.env.IP_ADDRESS
-          }/${cartItem?.variation?.Variation_Images[0]?.path?.replace(
-            /\\/g,
-            "/"
-          )}`,
+          variationImage: `${process.env.IP_ADDRESS
+            }/${cartItem?.variation?.Variation_Images[0]?.path?.replace(
+              /\\/g,
+              "/"
+            )}`,
         })),
         Shipping_Charge: order?.Shipping_Charge,
-        cod_advance_amt:order?.cod_advance_amt,
+        cod_advance_amt: order?.cod_advance_amt,
         Status: order?.Status,
         createdAt: order?.createdAt?.toISOString()?.substring(0, 10),
         PaymentStatus: order?.order_status || "",
@@ -444,15 +734,14 @@ route.get("/get/history", authMiddleware, async (req, res) => {
         Address: order?.Address || {},
         cartData: order?.cartData.map((cartItem) => ({
           ...cartItem,
-          variationImage: `${
-            process.env.IP_ADDRESS
-          }/${cartItem?.variation?.Variation_Images[0]?.path?.replace(
-            /\\/g,
-            "/"
-          )}`,
+          variationImage: `${process.env.IP_ADDRESS
+            }/${cartItem?.variation?.Variation_Images[0]?.path?.replace(
+              /\\/g,
+              "/"
+            )}`,
         })),
         Shipping_Charge: order?.Shipping_Charge,
-        cod_advance_amt:order?.cod_advance_amt,
+        cod_advance_amt: order?.cod_advance_amt,
         Status: order?.Status,
         createdAt: order?.createdAt?.toISOString()?.substring(0, 10),
         checkRating: await getOrderRatingStatus(order?._id),
@@ -488,7 +777,7 @@ route.get("/getAll", authMiddleware, async (req, res) => {
   try {
     const userId = req.user.userId;
     console.log("userId", userId);
-    let OrderList = await Order.find({userId: userId, $or: [{ payment_status: "Paid" }, { cod_status: "Paid" }]})
+    let OrderList = await Order.find({ userId: userId, $or: [{ payment_status: "Paid" }, { cod_status: "Paid" }] })
       .populate({
         path: "cartData.product",
         model: "Products",
@@ -505,7 +794,7 @@ route.get("/getAll", authMiddleware, async (req, res) => {
       })
       .sort({ updatedAt: -1 });
 
- 
+
     if (OrderList.length >= 1) {
       OrderList = OrderList?.map(async (order) => ({
         _id: order?._id,
@@ -524,23 +813,23 @@ route.get("/getAll", authMiddleware, async (req, res) => {
         walletAmount: order?.walletAmount,
         cartData: order?.cartData.map((cartItem) => ({
           ...cartItem,
-          variationImage: `${process.env.IP_ADDRESS}/${cartItem?.variation?.Variation_Images[0]?.path?.replace(/\\/g,"/")}`,
+          variationImage: `${process.env.IP_ADDRESS}/${cartItem?.variation?.Variation_Images[0]?.path?.replace(/\\/g, "/")}`,
         })),
         Shipping_Charge: order?.Shipping_Charge,
         Status: order?.Status,
         createdAt: order?.createdAt?.toISOString()?.substring(0, 10),
         checkRating: await getOrderRatingStatus(order?._id),
         PaymentStatus: order?.payment_status || "",
-        cod_status:order?.cod_status || "",
-        ActualPayment:order?.ActualPayment || 0,
-        cod_advance_amt:order?.cod_advance_amt || 0,
+        cod_status: order?.cod_status || "",
+        ActualPayment: order?.ActualPayment || 0,
+        cod_advance_amt: order?.cod_advance_amt || 0,
       }));
 
       OrderList = await Promise.all(OrderList);
     }
 
-  
-  
+
+
     return res.status(200).json({
       type: "success",
       message: "All Order get Successfully!",
@@ -592,12 +881,11 @@ route.get("/get/singleOrder/:id", authMiddleware, async (req, res) => {
           ...cartItem,
           discountPrice: discountPrice * Quantity,
           originalPrice: originalPrice * Quantity,
-          variationImage: `${
-            process.env.IP_ADDRESS
-          }/${cartItem.variation?.Variation_Images[0]?.path?.replace(
-            /\\/g,
-            "/"
-          )}`,
+          variationImage: `${process.env.IP_ADDRESS
+            }/${cartItem.variation?.Variation_Images[0]?.path?.replace(
+              /\\/g,
+              "/"
+            )}`,
         };
       });
 
@@ -662,7 +950,7 @@ route.get("/get/all", async (req, res) => {
         });
     } else {
       baseQuery = Order.find({
-        OrderType: { $in: ["1", "2", "3","4", "5", "6"] }  
+        OrderType: { $in: ["1", "2", "3", "4", "5", "6"] }
       })
         .populate({
           path: "cartData.product",
@@ -1063,12 +1351,11 @@ route.get("/get/single/:orderId", checkAdminOrRole1, async (req, res) => {
       cartData: order.cartData.map((cartItem) => ({
         ...cartItem,
         variationImage: cartItem?.variation?.Variation_Images[0]?.path
-          ? `${
-              process.env.IP_ADDRESS
-            }/${cartItem?.variation?.Variation_Images[0]?.path.replace(
-              /\\/g,
-              "/"
-            )}`
+          ? `${process.env.IP_ADDRESS
+          }/${cartItem?.variation?.Variation_Images[0]?.path.replace(
+            /\\/g,
+            "/"
+          )}`
           : "",
       })),
     };
@@ -1274,197 +1561,197 @@ const processOrderResponseinReturn = async (orderId, UserName) => {
 };
 
 // funcation for send SMS
-const sendSMS = async (to, orderId, templateId) => {
-  const msg91AuthKey = "412707AdE2f6UHYXWq65993b88P1";
+// const sendSMS = async (to, orderId, templateId) => {
+//   const msg91AuthKey = "412707AdE2f6UHYXWq65993b88P1";
 
-  try {
-    const response = await axios.post(
-      "https://api.msg91.com/api/v5/flow/sms/send/",
-      {
-        authkey: msg91AuthKey,
-        template_id: templateId,
-        short_url: "1",
-        recipients: [{ mobiles: to, var: orderId, VAR2: "VALUE2" }],
-      }
-    );
+//   try {
+//     const response = await axios.post(
+//       "https://api.msg91.com/api/v5/flow/sms/send/",
+//       {
+//         authkey: msg91AuthKey,
+//         template_id: templateId,
+//         short_url: "1",
+//         recipients: [{ mobiles: to, var: orderId, VAR2: "VALUE2" }],
+//       }
+//     );
 
-    console.log("SMS Sent Successfully:", response.data);
-  } catch (error) {
-    console.error("Error sending SMS:", error.response.data);
-  }
-};
+//     console.log("SMS Sent Successfully:", response.data);
+//   } catch (error) {
+//     console.error("Error sending SMS:", error.response.data);
+//   }
+// };
 
 // funcation for send notification
-const notifyUserOfOrderStatusChange = async (orderId, orderType) => {
-  try {
-    const order = await Order.findById(orderId)
-      .populate("cartData.product", "Product_Name")
-      .populate("userId", "User_Name User_Mobile_No")
-      .populate("Coupon");
+// const notifyUserOfOrderStatusChange = async (orderId, orderType) => {
+//   try {
+//     const order = await Order.findById(orderId)
+//       .populate("cartData.product", "Product_Name")
+//       .populate("userId", "User_Name User_Mobile_No")
+//       .populate("Coupon");
 
-    const OrderId = order?.orderId;
-    const userId = order?.userId;
-    const user = await User.findById(userId);
-    const userName = user?.User_Name;
-    const userType = user?.User_Type;
-    const userMobile = user?.User_Mobile_No;
-    const toPhoneNumber = "91" + userMobile;
-    const notificationToken = user?.Notification_Token;
-    const mainOrderId = order?._id;
+//     const OrderId = order?.orderId;
+//     const userId = order?.userId;
+//     const user = await User.findById(userId);
+//     const userName = user?.User_Name;
+//     const userType = user?.User_Type;
+//     const userMobile = user?.User_Mobile_No;
+//     const toPhoneNumber = "91" + userMobile;
+//     const notificationToken = user?.Notification_Token;
+//     const mainOrderId = order?._id;
 
-    await notifyAdminOfNewOrder(
-      mainOrderId,
-      OrderId,
-      userId,
-      userName,
-      orderType,
-      notificationToken
-    );
+//     await notifyAdminOfNewOrder(
+//       mainOrderId,
+//       OrderId,
+//       userId,
+//       userName,
+//       orderType,
+//       notificationToken
+//     );
 
-    let sendFor;
-    if (userType === "0") {
-      sendFor = "3";
-    } else {
-      sendFor = "4";
-    }
+//     let sendFor;
+//     if (userType === "0") {
+//       sendFor = "3";
+//     } else {
+//       sendFor = "4";
+//     }
 
-    let message;
-    let title;
-    if (orderType === "2") {
-      const templateId = "65940fead6fc053236350e32";
-      sendSMS(toPhoneNumber, OrderId, templateId);
-      title = "Order Placed";
-      message = `Greetings, ${userName}! We appreciate your order at Budai Exclusive. Order ID: ${OrderId} has been successfully placed. Thank you for choosing us!`;
-    } else if (orderType === "3") {
-      const templateId = "659410a8d6fc052ec5516172";
-      sendSMS(toPhoneNumber, OrderId, templateId);
-      title = `Order Picked Up`;
-      message = `Hello, ${userName}! We're pleased to inform you that your order with Order ID: ${OrderId} has been successfully picked up and is now en route to you. Expect it to arrive on time according to the planned schedule. Thank you for selecting our services!`;
-    } else if (orderType === "4") {
-      title = "Order Rejected";
-      message = `Hi, ${userName}! We regret to inform you that Budai Exclusive has rejected your order bearing Order ID: ${OrderId}.`;
-    } else if (orderType === "5") {
-      title = "Order Deliverd";
-      message = `Greetings, ${userName}! We'd like to inform you that your order bearing Order ID: ${OrderId} has been successfully delivered by Budai Exclusive. Shop Again!.`;
-    } else if (orderType === "6") {
-      title = "Order Cancelled";
-      message = `Hi, ${userName}! We regret to inform you that Budai Exclusive has cancelled your order with Order ID: ${OrderId}. Feel free to explore our offerings and shop again.`;
-    } else if (orderType === "7") {
-      title = "Order Returend";
-      message = `Greetings, ${userName}! We'd like to inform you that your order bearing Order ID: ${orderId} is currently undergoing the return process initiated by Budai Exclusive.`;
-    }
+//     let message;
+//     let title;
+//     if (orderType === "2") {
+//       const templateId = "65940fead6fc053236350e32";
+//       sendSMS(toPhoneNumber, OrderId, templateId);
+//       title = "Order Placed";
+//       message = `Greetings, ${userName}! We appreciate your order at Budai Exclusive. Order ID: ${OrderId} has been successfully placed. Thank you for choosing us!`;
+//     } else if (orderType === "3") {
+//       const templateId = "659410a8d6fc052ec5516172";
+//       sendSMS(toPhoneNumber, OrderId, templateId);
+//       title = `Order Picked Up`;
+//       message = `Hello, ${userName}! We're pleased to inform you that your order with Order ID: ${OrderId} has been successfully picked up and is now en route to you. Expect it to arrive on time according to the planned schedule. Thank you for selecting our services!`;
+//     } else if (orderType === "4") {
+//       title = "Order Rejected";
+//       message = `Hi, ${userName}! We regret to inform you that Budai Exclusive has rejected your order bearing Order ID: ${OrderId}.`;
+//     } else if (orderType === "5") {
+//       title = "Order Deliverd";
+//       message = `Greetings, ${userName}! We'd like to inform you that your order bearing Order ID: ${OrderId} has been successfully delivered by Budai Exclusive. Shop Again!.`;
+//     } else if (orderType === "6") {
+//       title = "Order Cancelled";
+//       message = `Hi, ${userName}! We regret to inform you that Budai Exclusive has cancelled your order with Order ID: ${OrderId}. Feel free to explore our offerings and shop again.`;
+//     } else if (orderType === "7") {
+//       title = "Order Returend";
+//       message = `Greetings, ${userName}! We'd like to inform you that your order bearing Order ID: ${orderId} is currently undergoing the return process initiated by Budai Exclusive.`;
+//     }
 
-    const newNotification = new Notification({
-      sendFor: sendFor,
-      userType,
-      title,
-      message,
-      userId: [userId],
-      orderId: mainOrderId,
-      type: "1",
-    });
+//     const newNotification = new Notification({
+//       sendFor: sendFor,
+//       userType,
+//       title,
+//       message,
+//       userId: [userId],
+//       orderId: mainOrderId,
+//       type: "1",
+//     });
 
-    await newNotification.save();
-  } catch (error) {
-    console.log(error);
-  }
-};
+//     await newNotification.save();
+//   } catch (error) {
+//     console.log(error);
+//   }
+// };
 
 // funcation for send notification to user for order
-const notifyAdminOfNewOrder = async (
-  mainOrderId,
-  orderId,
-  userId,
-  userName,
-  orderType,
-  notificationToken
-) => {
-  try {
-    let message;
+// const notifyAdminOfNewOrder = async (
+//   mainOrderId,
+//   orderId,
+//   userId,
+//   userName,
+//   orderType,
+//   notificationToken
+// ) => {
+//   try {
+//     let message;
 
-    if (orderType === "2") {
-      message = {
-        notification: {
-          title: `Order Placed`,
-          body: `Greetings, ${userName}! We appreciate your order at Budai Exclusive. Order ID: ${orderId} has been successfully placed. Thank you for choosing us!`,
-        },
-        data: {
-          orderId: `${mainOrderId}`,
-        },
-      };
-    } else if (orderType === "3") {
-      message = {
-        notification: {
-          title: `Order Picked Up`,
-          body: `Hello, ${userName}! We're pleased to inform you that your order with Order ID: ${orderId} has been successfully picked up and is now en route to you. Expect it to arrive on time according to the planned schedule. Thank you for selecting our services!`,
-        },
-        data: {
-          orderId: `${mainOrderId}`,
-        },
-      };
-    } else if (orderType === "4") {
-      message = {
-        notification: {
-          title: `Order Rejected`,
-          body: `Hi, ${userName}! We regret to inform you that Budai Exclusive has rejected your order bearing Order ID: ${orderId}.`,
-        },
-        data: {
-          orderId: `${mainOrderId}`,
-        },
-      };
-    } else if (orderType === "5") {
-      message = {
-        notification: {
-          title: `Order Deliverd`,
-          body: `Greetings, ${userName}! We'd like to inform you that your order bearing Order ID: ${orderId} has been successfully delivered by Budai Exclusive. Shop Again!.`,
-        },
-        data: {
-          orderId: `${mainOrderId}`,
-        },
-      };
-    } else if (orderType === "6") {
-      message = {
-        notification: {
-          title: `Order Cancelled`,
-          body: `Hi, ${userName}! We regret to inform you that Budai Exclusive has cancelled your order with Order ID: ${orderId}. Feel free to explore our offerings and shop again.`,
-        },
-        data: {
-          orderId: `${mainOrderId}`,
-        },
-      };
-    } else if (orderType === "7") {
-      message = {
-        notification: {
-          title: `Order Returend`,
-          body: `Greetings, ${userName}! We'd like to inform you that your order bearing Order ID: ${orderId} is currently undergoing the return process initiated by Budai Exclusive.`,
-        },
-        data: {
-          orderId: `${mainOrderId}`,
-        },
-      };
-    }
+//     if (orderType === "2") {
+//       message = {
+//         notification: {
+//           title: `Order Placed`,
+//           body: `Greetings, ${userName}! We appreciate your order at Budai Exclusive. Order ID: ${orderId} has been successfully placed. Thank you for choosing us!`,
+//         },
+//         data: {
+//           orderId: `${mainOrderId}`,
+//         },
+//       };
+//     } else if (orderType === "3") {
+//       message = {
+//         notification: {
+//           title: `Order Picked Up`,
+//           body: `Hello, ${userName}! We're pleased to inform you that your order with Order ID: ${orderId} has been successfully picked up and is now en route to you. Expect it to arrive on time according to the planned schedule. Thank you for selecting our services!`,
+//         },
+//         data: {
+//           orderId: `${mainOrderId}`,
+//         },
+//       };
+//     } else if (orderType === "4") {
+//       message = {
+//         notification: {
+//           title: `Order Rejected`,
+//           body: `Hi, ${userName}! We regret to inform you that Budai Exclusive has rejected your order bearing Order ID: ${orderId}.`,
+//         },
+//         data: {
+//           orderId: `${mainOrderId}`,
+//         },
+//       };
+//     } else if (orderType === "5") {
+//       message = {
+//         notification: {
+//           title: `Order Deliverd`,
+//           body: `Greetings, ${userName}! We'd like to inform you that your order bearing Order ID: ${orderId} has been successfully delivered by Budai Exclusive. Shop Again!.`,
+//         },
+//         data: {
+//           orderId: `${mainOrderId}`,
+//         },
+//       };
+//     } else if (orderType === "6") {
+//       message = {
+//         notification: {
+//           title: `Order Cancelled`,
+//           body: `Hi, ${userName}! We regret to inform you that Budai Exclusive has cancelled your order with Order ID: ${orderId}. Feel free to explore our offerings and shop again.`,
+//         },
+//         data: {
+//           orderId: `${mainOrderId}`,
+//         },
+//       };
+//     } else if (orderType === "7") {
+//       message = {
+//         notification: {
+//           title: `Order Returend`,
+//           body: `Greetings, ${userName}! We'd like to inform you that your order bearing Order ID: ${orderId} is currently undergoing the return process initiated by Budai Exclusive.`,
+//         },
+//         data: {
+//           orderId: `${mainOrderId}`,
+//         },
+//       };
+//     }
 
-    // An array of FCM tokens for the devices you want to notify
-    const fcmTokens = [notificationToken];
+//     // An array of FCM tokens for the devices you want to notify
+//     const fcmTokens = [notificationToken];
 
-    // Send a message to each device
-    const sendPromises = fcmTokens.map((token) => {
-      message.token = token;
-      return admin.messaging().send(message);
-    });
+//     // Send a message to each device
+//     const sendPromises = fcmTokens.map((token) => {
+//       message.token = token;
+//       return admin.messaging().send(message);
+//     });
 
-    // Wait for all notifications to be sent
-    Promise.all(sendPromises)
-      .then((responses) => {
-        console.log("Successfully sent messages:", responses);
-      })
-      .catch((error) => {
-        console.error("Error sending messages:", error);
-      });
-  } catch (error) {
-    // console.log(error, "err")
-  }
-};
+//     // Wait for all notifications to be sent
+//     Promise.all(sendPromises)
+//       .then((responses) => {
+//         console.log("Successfully sent messages:", responses);
+//       })
+//       .catch((error) => {
+//         console.error("Error sending messages:", error);
+//       });
+//   } catch (error) {
+//     // console.log(error, "err")
+//   }
+// };
 
 // push order into ship rocket
 // const pushOrderIntoShipRocket = async (id) => {
@@ -1486,182 +1773,182 @@ const notifyAdminOfNewOrder = async (
 //     }
 // }
 
-const pushOrderIntoShipRocket = async (id) => {
-  try {
-    const order = await Order.findById(id)
-      .populate("cartData.product", "Product_Name")
-      .populate("userId", "User_Name User_Mobile_No")
-      .populate(
-        "Address",
-        "landmark Full_Address State City Name Pincode Phone_Number"
-      );
+// const pushOrderIntoShipRocket = async (id) => {
+//   try {
+//     const order = await Order.findById(id)
+//       .populate("cartData.product", "Product_Name")
+//       .populate("userId", "User_Name User_Mobile_No")
+//       .populate(
+//         "Address",
+//         "landmark Full_Address State City Name Pincode Phone_Number"
+//       );
 
-    const OrderId = order?.orderId;
-    const mainOrderId = order?._id;
-    const userId = order?.userId;
-    const user = await User.findById(userId);
-    const userName = user?.User_Name;
-    const userType = user?.User_Type;
-    const PaymentType = user?.PaymentType;
-    let paymentMethod = "";
-    if (PaymentType === "2") {
-      paymentMethod = "COD";
-    } else {
-      paymentMethod = "Prepaid";
-    }
+//     const OrderId = order?.orderId;
+//     const mainOrderId = order?._id;
+//     const userId = order?.userId;
+//     const user = await User.findById(userId);
+//     const userName = user?.User_Name;
+//     const userType = user?.User_Type;
+//     const PaymentType = user?.PaymentType;
+//     let paymentMethod = "";
+//     if (PaymentType === "2") {
+//       paymentMethod = "COD";
+//     } else {
+//       paymentMethod = "Prepaid";
+//     }
 
-    // Fetch products separately
-    const products = await Product.find({
-      _id: { $in: order.cartData.map((item) => item.product) },
-    });
+//     // Fetch products separately
+//     const products = await Product.find({
+//       _id: { $in: order.cartData.map((item) => item.product) },
+//     });
 
-    // "billing_customer_name": order?.Address?.Name,
-    //     "billing_last_name": "Not",
-    //     "billing_address": order?.Address?.Full_Address,
-    //     "billing_address_2":  order?.Address?.landmark,
-    //     "billing_city": order?.Address?.City,
-    //     "billing_pincode": order?.Address?.Pincode,
-    //     "billing_state": order?.Address?.State,
-    //     "billing_country": "India",
-    //     "billing_email": user?.User_Email,
-    //     "billing_phone": order?.Address?.Phone_Number,
+//     // "billing_customer_name": order?.Address?.Name,
+//     //     "billing_last_name": "Not",
+//     //     "billing_address": order?.Address?.Full_Address,
+//     //     "billing_address_2":  order?.Address?.landmark,
+//     //     "billing_city": order?.Address?.City,
+//     //     "billing_pincode": order?.Address?.Pincode,
+//     //     "billing_state": order?.Address?.State,
+//     //     "billing_country": "India",
+//     //     "billing_email": user?.User_Email,
+//     //     "billing_phone": order?.Address?.Phone_Number,
 
-    // Construct the payload for Shiprocket API
-    // const shiprocketPayload = {
-    //     "order_id": OrderId.toString(),
-    //     "order_date": order.createdAt.toISOString(),
-    //     "pickup_location": "shankey chawla",
-    //     "channel_id": "",
-    //     "comment": "Reseller: M/s Goku",
-    //     "billing_customer_name": order?.Address?.Name,
-    //     "billing_last_name": order?.Address?.Name,
-    //     "billing_address": order?.Address?.Full_Address,
-    //     "billing_address_2": order?.Address?.landmark,
-    //     "billing_city": order?.Address?.City,
-    //     "billing_pincode": order?.Address?.Pincode,
-    //     "billing_state": order?.Address?.State,
-    //     "billing_country": "India",
-    //     "billing_email": user?.User_Email,
-    //     "billing_phone": order?.Address?.Phone_Number,
-    //     "shipping_is_billing": true,
-    //     "shipping_customer_name": userName,
-    //     "shipping_last_name": "",
-    //     "shipping_address": order.shippingAddress,
-    //     "shipping_address_2": order.shippingAddress2,
-    //     "shipping_city": order?.Address?.City,
-    //     "shipping_pincode": order?.Address?.Pincode,
-    //     "shipping_country": 'India',
-    //     "shipping_state": order?.Address?.State,
-    //     "shipping_email": user?.User_Email,
-    //     "shipping_phone": user?.User_Mobile_No,
-    //     // "order_items": order.cartData.map(item => {
-    //     //     const product = products.find(p => p._id.toString() === item.product.toString());
-    //     //     return {
-    //     //         "name": product?.Product_Name,
-    //     //         "sku": product?.SKU_Code,
-    //     //         "units": item?.Quantity || 1,
-    //     //         "selling_price": item?.discountPrice?.toString(),
-    //     //         "discount": "",
-    //     //         "tax": "",
-    //     //         "hsn": 441122,
-    //     //     };
-    //     // }),
-    //     "order_items": [
-    //         {
-    //             "name": "Kunai",
-    //             "sku": "chakra123",
-    //             "units": 10,
-    //             "selling_price": "900",
-    //             "discount": "",
-    //             "tax": "",
-    //             "hsn": 441122
-    //         }
-    //     ],
-    //     "payment_method": "COD",
-    //     "shipping_charges": 0,
-    //     "giftwrap_charges": 0,
-    //     "transaction_charges": 0,
-    //     "total_discount": 0,
-    //     "sub_total": order?.FinalPrice,
-    //     "length": 10,
-    //     "breadth": 15,
-    //     "height": 20,
-    //     "weight": 2.5,
-    // };
+//     // Construct the payload for Shiprocket API
+//     // const shiprocketPayload = {
+//     //     "order_id": OrderId.toString(),
+//     //     "order_date": order.createdAt.toISOString(),
+//     //     "pickup_location": "shankey chawla",
+//     //     "channel_id": "",
+//     //     "comment": "Reseller: M/s Goku",
+//     //     "billing_customer_name": order?.Address?.Name,
+//     //     "billing_last_name": order?.Address?.Name,
+//     //     "billing_address": order?.Address?.Full_Address,
+//     //     "billing_address_2": order?.Address?.landmark,
+//     //     "billing_city": order?.Address?.City,
+//     //     "billing_pincode": order?.Address?.Pincode,
+//     //     "billing_state": order?.Address?.State,
+//     //     "billing_country": "India",
+//     //     "billing_email": user?.User_Email,
+//     //     "billing_phone": order?.Address?.Phone_Number,
+//     //     "shipping_is_billing": true,
+//     //     "shipping_customer_name": userName,
+//     //     "shipping_last_name": "",
+//     //     "shipping_address": order.shippingAddress,
+//     //     "shipping_address_2": order.shippingAddress2,
+//     //     "shipping_city": order?.Address?.City,
+//     //     "shipping_pincode": order?.Address?.Pincode,
+//     //     "shipping_country": 'India',
+//     //     "shipping_state": order?.Address?.State,
+//     //     "shipping_email": user?.User_Email,
+//     //     "shipping_phone": user?.User_Mobile_No,
+//     //     // "order_items": order.cartData.map(item => {
+//     //     //     const product = products.find(p => p._id.toString() === item.product.toString());
+//     //     //     return {
+//     //     //         "name": product?.Product_Name,
+//     //     //         "sku": product?.SKU_Code,
+//     //     //         "units": item?.Quantity || 1,
+//     //     //         "selling_price": item?.discountPrice?.toString(),
+//     //     //         "discount": "",
+//     //     //         "tax": "",
+//     //     //         "hsn": 441122,
+//     //     //     };
+//     //     // }),
+//     //     "order_items": [
+//     //         {
+//     //             "name": "Kunai",
+//     //             "sku": "chakra123",
+//     //             "units": 10,
+//     //             "selling_price": "900",
+//     //             "discount": "",
+//     //             "tax": "",
+//     //             "hsn": 441122
+//     //         }
+//     //     ],
+//     //     "payment_method": "COD",
+//     //     "shipping_charges": 0,
+//     //     "giftwrap_charges": 0,
+//     //     "transaction_charges": 0,
+//     //     "total_discount": 0,
+//     //     "sub_total": order?.FinalPrice,
+//     //     "length": 10,
+//     //     "breadth": 15,
+//     //     "height": 20,
+//     //     "weight": 2.5,
+//     // };
 
-    const shiprocketPayload = {
-      order_id: OrderId.toString(),
-      order_date: order.createdAt.toISOString(),
-      pickup_location: "shankey chawla",
-      channel_id: "",
-      comment: "Reseller: M/s Goku",
-      billing_customer_name: order?.Address?.Name,
-      billing_last_name: "",
-      billing_address: order?.Address?.Full_Address,
-      billing_address_2: order?.Address?.landmark,
-      billing_city: order?.Address?.City,
-      billing_pincode: order?.Address?.Pincode,
-      billing_state: order?.Address?.State,
-      billing_country: "India",
-      billing_email: user?.User_Email || "",
-      billing_phone: order?.Address?.Phone_Number,
-      shipping_is_billing: true,
-      shipping_customer_name: "",
-      shipping_last_name: "",
-      shipping_address: "",
-      shipping_address_2: "",
-      shipping_city: "",
-      shipping_pincode: "",
-      shipping_country: "",
-      shipping_state: "",
-      shipping_email: "",
-      shipping_phone: "",
-      order_items: order.cartData.map((item) => {
-        const product = products.find(
-          (p) => p._id.toString() === item.product.toString()
-        );
-        return {
-          name: product?.Product_Name,
-          sku: product?.SKU_Code,
-          units: item?.Quantity || 1,
-          selling_price: item?.discountPrice?.toString(),
-          discount: "",
-          tax: "",
-          hsn: 441122,
-        };
-      }),
-      payment_method: paymentMethod,
-      shipping_charges: 0,
-      giftwrap_charges: 0,
-      transaction_charges: 0,
-      total_discount: 0,
-      sub_total: order?.FinalPrice,
-      length: 10,
-      breadth: 15,
-      height: 20,
-      weight: 2.5,
-    };
+//     const shiprocketPayload = {
+//       order_id: OrderId.toString(),
+//       order_date: order.createdAt.toISOString(),
+//       pickup_location: "shankey chawla",
+//       channel_id: "",
+//       comment: "Reseller: M/s Goku",
+//       billing_customer_name: order?.Address?.Name,
+//       billing_last_name: "",
+//       billing_address: order?.Address?.Full_Address,
+//       billing_address_2: order?.Address?.landmark,
+//       billing_city: order?.Address?.City,
+//       billing_pincode: order?.Address?.Pincode,
+//       billing_state: order?.Address?.State,
+//       billing_country: "India",
+//       billing_email: user?.User_Email || "",
+//       billing_phone: order?.Address?.Phone_Number,
+//       shipping_is_billing: true,
+//       shipping_customer_name: "",
+//       shipping_last_name: "",
+//       shipping_address: "",
+//       shipping_address_2: "",
+//       shipping_city: "",
+//       shipping_pincode: "",
+//       shipping_country: "",
+//       shipping_state: "",
+//       shipping_email: "",
+//       shipping_phone: "",
+//       order_items: order.cartData.map((item) => {
+//         const product = products.find(
+//           (p) => p._id.toString() === item.product.toString()
+//         );
+//         return {
+//           name: product?.Product_Name,
+//           sku: product?.SKU_Code,
+//           units: item?.Quantity || 1,
+//           selling_price: item?.discountPrice?.toString(),
+//           discount: "",
+//           tax: "",
+//           hsn: 441122,
+//         };
+//       }),
+//       payment_method: paymentMethod,
+//       shipping_charges: 0,
+//       giftwrap_charges: 0,
+//       transaction_charges: 0,
+//       total_discount: 0,
+//       sub_total: order?.FinalPrice,
+//       length: 10,
+//       breadth: 15,
+//       height: 20,
+//       weight: 2.5,
+//     };
 
-    // Make a POST request to Shiprocket API
-    const response = await axios.post(
-      "https://apiv2.shiprocket.in/v1/external/orders/create/adhoc",
-      shiprocketPayload,
-      {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization:
-            "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczovL2FwaXYyLnNoaXByb2NrZXQuaW4vdjEvZXh0ZXJuYWwvYXV0aC9sb2dpbiIsImlhdCI6MTcwMDIxMjM0NSwiZXhwIjoxNzAxMDc2MzQ1LCJuYmYiOjE3MDAyMTIzNDUsImp0aSI6Ikw1ekxUZU5Ma0g0UmRqN2UiLCJzdWIiOjM4MjQ3NjUsInBydiI6IjA1YmI2NjBmNjdjYWM3NDVmN2IzZGExZWVmMTk3MTk1YTIxMWU2ZDkifQ.IYY-5oLgJY0Kazeu6CZYXQSaKCCCH7QcC_C8SK3USgY",
-        },
-      }
-    );
+//     // Make a POST request to Shiprocket API
+//     const response = await axios.post(
+//       "https://apiv2.shiprocket.in/v1/external/orders/create/adhoc",
+//       shiprocketPayload,
+//       {
+//         headers: {
+//           "Content-Type": "application/json",
+//           Authorization:
+//             "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczovL2FwaXYyLnNoaXByb2NrZXQuaW4vdjEvZXh0ZXJuYWwvYXV0aC9sb2dpbiIsImlhdCI6MTcwMDIxMjM0NSwiZXhwIjoxNzAxMDc2MzQ1LCJuYmYiOjE3MDAyMTIzNDUsImp0aSI6Ikw1ekxUZU5Ma0g0UmRqN2UiLCJzdWIiOjM4MjQ3NjUsInBydiI6IjA1YmI2NjBmNjdjYWM3NDVmN2IzZGExZWVmMTk3MTk1YTIxMWU2ZDkifQ.IYY-5oLgJY0Kazeu6CZYXQSaKCCCH7QcC_C8SK3USgY",
+//         },
+//       }
+//     );
 
-    // Handle the Shiprocket API response as needed
-    console.log(response.data);
-  } catch (error) {
-    // console.error(error);
-    // Handle the error as needed
-  }
-};
+//     // Handle the Shiprocket API response as needed
+//     console.log(response.data);
+//   } catch (error) {
+//     // console.error(error);
+//     // Handle the error as needed
+//   }
+// };
 
 // update the orderType by admin
 route.put("/update/type/:id", checkAdminOrRole1, async (req, res) => {
@@ -1831,12 +2118,11 @@ route.get("/get/all/betweendates", authMiddleware, async (req, res) => {
         Address: order?.Address || {},
         cartData: order?.cartData.map((cartItem) => ({
           ...cartItem,
-          variationImage: `${
-            process.env.IP_ADDRESS
-          }/${cartItem?.variation?.Variation_Images[0]?.path?.replace(
-            /\\/g,
-            "/"
-          )}`,
+          variationImage: `${process.env.IP_ADDRESS
+            }/${cartItem?.variation?.Variation_Images[0]?.path?.replace(
+              /\\/g,
+              "/"
+            )}`,
         })),
         Shipping_Charge: order?.Shipping_Charge,
         Status: order?.Status,
@@ -2095,7 +2381,7 @@ route.post("/get/byStatus/forAdmin", checkAdminRole, async (req, res) => {
       0
     );
     const ctotalOrders = totalOrders?.length || 0;
-    const totalOrdersCODPaid = totalOrders.filter((order) => ["1", "2", "3", "5"].includes(order.OrderType) && order.cod_status=="Paid" && order.payment_status == "Unpaid" );
+    const totalOrdersCODPaid = totalOrders.filter((order) => ["1", "2", "3", "5"].includes(order.OrderType) && order.cod_status == "Paid" && order.payment_status == "Unpaid");
     const totalOrdersPaid = totalOrders.filter((order) => ["1", "2", "3", "5"].includes(order.OrderType) && order.payment_status == "Paid");
 
     console.log("totalOrdersCODPaid:", totalOrdersCODPaid?.length);
@@ -2134,8 +2420,7 @@ route.post("/get/byStatus/forAdmin", checkAdminRole, async (req, res) => {
 });
 
 // update order traking id with order id
-route.post(
-  "/update/singleOrder/trackingId/:id",
+route.post("/update/singleOrder/trackingId/:id",
   authMiddleware,
   async (req, res) => {
     const orderId = await req.params.id;

@@ -1434,8 +1434,7 @@ route.get("/lowstockproducts/get", checkAdminOrRole2, async (req, res) => {
 });
 
 // change the particular size stock of variations
-route.put(
-  "/edit/variation/size/stock/:variationId/:sizeId",
+route.put("/edit/variation/size/stock/:variationId/:sizeId",
   checkAdminOrRole2,
   async (req, res) => {
     const { variationId, sizeId } = req.params;
