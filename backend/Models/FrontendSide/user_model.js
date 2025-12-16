@@ -19,6 +19,9 @@ const UserSchema = mongoose.Schema(
         User_Email: {
             type: String,
         },
+        Company: {
+            type: String,
+        },
         User_Mobile_No: {
             type: Number
         },

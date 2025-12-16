@@ -1,5 +1,5 @@
 import Aos from "aos";
-import  { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   BrowserRouter as Router,
   Route,
@@ -69,7 +69,7 @@ const UserRouting = () => {
   };
 
   const handleOnScrollTop = () => {
-    // window.open("https://api.whatsapp.com/send?phone=+917289009522&text=Hello.");
+    window.open("https://api.whatsapp.com/send?phone=+917289009522&text=Hello.");
   };
 
   useEffect(() => {

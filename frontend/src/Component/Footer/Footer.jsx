@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import React, { useEffect, useState } from "react";
 import { LoginOutlined } from "@ant-design/icons";
 import { routes } from "../../Routes/Routes";
-import logo2 from "../../Assets/PNG/logo2.png";
+import logo2 from "../../Assets/PNG/logo.png";
 import facebook from "../../Assets/PNG/facebook.png";
 // import linkedin from "../../Assets/PNG/linkedin.png";
 // import whatsapp from "../../Assets/PNG/whatsapp.png";
@@ -74,14 +74,14 @@ function Footer() {
               <div className={styles.icon}>
                 <div
                   onClick={() =>
-                    window.open("https://www.youtube.com/@xclusive")
+                    window.open("https://www.youtube.com/@shubhlibaas")
                   }
                 >
                   <Image src={youtube} alt="youtube" preview={false} />
                 </div>
                 <div
                   onClick={() =>
-                    window.open("https://www.facebook.com/@xclusive")
+                    window.open("https://www.facebook.com/shubhlibaas")
                   }
                 >
                   <Image src={facebook} alt="facebook" preview={false} />
@@ -237,7 +237,7 @@ function Footer() {
             <div>
               <div>
                 <p className={styles.copyright_main}>
-                  Copyright © {date} xclusive Diamonds . All Rights Reserved
+                  Copyright © {date} Shubh Libaas . All Rights Reserved
                 </p>
               </div>
             </div>

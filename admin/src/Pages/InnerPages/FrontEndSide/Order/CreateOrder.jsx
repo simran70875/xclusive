@@ -24,6 +24,10 @@ const CreateNewOrder = () => {
   const [products, setProducts] = useState([]);
   const [productDetails, setProductDetails] = useState([]);
 
+  useEffect(() => {
+    console.log("productDetails ==> ", productDetails);
+  }, [productDetails]);
+
   /* ---------------- PAYMENT ---------------- */
   const [subtotal, setSubtotal] = useState(0);
   const [discount, setDiscount] = useState(0);
@@ -32,11 +36,6 @@ const CreateNewOrder = () => {
   const [paymentDueLater, setPaymentDueLater] = useState(false);
 
   /* ---------------- LOAD DATA ---------------- */
-  useEffect(() => {
-    fetchCustomers();
-    fetchProducts();
-  }, []);
-
   const fetchCustomers = async () => {
     const res = await axios.get(`${url}/retailer/list`, {
       headers: { Authorization: adminToken },
@@ -45,17 +44,23 @@ const CreateNewOrder = () => {
   };
 
   const fetchProducts = async () => {
-    const res = await axios.get(`${url}/product/list`, {
+    const res = await axios.get(`${url}/product/get`, {
       headers: { Authorization: adminToken },
     });
-    setProducts(res.data.data || []);
+
+    setProducts(res.data.product || []);
   };
+
+  useEffect(() => {
+    fetchCustomers();
+    fetchProducts();
+  }, []);
 
   /* ---------------- PAYMENT CALCULATION ---------------- */
   useEffect(() => {
     let sum = 0;
     productDetails.forEach((p) => {
-      sum += p.qty * p.price;
+      sum += p.qty * p.Product_Dis_Price;
     });
     setSubtotal(sum);
     setTotal(sum - discount + shipping);
@@ -79,7 +84,7 @@ const CreateNewOrder = () => {
       {
         productId: product._id,
         name: product.Product_Name,
-        price: product.Price,
+        Product_Dis_Price: product.Product_Dis_Price,
         qty: 1,
       },
     ]);
@@ -209,7 +214,7 @@ const CreateNewOrder = () => {
                 <option>Add product</option>
                 {products.map((p) => (
                   <option key={p._id} value={p._id}>
-                    {p.Product_Name} — ₹{p.Price}
+                    {p.Product_Name} — ₹{p.Product_Dis_Price}
                   </option>
                 ))}
               </select>
@@ -235,8 +240,8 @@ const CreateNewOrder = () => {
                           onChange={(e) => updateQty(i, Number(e.target.value))}
                         />
                       </td>
-                      <td>₹{p.price}</td>
-                      <td>₹{p.qty * p.price}</td>
+                      <td>₹{p.Product_Dis_Price}</td>
+                      <td>₹{p.qty * p.Product_Dis_Price}</td>
                     </tr>
                   ))}
                 </tbody>

@@ -1,9 +1,12 @@
-import { useEffect } from "react";
+/* eslint-disable eqeqeq */
+/* eslint-disable no-unused-vars */
+/* eslint-disable react-hooks/exhaustive-deps */
 import Slider from "react-slick";
 import { memo, useState } from "react";
-
+import ReactPlayer from "react-player";
+import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Col, Image, Row } from "antd";
+import { Button, Col, Image, Row } from "antd";
 import { useDispatch, useSelector } from "react-redux";
 import { HeartFilled, HeartOutlined } from "@ant-design/icons";
 
@@ -18,7 +21,13 @@ import {
   getProductFeatureListApi2,
   getProductFeatureListApi3,
 } from "../../Features/Product/Product";
-import logo2 from "../../Assets/PNG/logo2.png";
+import logo from "../../Assets/PNG/logo.png";
+import logo2 from "../../Assets/PNG/logo.png";
+import reseller from "../../Assets/PNG/reseller.png";
+import thankyou from "../../Assets/PNG/thankyou.png";
+import simple from "../../Assets/PNG/simple.png";
+import appstore from "../../Assets/PNG/appstore.png";
+import playstore from "../../Assets/PNG/playstore.png";
 import CustomerReview from "./CustomerReview/CustomerReview";
 import { getSettingApi } from "../../Features/Setting/Setting";
 import { getProfileApi } from "../../Features/User/User";
@@ -28,12 +37,10 @@ import { addWishList, getWishListApi } from "../../Features/WishList/WishList";
 import styles from "./index.module.scss";
 import PopupModal from "./PopupModal";
 
-function Home({ children }) {
+function Home() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [isLiked, setIsLiked] = useState(false);
-  const [productId, setProductId] = useState(null);
-  const [catagoryId, setCatagoryId] = useState(null);
 
   const categoryFeature = useSelector(
     (state) => state.category?.categoryFeatureData
@@ -57,6 +64,8 @@ function Home({ children }) {
   const bannerPrpduct = useSelector((state) => state.banner?.bannerProductData);
   const givewishlist = useSelector((state) => state.wishList?.wishlist);
   const catagoryItem = useSelector((state) => state.category?.categoryData);
+  const settingVideo = useSelector((state) => state.setting?.settingData);
+  const profileData = useSelector((state) => state.user?.profileData);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -77,7 +86,6 @@ function Home({ children }) {
   }, []);
 
   const handleAddCart = (id, name) => {
-    setProductId(id);
     navigate(`/product-detail/${name}`, {
       state: {
         productId: id,
@@ -87,7 +95,6 @@ function Home({ children }) {
   };
 
   const Catagory = (item) => {
-    setCatagoryId(item);
     navigate(`/product/${item?.category_Name || item?.categoryName}`, {
       state: {
         item: item?.category_Name || item?.categoryName,
@@ -124,7 +131,7 @@ function Home({ children }) {
     dots: true,
     infinite: true,
     speed: 2500,
-    slidesToShow: 5.1,
+    slidesToShow: 7,
     slidesToScroll: 1,
     autoplay: true,
     autoplaySpeed: 100,
@@ -297,25 +304,25 @@ function Home({ children }) {
             </div>
           ))}
         </Col>
-        {/* ) : (
-          <Col xs={22} lg={22} xl={22} xxl={22} className={styles.couraselMain}>
-            <Slider {...settings} className={styles.handlecourasel}>
-              {catagoryItem?.map((data, index) => (
-                <div className={styles.slider} key={index}>
-                  <Image
-                    src={data.category_Image}
-                    preview={false}
-                    alt="ellips"
-                    onClick={() => Catagory(data)}
-                  />
-                  <p>{data.category_Name}</p>
-                </div>
-              ))}
-            </Slider>
-          </Col>
-        )} */}
+        {/* // ) : (
+        //   <Col xs={22} lg={22} xl={22} xxl={22} className={styles.couraselMain}>
+        //     <Slider {...settings} className={styles.handlecourasel}>
+        //       {catagoryItem?.map((data, index) => (
+        //         <div className={styles.slider} key={index}>
+        //           <Image
+        //             src={data.category_Image}
+        //             preview={false}
+        //             alt="ellips"
+        //             onClick={() => Catagory(data)}
+        //           />
+        //           <p>{data.category_Name}</p>
+        //         </div>
+        //       ))}
+        //     </Slider>
+        //   </Col>
+        // )} */}
 
-        {/* {productFeatureListing?.length <= 4 ? (
+        {productFeatureListing?.length <= 4 ? (
           <Col xs={22} md={22} lg={22} xl={22} xxl={22} className={styles.wear}>
             <h2>READY TO WEAR</h2>
             <Row justify="start">
@@ -326,7 +333,7 @@ function Home({ children }) {
                       <div className={styles.hearticon}>
                         {getProductIsLikedOrNot(item?._id) ? (
                           <HeartFilled
-                            className={styles.yellow}
+                            className={styles.pink}
                             onClick={() => {
                               toggleLike(item?._id);
                             }}
@@ -382,7 +389,7 @@ function Home({ children }) {
                         <div className={styles.hearticon}>
                           {getProductIsLikedOrNot(item?._id) ? (
                             <HeartFilled
-                              className={styles.yellow}
+                              className={styles.pink}
                               onClick={() => {
                                 toggleLike(item?._id);
                               }}
@@ -420,8 +427,7 @@ function Home({ children }) {
               ))}
             </Slider>
           </Col>
-        )} */}
-
+        )}
         {productFeatureListing1?.length <= 4 ? (
           <Col xs={22} md={22} lg={22} xl={22} xxl={22} className={styles.wear}>
             <h2>TRENDY COLLACTION</h2>
@@ -433,7 +439,7 @@ function Home({ children }) {
                       <div className={styles.hearticon}>
                         {getProductIsLikedOrNot(item?._id) ? (
                           <HeartFilled
-                            className={styles.yellow}
+                            className={styles.pink}
                             onClick={() => {
                               toggleLike(item?._id);
                             }}
@@ -488,7 +494,7 @@ function Home({ children }) {
                       <div className={styles.hearticon}>
                         {getProductIsLikedOrNot(data?._id) ? (
                           <HeartFilled
-                            className={styles.yellow}
+                            className={styles.pink}
                             onClick={() => {
                               toggleLike(data?._id);
                             }}
@@ -526,9 +532,21 @@ function Home({ children }) {
             </Slider>
           </Col>
         )}
+
+        <div></div>
         {categoryFeature?.length <= 4 ? (
-          <>
-            <h2>IN THE SPOTLIGHT</h2>
+          <div
+            style={{
+              padding: "100px 0",
+            }}
+          >
+            <h2
+              style={{
+                textAlign: "center",
+              }}
+            >
+              IN THE SPOTLIGHT
+            </h2>
             <Col
               xs={22}
               md={22}
@@ -549,7 +567,7 @@ function Home({ children }) {
                 </div>
               ))}
             </Col>
-          </>
+          </div>
         ) : (
           <Col
             xs={22}
@@ -558,8 +576,18 @@ function Home({ children }) {
             xl={22}
             xxl={22}
             className={styles.couraselMain}
+            style={{
+              padding: "100px 0",
+            }}
           >
-            <h2>IN THE SPOTLIGHT</h2>
+            <h2
+              style={{
+                textAlign: "center",
+                paddingBottom: 50,
+              }}
+            >
+              IN THE SPOTLIGHT
+            </h2>
             <Slider {...settings} className={styles.handlecourasel}>
               {categoryFeature?.map((data, index) => (
                 <div className={styles.slider} key={index}>
@@ -587,7 +615,7 @@ function Home({ children }) {
                       <div className={styles.hearticon}>
                         {getProductIsLikedOrNot(item?._id) ? (
                           <HeartFilled
-                            className={styles.yellow}
+                            className={styles.pink}
                             onClick={() => {
                               toggleLike(item?._id);
                             }}
@@ -642,7 +670,7 @@ function Home({ children }) {
                       <div className={styles.hearticon}>
                         {getProductIsLikedOrNot(data?._id) ? (
                           <HeartFilled
-                            className={styles.yellow}
+                            className={styles.pink}
                             onClick={() => {
                               toggleLike(data?._id);
                             }}
@@ -681,6 +709,41 @@ function Home({ children }) {
           </Col>
         )}
 
+        <Row className={styles.banner}>
+          <Col xs={24} md={12} lg={12}>
+            {profileData?.User_Type === "1" ||
+            profileData?.User_Type === "2" ||
+            profileData?.User_Type === "3" ? (
+              <Image
+                style={{ height: "100%", width: "100%" }}
+                src={thankyou}
+                alt="reseller"
+                preview={false}
+              />
+            ) : (
+              <img
+                style={{ height: "100%", width: "100%" }}
+                src={reseller}
+                alt="reseller"
+                preview={false}
+              />
+            )}
+          </Col>
+          <Col xs={24} md={12} lg={12}>
+            {settingVideo?.app_youtube_video ? (
+              <ReactPlayer
+                url={
+                  "https://www.youtube.com/watch?v=" +
+                  settingVideo?.app_youtube_video
+                }
+                className={styles.video}
+              />
+            ) : (
+              <Image src={simple} alt="simple" preview={false} />
+            )}{" "}
+          </Col>
+        </Row>
+
         <Col xs={24} md={24} lg={24} xl={24} xxl={24} className={styles.banner}>
           <Slider {...settings2} className={styles.bannercourasel}>
             {bannerPrpduct?.map((item, index) => (
@@ -710,7 +773,7 @@ function Home({ children }) {
                       <div className={styles.hearticon}>
                         {getProductIsLikedOrNot(item?._id) ? (
                           <HeartFilled
-                            className={styles.yellow}
+                            className={styles.pink}
                             onClick={() => {
                               toggleLike(item?._id);
                             }}
@@ -765,7 +828,7 @@ function Home({ children }) {
                       <div className={styles.hearticon}>
                         {getProductIsLikedOrNot(data?._id) ? (
                           <HeartFilled
-                            className={styles.yellow}
+                            className={styles.pink}
                             onClick={() => {
                               toggleLike(data?._id);
                             }}
@@ -803,7 +866,21 @@ function Home({ children }) {
             </Slider>
           </Col>
         )}
-
+        {/* <Col
+          xs={24}
+          md={24}
+          lg={24}
+          xl={24}
+          xxl={24}
+          className={styles.banner0}
+        >
+          <Image
+            src={manaali}
+            alt="manaali"
+            preview={false}
+            style={{ width: "100%", height: "auto", marginBottom: "50px" }}
+          />
+        </Col> */}
         <Col
           style={{ backgroundColor: "#ebe8e7" }}
           xs={22}
@@ -813,7 +890,61 @@ function Home({ children }) {
           xxl={22}
           className={styles.banner2}
         >
+          {/* <Image src={customer} alt="customer" preview={false} /> */}
           <CustomerReview />
+        </Col>
+        <Col
+          xs={22}
+          md={22}
+          lg={22}
+          xl={22}
+          xxl={22}
+          className={styles.reseller}
+        >
+          <div style={{ flex: 1 }}>
+            <img src={simple} alt="simple" preview={false} />
+          </div>
+          <div style={{ flex: 1 }}>
+            <div className={styles.details}>
+              <img
+                src={logo}
+                alt="logo"
+                preview={false}
+                // className={styles.logo}
+              />
+              <p>
+                Step into a world of elegance with Shubh Libaas!
+                <br /> Elevate your style effortlessly by downloading
+                <br /> the Shubh Libaas app
+              </p>
+              <br />
+              <br />
+              <div>
+                <Image
+                  src={playstore}
+                  alt="logo"
+                  preview={false}
+                  className={styles.google}
+                  onClick={() =>
+                    window.open(
+                      "https://play.google.com/store/apps/details?id=com.shubhlibaas&pli=1"
+                    )
+                  }
+                />
+                <Image
+                  src={appstore}
+                  alt="logo"
+                  preview={false}
+                  className={styles.google}
+                  onClick={() =>
+                    window.open(
+                      "https://apps.apple.com/in/app/shubh-libaas/id6468953659"
+                    )
+                  }
+                />
+              </div>
+            </div>
+          </div>
         </Col>
       </Row>
       <PopupModal />

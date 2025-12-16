@@ -12,6 +12,7 @@ const authMiddleware = require("../../../Middleware/authMiddleWares");
 const checkAdminOrRole1 = require("../../../Middleware/checkAdminOrRole1");
 const checkAdminRole = require("../../../Middleware/adminMiddleWares");
 const moment = require("moment-timezone");
+const order_counter_model = require("../../../Models/BackendSide/order_counter_model");
 
 // ************************************************************************************************
 
@@ -179,7 +180,6 @@ Work Wear Pvt. Ltd.<br/>
 // function for get cart data for user
 async function getCartData(userId) {
   const cartData = await Cart.find({ userId });
-  console.log("cartData ==>", cartData);
   if (cartData) {
     return cartData;
   } else {
@@ -187,340 +187,183 @@ async function getCartData(userId) {
   }
 }
 
-// function for add wallet history
-async function addWalletHistory(userId, orderId, FinalPrice) {
-  const wallet = await new Wallet({
-    Amount: FinalPrice || 0,
-    userId: userId,
-    paymentId: orderId || "",
-    Trans_Type: "Debit",
-    Description: `You have used Rs.${FinalPrice} from your wallet for Order ID ${orderId}.`,
-    Type: "3",
-  });
+async function generateOrderId() {
+  const now = new Date();
+  const dd = String(now.getDate()).padStart(2, "0");
+  const mm = String(now.getMonth() + 1).padStart(2, "0");
+  const yy = String(now.getFullYear()).slice(-2);
+  const dateStr = `${dd}${mm}${yy}`;
+  const prefix = `XD${dateStr}`;
 
-  await wallet.save();
+  // Find or create the counter for today
+  const counter = await order_counter_model.findOneAndUpdate(
+    { date: dateStr },
+    { $inc: { sequence: 1 } },
+    { new: true, upsert: true }
+  );
+
+  const sequenceStr = String(counter.sequence).padStart(2, "0");
+  return `${prefix}-${sequenceStr}`;
 }
 
-// function for reducing stock
-async function reduceStock(variationId, Sizename, Quantity) {
-  try {
-    const variation = await Variation.findById(variationId);
+const checkStockAvailability = async (products) => {
+  const checks = products.map(item =>
+    Variation.exists({
+      _id: item.variationId,
+      "Variation_Size._id": item.sizeId,
+      "Variation_Size.Size_Stock": { $gte: item.quantity },
+    })
+  );
 
-    if (!variation) {
-      throw new Error("Variation not found");
-    }
+  const results = await Promise.all(checks);
 
-    const newSizeStock = variation.Variation_Size.map((size) => {
-      if (size.Size_Name === Sizename) {
-        const newStock = size.Size_Stock - Quantity;
-        return { ...size, Size_Stock: newStock };
-      }
-      return size;
-    });
+  const failedIndex = results.findIndex(r => !r);
 
-    variation.Variation_Size = newSizeStock;
-
-    await variation.save();
-  } catch (error) {
-    console.error("Error reducing stock:", error.message);
-  }
-}
-
-// Add Order Route with Coupon and Coupon Usage
-route.post("/add", authMiddleware, async (req, res) => {
-  // 0 = wallet, 1 = online, 2 = cod
-  try {
-    let {
-      Coupon,
-      CouponPrice,
-      PaymentType,
-      FinalPrice,
-      OriginalPrice,
-      DiscountPrice,
-      Address,
-      Shipping_Charge,
-      PaymentId,
-      OrderType,
-      reason,
-      payment_mode,
-      card_name,
-      order_status,
-      bank_ref_no,
-      tracking_id,
-      ActualPayment,
-      cod_advance_amt,
-      FinalAdavnceCodPrice,
-      orderId,
-      payment_status,
-      cod_status,
-      wallet,
-      walletAmount,
-      device,
-    } = req.body;
-
-    const userId = req.user.userId;
-
-
-    if (device === "mobile") wallet = wallet.toLowerCase() === "true";
-    if (!isNaN(CouponPrice)) CouponPrice = Number(CouponPrice);
-    if (!isNaN(FinalPrice)) FinalPrice = Number(FinalPrice);
-    if (!isNaN(OriginalPrice)) OriginalPrice = Number(OriginalPrice);
-    if (!isNaN(DiscountPrice)) DiscountPrice = Number(DiscountPrice);
-    if (!isNaN(Shipping_Charge)) Shipping_Charge = Number(Shipping_Charge);
-    if (!isNaN(ActualPayment)) ActualPayment = Number(ActualPayment);
-    if (!isNaN(FinalAdavnceCodPrice)) FinalAdavnceCodPrice = Number(FinalAdavnceCodPrice);
-    if (!isNaN(walletAmount)) walletAmount = Number(walletAmount);
-    if (!isNaN(cod_advance_amt)) walcod_advance_amtletAmount = Number(cod_advance_amt);
-
-    console.log("Order Route", req.body, typeof wallet, wallet);
-    if (PaymentType === "0" || (PaymentType === "1" && ActualPayment == 0) || (PaymentType === "2" && FinalAdavnceCodPrice === 0)) orderId = await generateUniqueKey();
-
-    if (Coupon === "") Coupon = "not";
-
-    let CartData = await getCartData(userId);
-    if (CartData.length === 0) return res.status(404).json({ type: "error", message: "Cart is empty" });
-
-    // something wrong with cart data
-
-    let extraAmount = 0;
-    console.log(CouponPrice, walletAmount);
-
-    // Calculate the extra amount based on coupon and wallet
-    if (Coupon && wallet == true) extraAmount = CouponPrice + walletAmount;
-    else if (Coupon) extraAmount = CouponPrice;
-    else if (wallet == true) extraAmount = walletAmount;
-    else extraAmount = 0;
-
-
-    console.log("extraAmount ==> ", extraAmount);
-
-    let cartAmount;
-    let currentOrderAmount;
-
-    if (PaymentType === "1") {
-      // Calculate the cart amount including shipping charge
-      cartAmount = (CartData?.map((item) => item.discountPrice * item.Quantity).reduce((acc, curr) => acc + curr, 0)) + Shipping_Charge;
-      currentOrderAmount = cartAmount - extraAmount;
-
-      console.log("cartAmount (with shipping) ==> ", cartAmount);
-      console.log("currentOrderAmount (after extraAmount deduction) ==> ", currentOrderAmount);
-      console.log("ActualPayment ==> ", ActualPayment, "FinalPrice ==> ", FinalPrice);
-
-      // Validate if the current order amount matches ActualPayment or FinalPrice
-      let final_price = 0;
-
-      if (Coupon && wallet === true) final_price = FinalPrice - walletAmount;
-      else if (Coupon) final_price = FinalPrice;
-      else final_price = FinalPrice - extraAmount;
-
-      if ((currentOrderAmount != ActualPayment) || (currentOrderAmount != final_price)) {
-        console.log("Error: Mismatch in payment calculations for PaymentType 1");
-        return res.status(400).json({ type: "error", message: "Cart data has been modified" });
-      }
-    } else if (PaymentType === "2") {
-      // Calculate the cart amount without discount (fixed price assumption)
-      cartAmount = CartData?.map((item) => 100 * item.Quantity).reduce((acc, curr) => acc + curr, 0);
-      currentOrderAmount = cartAmount - extraAmount;
-
-      console.log("cartAmount (fixed price) ==> ", cartAmount);
-      console.log("currentOrderAmount (after extraAmount deduction) ==> ", currentOrderAmount);
-      console.log("ActualPayment ==> ", FinalAdavnceCodPrice || 0, "COD Advance ==> ", cod_advance_amt);
-
-      // Ensure values are of the same type (convert to numbers if necessary)
-      const codAdvanceAmtNum = Number(cod_advance_amt);
-
-      // Validate if the current order amount matches ActualPayment or COD advance
-      if ((cartAmount != codAdvanceAmtNum) || (currentOrderAmount != (codAdvanceAmtNum - extraAmount))) {
-        console.log("Error: Mismatch in payment calculations for PaymentType 2");
-        return res.status(400).json({ type: "error", message: "Cart data has been modified" });
-      }
-    }
-    // something wrong with cart data
-
-    let newOrder;
-    let appliedCoupon = null;
-    let updatedCouponUsage = false;
-
-    // Check if a valid coupon is provided
-    if (Coupon !== "not") {
-      const coupon = await Coupons.findOne({ _id: Coupon });
-      const userCouponUsage = coupon.UserCouponUsage.find((usage) => usage.userId.equals(userId));
-      if (userCouponUsage) {
-        // If user already used the coupon
-        if (userCouponUsage.usageCount >= coupon.usageLimits) {
-          return res.status(200).json({ type: "error", message: "Coupon usage limit exceeded." });
-        }
-        // Update coupon usage count
-        userCouponUsage.usageCount += 1;
-        updatedCouponUsage = true;
-      } else {
-        // If user is using the coupon for the first time
-        coupon.UserCouponUsage.push({ userId, usageCount: 1 });
-        updatedCouponUsage = true;
-      }
-      // Apply coupon discount
-      appliedCoupon = coupon;
-    }
-    if (Coupon === "" || Coupon == "not" || Coupon === undefined) {
-      newOrder = new Order({
-        orderId,
-        OrderType,
-        userId,
-        PaymentType,
-        PaymentId: PaymentId || "0",
-        CouponPrice,
-        DiscountPrice,
-        FinalPrice,
-        OriginalPrice,
-        Address,
-        cartData: CartData,
-        Shipping_Charge,
-        is_Shipping_ChargeAdd: Shipping_Charge != 0 ? true : false,
-        reason: reason || "",
-        tracking_id,
-        bank_ref_no,
-        order_status,
-        card_name,
-        payment_mode,
-        ActualPayment,
-        cod_advance_amt,
-        FinalAdavnceCodPrice,
-        payment_status,
-        wallet,
-        walletAmount,
-        device,
-        cod_status,
-      });
-    } else if (!Coupon == "" || !Coupon == "not") {
-      newOrder = new Order({
-        orderId,
-        OrderType,
-        userId,
-        Coupon: Coupon,
-        PaymentType,
-        PaymentId: PaymentId || "0",
-        CouponPrice,
-        DiscountPrice,
-        FinalPrice,
-        OriginalPrice,
-        Address,
-        cartData: CartData,
-        Shipping_Charge,
-        is_Shipping_ChargeAdd: Shipping_Charge != 0 ? true : false,
-        reason: reason || "",
-        tracking_id,
-        bank_ref_no,
-        order_status,
-        card_name,
-        payment_mode,
-        ActualPayment,
-        cod_advance_amt,
-        FinalAdavnceCodPrice,
-        payment_status,
-        wallet,
-        walletAmount,
-        device,
-        cod_status,
-      });
-    }
-    const existUser = await User.findByIdAndUpdate({ _id: userId });
-    const data = await newOrder.save();
-
-    if (PaymentType === "0" && wallet === true) {
-      // console.log("wallet", cod_advance_amt);
-      // if(cod_advance_amt){
-      //   existUser.Wallet -= cod_advance_amt;
-      //   existUser.save();
-      //   addWalletHistory(userId, orderId, cod_advance_amt);
-      // }else{
-      existUser.Wallet -= FinalPrice;
-      existUser.save();
-      addWalletHistory(userId, orderId, FinalPrice);
-      //  }
-    }
-
-    if (PaymentType === "1" && wallet === true && ActualPayment === 0) {
-      console.log("wallet", cod_advance_amt);
-      existUser.Wallet -= FinalPrice;
-      existUser.save();
-      addWalletHistory(userId, orderId, FinalPrice);
-    }
-
-    if (PaymentType === "2" && wallet === true && ActualPayment === 0) {
-      console.log("wallet", cod_advance_amt);
-      existUser.Wallet -= cod_advance_amt;
-      existUser.save();
-      addWalletHistory(userId, orderId, cod_advance_amt);
-    }
-
-
-    await CartData?.forEach((data) => {
-      reduceStock(data?.variation, data?.SizeName, data?.Quantity);
-    });
-
-    if (updatedCouponUsage) {
-      await appliedCoupon.save();
-    }
-
-    CartData = [];
-    await Cart.deleteMany({ userId });
-    return res.status(200).json({ type: "success", data: data, message: "Order successfully!" });
-  } catch (error) {
-    console.log(error);
-    return res.status(500).json({ type: "error", message: "Server Error!", errorMessage: error });
-  }
-});
-
-const validateAndReserveStock = async (products) => {
-  for (const item of products) {
-    const variation = await Variation.findById(item.variationId);
-
-    if (!variation) {
-      throw new Error(`Variation not found for ${item.code}`);
-    }
-
-    const size = variation.Variation_Size.find(
-      (s) => s._id.toString() === item.sizeId
+  if (failedIndex !== -1) {
+    const failedItem = products[failedIndex];
+    throw new Error(
+      `Insufficient stock for ${failedItem.SKU_Code || "product"}`
     );
-
-    if (!size) {
-      throw new Error(`Size not found for ${item.code}`);
-    }
-
-    if (size.Size_Stock < item.quantity) {
-      throw new Error(
-        `Insufficient stock for ${item.code} (${size.Size_Name})`
-      );
-    }
   }
 };
 
 const deductStock = async (products) => {
-  for (const item of products) {
-    await Variation.updateOne(
-      {
+  const bulkOps = products.map(item => ({
+    updateOne: {
+      filter: {
         _id: item.variationId,
         "Variation_Size._id": item.sizeId,
       },
-      {
-        $inc: {
-          "Variation_Size.$.Size_Stock": -item.quantity,
-        },
-      }
-    );
-  }
+      update: {
+        $inc: { "Variation_Size.$.Size_Stock": -item.quantity },
+      },
+    },
+  }));
+
+  await Variation.bulkWrite(bulkOps);
 };
 
-exports.createOrderByAdmin = async (req, res) => {
+// Add Order Route with Coupon and Coupon Usage from retailer side
+route.post("/add", authMiddleware, async (req, res) => {
+  try {
+    let {
+      Coupon,
+      CouponPrice = 0,
+      Address,
+      OriginalPrice, //subtotal
+      DiscountPrice, //subtotal after discounted
+      Shipping_Charge, // shipping charges
+      FinalPrice, // grand total price
+      reason,
+      payment_mode,
+      order_status,
+      payment_status,
+    } = req.body;
+
+    const userId = req.user.userId;
+
+    // Convert to numbers
+    CouponPrice = Number(CouponPrice);
+    OriginalPrice = Number(OriginalPrice);
+    DiscountPrice = Number(DiscountPrice);
+    Shipping_Charge = Number(Shipping_Charge);
+    FinalPrice = Number(FinalPrice);
+
+    const CartData = await getCartData(userId);
+    if (!CartData.length) {
+      return res.status(404).json({ type: "error", message: "Cart is empty" });
+    }
+
+    const isCouponApplied = Coupon && Coupon !== "not";
+
+    let appliedCoupon = null;
+
+    if (isCouponApplied) {
+      appliedCoupon = await Coupons.findById(Coupon);
+      if (!appliedCoupon) {
+        return res.status(404).json({ type: "error", message: "Invalid coupon" });
+      }
+
+      const usage = appliedCoupon.UserCouponUsage.find(u => u.userId.equals(userId));
+
+      if (usage && usage.usageCount >= appliedCoupon.usageLimits) {
+        return res.status(400).json({ type: "error", message: "Coupon usage limit exceeded" });
+      }
+
+      if (usage) usage.usageCount += 1;
+      else appliedCoupon.UserCouponUsage.push({ userId, usageCount: 1 });
+
+      await appliedCoupon.save();
+    }
+
+    const orderId = await generateOrderId();
+
+    const orderPayload = {
+      orderId,
+      userId,
+      Coupon: isCouponApplied ? Coupon : undefined,
+      CouponPrice,
+      cartData: CartData,
+      Address,
+
+      OriginalPrice,
+      DiscountPrice,
+      Shipping_Charge,
+      is_Shipping_ChargeAdd: Shipping_Charge > 0,
+      FinalPrice,
+
+      reason: reason || "",
+      payment_mode,
+      order_status,
+      payment_status,
+    };
+
+    const stockItems = CartData.map(item => ({
+      variationId: item.variation,
+      sizeId: item.sizeId,
+      quantity: item.Quantity,
+      SKU_Code: item.SKU_Code,
+    }));
+    await checkStockAvailability(stockItems);
+    await deductStock(
+      CartData.map(item => ({
+        variationId: item.variation,
+        sizeId: item.sizeId,
+        quantity: item.Quantity,
+      }))
+    );
+
+    const newOrder = new Order(orderPayload);
+    const data = await newOrder.save();
+
+    await Cart.deleteMany({ userId });
+
+    return res.status(200).json({
+      type: "success",
+      message: "Request sent successfully",
+      data,
+    });
+
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      type: "error",
+      message: "Server Error",
+      errorMessage: error.message,
+    });
+  }
+});
+
+// create orsder by admin for retailer
+route.post("/createOrderByAdmin", authMiddleware, async (req, res) => {
   try {
     const {
       userId, // optional (existing retailer)
       email,
-      firstName,
-      lastName,
+      fullName,
       phone,
       products,
-      deliveryCharges = 0,
+      deliveryCharges = 0, //shipping charges
       subtotal,
       tax,
       total,
@@ -537,26 +380,28 @@ exports.createOrderByAdmin = async (req, res) => {
     }
 
     /* ---------------- STOCK CHECK ---------------- */
-    await validateAndReserveStock(products);
+    await checkStockAvailability(products);
+
 
     /* ---------------- USER (RETAILER) ---------------- */
     let user;
 
     if (!userId) {
-      // Create guest retailer
+      // Create new retailer
       user = await User.create({
-        User_Name: `${firstName || ""} ${lastName || ""}`.trim(),
+        User_Name: fullName.trim(),
         User_Email: email,
         User_Mobile_No: phone,
         User_Label: "Retailer",
         User_Status: true,
+        Is_Verify: true,
       });
     } else {
       // Update existing retailer
       user = await User.findByIdAndUpdate(
         userId,
         {
-          User_Name: `${firstName || ""} ${lastName || ""}`.trim(),
+          User_Name: fullName.trim(),
           User_Email: email,
           User_Mobile_No: phone,
         },
@@ -586,13 +431,15 @@ exports.createOrderByAdmin = async (req, res) => {
       processed: paymentStatus === "Paid",
     });
 
-    /* ---------------- DEDUCT STOCK ---------------- */
+
+    /* STOCK */
     await deductStock(products);
+
 
     /* ---------------- SEND QUOTATION EMAIL ---------------- */
     await sendQuotationEmail({
       email,
-      firstName,
+      fullName,
       products,
       subtotal,
       tax,
@@ -612,7 +459,7 @@ exports.createOrderByAdmin = async (req, res) => {
       message: error.message || "Internal server error",
     });
   }
-};
+});
 
 // get all upcomin orders for particular user
 route.get("/get/upcoming", authMiddleware, async (req, res) => {

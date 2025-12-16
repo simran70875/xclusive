@@ -2,7 +2,6 @@ import {
   Badge,
   Button,
   Col,
-  Divider,
   Dropdown,
   Image,
   Input,
@@ -10,6 +9,7 @@ import {
   Row,
   Tooltip,
 } from "antd";
+
 import { routes } from "../../Routes/Routes";
 import { useNavigate } from "react-router-dom";
 import {
@@ -20,6 +20,7 @@ import {
 } from "@ant-design/icons";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import styles from "./index.module.scss";
 
 import {
   getProfileApi,
@@ -31,21 +32,20 @@ import {
 import cart from "../../Assets/PNG/cart.png";
 import user from "../../Assets/PNG/profile.png";
 import heart from "../../Assets/PNG/like.png";
+
 import { getCategoryApi } from "../../Features/Category/Category";
 import { getSearchProductApi } from "../../Features/Product/Product";
-import styles from "./index.module.scss";
 import { getWishListApi } from "../../Features/WishList/WishList";
 import { geCartListApi } from "../../Features/AddCart/AddCart";
-import Marquee from "react-fast-marquee";
-import axios from "axios";
-import { apiUrl } from "../../Constant";
-import MegaMenu from "./MegaMenu/MegaMenu";
+
+// import Marquee from "react-fast-marquee";
+// import axios from "axios";
+// import { apiUrl } from "../../Constant";
 
 function Header() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const [searchType, setSearchType] = useState();
-  const [text, setText] = useState("");
   const userId = useSelector((state) => state.user?.userId);
   const cartCounter = useSelector((state) => state.user?.cartCount);
   console.log(cartCounter, "cartCounter");
@@ -63,19 +63,21 @@ function Header() {
     dispatch(geCartListApi(userToken));
   }, []);
 
-  useEffect(() => {
-    async function getExistingMarquee() {
-      try {
-        const response = await axios.get(apiUrl.GET_MARQUEE);
-        console.log("marquee text ==> ", response.data);
-        setText(response.data.marquee.text);
-      } catch (error) {
-        console.error(error);
-      }
-    }
+  const catagoryItem = useSelector((state) => state.category?.categoryData);
 
-    getExistingMarquee();
-  }, [userToken]);
+  // useEffect(() => {
+  //   async function getExistingMarquee() {
+  //     try {
+  //       const response = await axios.get(apiUrl.GET_MARQUEE);
+  //       console.log("marquee text ==> ", response.data);
+  //       setText(response.data.marquee.text);
+  //     } catch (error) {
+  //       console.error(error);
+  //     }
+  //   }
+
+  //   getExistingMarquee();
+  // }, [userToken]);
 
   const handlesubmit = () => {
     navigate(routes.homepageUrl);
@@ -92,9 +94,11 @@ function Header() {
   };
 
   const Like = () => {
+    // if (likeCounter > 0) {
     if (userToken) {
       navigate(routes.likeUrl);
     }
+    // }
   };
 
   const handleReset = () => {
@@ -286,78 +290,6 @@ function Header() {
       onClick: handleReset,
     },
   ];
-
-  const navigationBottomMenu = [
-    {
-      label: "Home",
-      key: "1",
-      onClick: () => navigate(routes.homepageUrl),
-    },
-    {
-      label: "About Us",
-      key: "2",
-      onClick: () => navigate(routes.aboutUrl),
-    },
-    {
-      label: "Jewelllery",
-      key: "3",
-      onClick: () => navigate(routes.shoppingUrl),
-    },
-    {
-      label: "Watches",
-      key: "4",
-      onClick: () => navigate(routes.walletUrl),
-    },
-    {
-      label: "Refund and Exchanges Policy",
-      key: "5",
-      onClick: () => navigate(routes.refundUrl),
-    },
-    {
-      label: "Contact Us",
-      key: "6",
-      onClick: () => navigate(routes.contactUrl),
-    },
-    {
-      label: "Logout",
-      key: "7",
-      onClick: handleReset,
-    },
-  ];
-
-  const CategoryMenu = [
-    {
-      title: "Anklet",
-      items: [
-        "Beaded ankle",
-        "Braided ankle",
-        "Demi fine ankle",
-        "String ankle",
-      ],
-    },
-    {
-      title: "Earring",
-      items: ["Armill", "Brooch", "Button", "Diadem"],
-    },
-    {
-      title: "Rings",
-      items: ["Emblem", "Findings", "Puzzle jewelry", "Mamuli"],
-    },
-    {
-      title: "Barrette",
-      items: ["Belt buckle", "Pendant", "Choker", "Necklace"],
-    },
-    {
-      title: "Prayer Jewellery",
-      items: ["Diamond Rings", "Gold Rings", "Rose Gold Rings", "Silver Rings"],
-    },
-    {
-      title: "Bracelet",
-      items: ["Alert Jewelry", "Amulet", "Breastplate", "Gold Bracelet"],
-    },
-  ];
-
-  const [hovered, setHovered] = useState(null);
 
   const mobileDropDownMenu = (
     <Menu
@@ -607,21 +539,20 @@ function Header() {
   );
 
   return (
-    <div style={{ overflow: "hidden" }}>
+    <div className="">
       {/* <Marquee className={styles.offer}>{text}</Marquee> */}
-      <Row
-        justify="space-between"
-        align={"middle"}
-        className={styles.headerSpacing}
-        style={{ background: "#121212", color: "#fff" }}
-      >
-        <Col>
-          <p style={{ margin: 0 }}>
-            Free shipping world wide for all orders over $199
-          </p>
+      <Row style={{ background: "#000", padding: 20 }} justify="space-between">
+        <Col xs={6} md={6} lg={6} xl={6} xxl={6}>
+          <div
+            style={{ cursor: "pointer", color: "#fff" }}
+            className={styles.navItem}
+          >
+            Free Shipping world wide for all order above $99
+          </div>
         </Col>
-        <Col xs={0} md={15} lg={15} xl={12} xxl={12} className={styles.navMenu}>
-          <Row justify="space-around">
+
+        <Col xs={18} md={18} lg={18} xl={18} xxl={18}>
+          <Row justify="end" align={"middle"} gutter={30}>
             {navigationMenu.map((item) => (
               <Col key={item.key}>
                 <div
@@ -636,218 +567,180 @@ function Header() {
           </Row>
         </Col>
       </Row>
-      <Row className={styles.headermain}>
-        <Col xs={24} md={24} lg={24} xl={24} xxl={24}>
-          <Row
-            justify="space-between"
-            align={"middle"}
-            className={styles.headerSpacing}
-          >
-            <Col className={styles.searchinput2}>
-              <Input
-                size="large"
-                placeholder="Search Here"
-                suffix={<SearchOutlined />}
-                onChange={(e) => handleInputChange(e.target.value)}
-                style={{
-                  backgroundColor: "#f5f5f5",
-                  border: "none",
-                  borderRadius: "2px",
-                  width: 350,
-                  height: 50,
-                }}
-              />
-            </Col>
-            <Col className={styles.headerlogo} onClick={handlesubmit}>
-              <p
+
+      <Row className={styles.headermain} justify="space-between">
+        <Col
+          xs={8}
+          md={8}
+          lg={8}
+          xl={8}
+          xxl={8}
+          className={styles.searchinput2}
+        >
+          <Input
+            size="large"
+            placeholder="Search Here"
+            style={{
+              backgroundColor: "#e9e9e9",
+              width: "60%",
+            }}
+            suffix={<SearchOutlined />}
+            onChange={(e) => handleInputChange(e.target.value)}
+          />
+        </Col>
+
+        <Col
+          xs={8}
+          md={8}
+          lg={8}
+          xl={8}
+          xxl={8}
+          className={styles.headerlogo}
+          onClick={handlesubmit}
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          <Image src={"/logo.png"} alt="logo" preview={false} />
+        </Col>
+
+        <Col xs={8} md={8} lg={8} xl={8} xxl={8} className={styles.headericon}>
+          <Dropdown overlay={dropDownMenu} trigger={["click"]}>
+            <div
+              className={styles.hrDropdown}
+              onClick={(e) => e.preventDefault()}
+            >
+              <UserOutlined
                 style={{
                   color: "#000",
-                  textTransform: "uppercase",
-                  fontWeight: "700",
-                  margin: 0,
-                  fontSize: 30,
-                  textAlign: "center",
+                  fontSize: 20,
                 }}
-              >
-                Xclusive Diamonds
-              </p>
-            </Col>
+              />
+            </div>
+          </Dropdown>
+          <div
+            style={{
+              padding: 10,
+            }}
+          ></div>
 
-            <Col>
-              <Row
-                style={{ gap: 30, width: 350 }}
-                justify="center"
-                align={"middle"}
-              >
-                <Col xs={0} md={0} lg={1} xl={1} xxl={1}>
-                  <Dropdown overlay={dropDownMenu} trigger={["click"]}>
-                    <div
-                      className={styles.hrDropdown}
-                      onClick={(e) => e.preventDefault()}
-                    >
-                      <UserOutlined
-                        style={{ fontSize: 30, color: "#121212" }}
-                      />
-                    </div>
-                  </Dropdown>
-                </Col>
-                <Col xs={0} md={0} lg={1} xl={1} xxl={1}>
-                  <Badge
-                    style={{ backgroundColor: "#FF9800" }}
-                    showZero
-                    count={wishlist > 0 ? wishlist : 0}
-                    className={styles.badge}
-                  >
-                    <HeartOutlined
-                      onClick={Like}
-                      style={{ fontSize: 30, color: "#121212" }}
-                    />
-                  </Badge>
-                </Col>
-                <Col
-                  xs={0}
-                  md={0}
-                  lg={1}
-                  xl={1}
-                  xxl={1}
-                  className={styles.headericon}
-                >
-                  <Badge
-                    style={{ backgroundColor: "#FF9800" }}
-                    showZero
-                    count={cartlist?.Count > 0 ? cartlist?.Count : 0}
-                    className={styles.badge}
-                  >
-                    <ShoppingCartOutlined
-                      onClick={handleCart}
-                      style={{ fontSize: 30, color: "#121212" }}
-                    />
-                  </Badge>
-                </Col>
+          <Badge
+            style={{ backgroundColor: "#FF9800" }}
+            showZero
+            count={wishlist > 0 ? wishlist : 0}
+            className={styles.badge}
+          >
+            <HeartOutlined
+              style={{
+                color: "#000",
+                fontSize: 20,
+              }}
+              onClick={Like}
+            />
+          </Badge>
+          <div
+            style={{
+              padding: 10,
+            }}
+          ></div>
 
-                <Col
-                  xs={8}
-                  md={8}
-                  lg={4}
-                  xl={3}
-                  xxl={4}
-                  className={styles.headericon2}
-                >
-                  <Dropdown overlay={mobileDropDownMenu} trigger={["click"]}>
-                    <div
-                      className={styles.hrDropdown}
-                      onClick={(e) => e.preventDefault()}
-                    >
-                      <Image src={user} alt="profile" preview={false} />
-                    </div>
-                  </Dropdown>
-                  {likeCounter ? (
-                    <Badge
-                      style={{ backgroundColor: "#FF9800" }}
-                      showZero
-                      count={wishlist > 0 ? wishlist : 0}
-                      className={styles.badge}
-                    >
-                      <Image
-                        src={heart}
-                        alt="like"
-                        preview={false}
-                        onClick={Like}
-                      />
-                    </Badge>
-                  ) : (
-                    <Tooltip>
-                      <Badge
-                        style={{ backgroundColor: "#FF9800" }}
-                        showZero
-                        count={wishlist > 0 ? wishlist : 0}
-                        className={styles.badge}
-                      >
-                        <Image
-                          src={heart}
-                          alt="like"
-                          preview={false}
-                          onClick={Like}
-                        />
-                      </Badge>
-                    </Tooltip>
-                  )}
-                  {cartCounter ? (
-                    <Badge
-                      style={{ backgroundColor: "#FF9800" }}
-                      showZero
-                      count={cartlist?.Count > 0 ? cartlist?.Count : 0}
-                      className={styles.badge}
-                    >
-                      <Image
-                        src={cart}
-                        alt="shopping"
-                        preview={false}
-                        onClick={handleCart}
-                      />
-                    </Badge>
-                  ) : (
-                    <Tooltip>
-                      <Badge
-                        style={{ backgroundColor: "#FF9800" }}
-                        showZero
-                        count={cartlist?.Count > 0 ? cartlist?.Count : 0}
-                        className={styles.badge}
-                      >
-                        <Image
-                          src={cart}
-                          alt="shopping"
-                          preview={false}
-                          onClick={handleCart}
-                        />
-                      </Badge>
-                    </Tooltip>
-                  )}
-                </Col>
-              </Row>
-            </Col>
-          </Row>
+          <Badge
+            style={{ backgroundColor: "#FF9800" }}
+            showZero
+            count={cartlist?.Count > 0 ? cartlist?.Count : 0}
+            className={styles.badge}
+          >
+            <ShoppingCartOutlined
+              style={{
+                color: "#000",
+                fontSize: 20,
+              }}
+              onClick={handleCart}
+            />
+          </Badge>
+        </Col>
 
-          <Divider style={{ background: "#e9e9e9", margin: 0 }} />
-
-          <Row justify="center" align="middle" className={styles.headerSpacing}>
-            <Col
-              xs={0}
-              md={15}
-              lg={15}
-              xl={12}
-              xxl={12}
-              className={styles.navMenu}
+        {/* // tablet size */}
+        <Col xs={8} md={8} lg={4} xl={3} xxl={4} className={styles.headericon2}>
+          <Dropdown overlay={mobileDropDownMenu} trigger={["click"]}>
+            <div
+              className={styles.hrDropdown}
+              onClick={(e) => e.preventDefault()}
             >
-              <Row justify="space-around">
-                {navigationBottomMenu.map((item) => (
-                  <Col
-                    key={item.key}
-                    onMouseEnter={() => setHovered(item.key)}
-                    onMouseLeave={() => setHovered(null)}
-                    style={{ position: "relative" }}
-                  >
-                    <div
-                      onClick={item.onClick}
-                      style={{
-                        cursor: "pointer",
-                        color: "#121212",
-                        textTransform: "capitalize",
-                        fontSize: 14,
-                        fontWeight: "500",
-                      }}
-                      className={styles.navItem}
-                    >
-                      {item.label}
-                    </div>
+              <Image src={user} alt="profile" preview={false} />
+            </div>
+          </Dropdown>
+          {likeCounter ? (
+            <Badge
+              style={{ backgroundColor: "#FF9800" }}
+              showZero
+              count={wishlist > 0 ? wishlist : 0}
+              className={styles.badge}
+            >
+              <Image src={heart} alt="like" preview={false} onClick={Like} />
+            </Badge>
+          ) : (
+            <Tooltip>
+              <Badge
+                style={{ backgroundColor: "#FF9800" }}
+                showZero
+                count={wishlist > 0 ? wishlist : 0}
+                className={styles.badge}
+              >
+                <Image src={heart} alt="like" preview={false} onClick={Like} />
+              </Badge>
+            </Tooltip>
+          )}
+          {cartCounter ? (
+            <Badge
+              style={{ backgroundColor: "#FF9800" }}
+              showZero
+              count={cartlist?.Count > 0 ? cartlist?.Count : 0}
+              className={styles.badge}
+            >
+              <Image
+                src={cart}
+                alt="shopping"
+                preview={false}
+                onClick={handleCart}
+              />
+            </Badge>
+          ) : (
+            <Tooltip>
+              <Badge
+                style={{ backgroundColor: "#FF9800" }}
+                showZero
+                count={cartlist?.Count > 0 ? cartlist?.Count : 0}
+                className={styles.badge}
+              >
+                <Image
+                  src={cart}
+                  alt="shopping"
+                  preview={false}
+                  onClick={handleCart}
+                />
+              </Badge>
+            </Tooltip>
+          )}
+        </Col>
+      </Row>
 
-                    {item.label === "Jewelllery" && (
-                      <MegaMenu data={CategoryMenu} />
-                    )}
-                  </Col>
-                ))}
-              </Row>
-            </Col>
+      <Row style={{ padding: 20 }} justify="space-between">
+        <Col xs={24} md={24} lg={24} xl={24} xxl={24}>
+          <Row justify="center" align={"middle"} gutter={30}>
+            {catagoryItem?.map((item) => (
+              <Col key={item.key}>
+                <div
+                  onClick={item.onClick}
+                  style={{ cursor: "pointer", color: "#555" }}
+                  className={styles.navItem}
+                >
+                  {item.category_Name}
+                </div>
+              </Col>
+            ))}
           </Row>
         </Col>
       </Row>

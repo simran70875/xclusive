@@ -45,14 +45,8 @@ route.post("/add", authMiddleware, async (req, res) => {
       });
     }
 
-    let discountPrice =
-      user?.User_Type === "0"
-        ? Products.Product_Dis_Price
-        : user?.User_Type === "1"
-          ? Products.Gold_Price
-          : user?.User_Type === "2"
-            ? Products.Silver_Price
-            : Products.PPO_Price;
+    let discountPrice = Products.Product_Dis_Price;
+     
 
     let originalPrice =
       user?.User_Type === "0"

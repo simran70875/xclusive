@@ -489,7 +489,7 @@ function Catagory() {
                           <div className={styles.hearticon}>
                             {getProductIsLikedOrNot(item?._id) ? (
                               <HeartFilled
-                                className={styles.yellow}
+                                className={styles.pink}
                                 onClick={() => {
                                   toggleLike(item?._id);
                                 }}
