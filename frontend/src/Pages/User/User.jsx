@@ -45,10 +45,10 @@ function User() {
       <Row justify="center" className={styles.main}>
         <Col xl={7} xxl={7} className={styles.user}>
           <div className={styles.setuser}>
-            <Image
+            <Image preview={false}
               src={logo}
               alt="logo"
-              preview={false}
+              
               className={styles.logo}
             />
             <p className={styles.login}>Please enter your phone number</p>

@@ -10,7 +10,7 @@ const ScrollToTop = ({ handleOnScrollTop, scrolled }) => {
     scrolled && (
       <div className={styles.scrollToTop} onClick={handleOnScrollTop}>
         {/* <UpOutlined /> */}
-        <Image src={whatsapp} preview={false} />
+        <Image preview={false} src={whatsapp}  />
       </div>
     )
   );

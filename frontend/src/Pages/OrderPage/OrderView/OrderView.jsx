@@ -242,8 +242,8 @@ function OrderView() {
                         {/* {// console.log("dcdcdc",item2)} */}
                         <div className={styles.showItem} key={index}>
                           <div className={styles.foil}>
-                            <Image
-                              preview={false}
+                            <Image preview={false}
+                              
                               src={item2?.variationImage}
                               // src={wear}
                               alt="wear1"
@@ -259,8 +259,8 @@ function OrderView() {
                               {/* <p className={styles.size}>color - pink</p> */}
                             </div>
                             <div className={styles.set}>
-                              <Image
-                                preview={false}
+                              <Image preview={false}
+                                
                                 // src={wear}
                                 src={item2?.variationImage}
                                 alt="wear1"
@@ -429,15 +429,15 @@ function OrderView() {
 
                       <div className={styles.choose}>
                         {state?.PaymentType === "0" ? (
-                          <Image
-                            preview={false}
+                          <Image preview={false}
+                            
                             src={wallet}
                             alt="wallet"
                             className={styles.wallet}
                           />
                         ) : (
-                          <Image
-                            preview={false}
+                          <Image preview={false}
+                            
                             src={cash}
                             alt="cash"
                             className={styles.wallet}

@@ -12,12 +12,10 @@ const PopupModal = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const bannerOpened = useSelector((state) => state.popUp.opened);
-  console.log("bannerOpened ==> ", bannerOpened);
   const userToken = useSelector((state) => state.user?.token);
 
   const getBanner = async () => {
     const res = await axios.get(apiUrl.GET_POPUP_BANNER);
-    console.log("res ==> ", res);
     if (res) {
       setBannerData(res.data[0]);
     }

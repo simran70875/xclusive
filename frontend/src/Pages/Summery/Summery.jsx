@@ -620,8 +620,8 @@ function Summery() {
                             checked={indexSelect2 === "wallet"}
                             onChange={() => handlePaymentType("wallet")}
                           />
-                          <Image
-                            preview={false}
+                          <Image preview={false}
+                            
                             src={wallet}
                             alt="wallet"
                             className={styles.wallet}
@@ -640,8 +640,8 @@ function Summery() {
                           onChange={() => handlePaymentType("online")}
                           // disabled
                         />
-                        <Image
-                          preview={false}
+                        <Image preview={false}
+                          
                           src={online}
                           alt="online"
                           className={styles.wallet}
@@ -658,8 +658,8 @@ function Summery() {
                             onChange={() => handlePaymentType("cash")}
                             // disabled
                           />
-                          <Image
-                            preview={false}
+                          <Image preview={false}
+                            
                             src={cash}
                             alt="cash"
                             className={styles.wallet}
@@ -687,8 +687,8 @@ function Summery() {
                   {cartlist?.cartItems?.map((item, index) => (
                     <>
                       <div key={index}>
-                        <Image
-                          preview={false}
+                        <Image preview={false}
+                          
                           src={item?.Variation?.variation_Image}
                           alt="wear1"
                         />
@@ -713,7 +713,7 @@ function Summery() {
                     </>
                   ))}
                   <div className={styles.delivery}>
-                    <Image preview={false} src={delivery} alt="delivery" />
+                    <Image preview={false}  src={delivery} alt="delivery" />
                     <p className={styles.business}>
                       Estimated delivery by 5 to 7 business days
                     </p>
@@ -760,15 +760,15 @@ function Summery() {
                       {ordertype === "cash" ||
                       couponName ||
                       applyCoupon?.length > 0 ? (
-                        <Image
-                          preview={false}
+                        <Image preview={false}
+                          
                           src={arrow}
                           alt="arrow"
                           className={styles.arrow}
                         />
                       ) : (
-                        <Image
-                          preview={false}
+                        <Image preview={false}
+                          
                           src={arrow}
                           alt="arrow"
                           className={styles.arrow}

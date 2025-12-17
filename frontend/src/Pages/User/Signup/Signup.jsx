@@ -80,10 +80,10 @@ function Signup() {
       <Row justify="center" className={styles.main}>
         <Col xl={7} xxl={7} className={styles.user}>
           <div className={styles.setuser}>
-            <Image
+            <Image preview={false}
               src={logo}
               alt="logo"
-              preview={false}
+              
               className={styles.logo}
             />
             {state?.update === true ? (
@@ -123,24 +123,24 @@ function Signup() {
                       {updatedPreviewImage ? (
                         ""
                       ) : (
-                        <Image
+                        <Image preview={false}
                           src={
                             state?.update === true
                               ? profileData?.User_Image
                               : previewImage
                           }
                           alt="setImg"
-                          preview={false}
+                          
                           name="User_Image"
                           className={styles.showImg}
                         />
                       )}
                       {updatedPreviewImage ? (
                         <>
-                          <Image
+                          <Image preview={false}
                             src={updatedPreviewImage}
                             alt="setImg"
-                            preview={false}
+                            
                             name="User_Image"
                             className={styles.showImg}
                           />

@@ -7,6 +7,7 @@ export const apiUrl = {
   UPDATE_PROFILE: `${BASE_URL}/user/profile/update`,
   FIRST_UPDATE_PROFILE: `${BASE_URL}user/profile/update/generate/coupon`,
   GET_MOB_CATEGORY: `${BASE_URL}/category/mob/get`,
+  GET_SPECIFICATION: `${BASE_URL}/data/get`,
   GET_MOB_FEATURE_CATEGORY: `${BASE_URL}/category/mob/featurelist/get`,
   GET_BANNER: `${BASE_URL}/banner/mob/get`,
   GET_BANNER_PRODUCT: `${BASE_URL}/product/banner/mob/get`,

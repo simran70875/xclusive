@@ -19,7 +19,6 @@ function Footer() {
   const navigate = useNavigate();
   const [date, setDate] = useState();
   const userToken = useSelector((state) => state.user?.token);
-  console.log("userToken ===> ", userToken);
 
   const [email, setEmail] = useState(""); // State to manage email input
   const [error, setError] = useState(""); // State to manage errors
@@ -77,20 +76,20 @@ function Footer() {
                     window.open("https://www.youtube.com/@shubhlibaas")
                   }
                 >
-                  <Image src={youtube} alt="youtube" preview={false} />
+                  <Image preview={false} src={youtube} alt="youtube"  />
                 </div>
                 <div
                   onClick={() =>
                     window.open("https://www.facebook.com/shubhlibaas")
                   }
                 >
-                  <Image src={facebook} alt="facebook" preview={false} />
+                  <Image preview={false} src={facebook} alt="facebook"  />
                 </div>
                 {/* <div onClick={() => window.open("https://www.linkedin.com/")}> */}
-                {/* <Image src={linkedin} alt="linkedin" preview={false} /> */}
+                {/* <Image preview={false} src={linkedin} alt="linkedin"  /> */}
                 {/* </div> */}
                 {/* <div onClick={() => window.open("https://www.whatsapp.com/")}> */}
-                {/* <Image src={whatsapp} alt="whatsapp" preview={false} /> */}
+                {/* <Image preview={false} src={whatsapp} alt="whatsapp"  /> */}
                 {/* </div> */}
               </div>
             </div>

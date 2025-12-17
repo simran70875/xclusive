@@ -106,9 +106,9 @@ function SearchData() {
                             />
                           )}
                         </div>
-                        <Image
+                        <Image preview={false}
                           src={item?.Product_Image}
-                          preview={false}
+                          
                           alt="Product_Image"
                           onClick={() => handleAddCart(item?._id)}
                         />

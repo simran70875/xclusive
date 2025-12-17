@@ -83,13 +83,13 @@ function Coins() {
             }}
           >
             My Rewards
-            <Image
+            <Image preview={false}
               src={coin}
               alt="coin"
               className={styles.setimg}
               width={30}
               height={30}
-              preview={false}
+              
               style={{
                 marginLeft: "10px",
               }}
@@ -149,13 +149,13 @@ function Coins() {
                       >
                         {item?.Trans_Type === "Debit" ? "-" : "+"} ₹
                         {item?.Amount}
-                        <Image
+                        <Image preview={false}
                           src={coin}
                           alt="coin"
                           className={styles.setimg}
                           width={30}
                           height={30}
-                          preview={false}
+                          
                           style={{
                             marginLeft: "10px",
                           }}

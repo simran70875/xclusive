@@ -39,41 +39,41 @@ function Contact() {
                 className={styles.setMain}
               >
                 <div className={styles.setbox}>
-                  <Image
+                  <Image preview={false}
                     src={address}
                     alt="address"
                     className={styles.setimg}
-                    preview={false}
+                    
                   />
                   <p className={styles.address}>Address</p>
                   <p className={styles.plaza}>FF-7 shive plaza</p>
                 </div>
                 <div className={styles.setbox}>
-                  <Image
+                  <Image preview={false}
                     src={mail}
                     alt="mail"
                     className={styles.setimg}
-                    preview={false}
+                    
                   />
                   <p className={styles.address}>E-Mail :</p>
                   <p className={styles.plaza}>{setting?.app_email}</p>
                 </div>
                 <div className={styles.setbox}>
-                  <Image
+                  <Image preview={false}
                     src={phone}
                     alt="phone"
                     className={styles.setimg}
-                    preview={false}
+                    
                   />
                   <p className={styles.address}>Phone :</p>
                   <p className={styles.plaza}>{setting?.app_contact}</p>
                 </div>
                 <div className={styles.setbox}>
-                  <Image
+                  <Image preview={false}
                     src={time}
                     alt="time"
                     className={styles.setimg}
-                    preview={false}
+                    
                   />
                   <p className={styles.address}>Office Hours :</p>
                   <p className={styles.plaza}>09:00 am to 7:00 pm</p>

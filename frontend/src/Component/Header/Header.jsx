@@ -48,7 +48,6 @@ function Header() {
   const [searchType, setSearchType] = useState();
   const userId = useSelector((state) => state.user?.userId);
   const cartCounter = useSelector((state) => state.user?.cartCount);
-  console.log(cartCounter, "cartCounter");
   const likeCounter = useSelector((state) => state.user?.likeCount);
   const profileData = useSelector((state) => state.user?.profileData);
   const userToken = useSelector((state) => state.user?.token);
@@ -64,6 +63,16 @@ function Header() {
   }, []);
 
   const catagoryItem = useSelector((state) => state.category?.categoryData);
+
+  const Catagory = (item) => {
+    navigate(`/product/${item?.category_Name || item?.categoryName}`, {
+      state: {
+        item: item?.category_Name || item?.categoryName,
+        id: item?.category_id || item?.categoryId,
+      },
+    });
+    window.location.reload();
+  };
 
   // useEffect(() => {
   //   async function getExistingMarquee() {
@@ -541,32 +550,38 @@ function Header() {
   return (
     <div className="">
       {/* <Marquee className={styles.offer}>{text}</Marquee> */}
-      <Row style={{ background: "#000", padding: 20 }} justify="space-between">
-        <Col xs={6} md={6} lg={6} xl={6} xxl={6}>
-          <div
-            style={{ cursor: "pointer", color: "#fff" }}
-            className={styles.navItem}
-          >
-            Free Shipping world wide for all order above $99
-          </div>
-        </Col>
 
-        <Col xs={18} md={18} lg={18} xl={18} xxl={18}>
-          <Row justify="end" align={"middle"} gutter={30}>
-            {navigationMenu.map((item) => (
-              <Col key={item.key}>
-                <div
-                  onClick={item.onClick}
-                  style={{ cursor: "pointer", color: "#fff" }}
-                  className={styles.navItem}
-                >
-                  {item.label}
-                </div>
-              </Col>
-            ))}
-          </Row>
-        </Col>
-      </Row>
+      {userId && (
+        <Row
+          style={{ background: "#000", padding: 20 }}
+          justify="space-between"
+        >
+          <Col xs={6} md={6} lg={6} xl={6} xxl={6}>
+            <div
+              style={{ cursor: "pointer", color: "#fff" }}
+              className={styles.navItem}
+            >
+              Free Shipping world wide for all order above $99
+            </div>
+          </Col>
+
+          <Col xs={18} md={18} lg={18} xl={18} xxl={18}>
+            <Row justify="end" align={"middle"} gutter={30}>
+              {navigationMenu.map((item, index) => (
+                <Col key={index}>
+                  <div
+                    onClick={item.onClick}
+                    style={{ cursor: "pointer", color: "#fff" }}
+                    className={styles.navItem}
+                  >
+                    {item.label}
+                  </div>
+                </Col>
+              ))}
+            </Row>
+          </Col>
+        </Row>
+      )}
 
       <Row className={styles.headermain} justify="space-between">
         <Col
@@ -603,11 +618,11 @@ function Header() {
             alignItems: "center",
           }}
         >
-          <Image src={"/logo.png"} alt="logo" preview={false} />
+          <Image preview={false} src={"/logo.png"} alt="logo" />
         </Col>
 
         <Col xs={8} md={8} lg={8} xl={8} xxl={8} className={styles.headericon}>
-          <Dropdown overlay={dropDownMenu} trigger={["click"]}>
+          <Dropdown menu={dropDownMenu} trigger={["click"]}>
             <div
               className={styles.hrDropdown}
               onClick={(e) => e.preventDefault()}
@@ -664,12 +679,12 @@ function Header() {
 
         {/* // tablet size */}
         <Col xs={8} md={8} lg={4} xl={3} xxl={4} className={styles.headericon2}>
-          <Dropdown overlay={mobileDropDownMenu} trigger={["click"]}>
+          <Dropdown menu={mobileDropDownMenu} trigger={["click"]}>
             <div
               className={styles.hrDropdown}
               onClick={(e) => e.preventDefault()}
             >
-              <Image src={user} alt="profile" preview={false} />
+              <Image preview={false} src={user} alt="profile" />
             </div>
           </Dropdown>
           {likeCounter ? (
@@ -679,7 +694,7 @@ function Header() {
               count={wishlist > 0 ? wishlist : 0}
               className={styles.badge}
             >
-              <Image src={heart} alt="like" preview={false} onClick={Like} />
+              <Image preview={false} src={heart} alt="like" onClick={Like} />
             </Badge>
           ) : (
             <Tooltip>
@@ -689,7 +704,7 @@ function Header() {
                 count={wishlist > 0 ? wishlist : 0}
                 className={styles.badge}
               >
-                <Image src={heart} alt="like" preview={false} onClick={Like} />
+                <Image preview={false} src={heart} alt="like" onClick={Like} />
               </Badge>
             </Tooltip>
           )}
@@ -700,12 +715,7 @@ function Header() {
               count={cartlist?.Count > 0 ? cartlist?.Count : 0}
               className={styles.badge}
             >
-              <Image
-                src={cart}
-                alt="shopping"
-                preview={false}
-                onClick={handleCart}
-              />
+              <Image preview={false} src={cart} alt="shopping" onClick={handleCart} />
             </Badge>
           ) : (
             <Tooltip>
@@ -715,23 +725,36 @@ function Header() {
                 count={cartlist?.Count > 0 ? cartlist?.Count : 0}
                 className={styles.badge}
               >
-                <Image
-                  src={cart}
-                  alt="shopping"
-                  preview={false}
-                  onClick={handleCart}
-                />
+                <Image preview={false} src={cart} alt="shopping" onClick={handleCart} />
               </Badge>
             </Tooltip>
           )}
         </Col>
       </Row>
 
-      <Row style={{ padding: 20 }} justify="space-between">
+      <Row
+        style={{ padding: 20, borderBottom: "1px solid #e9e9e9" }}
+        justify="space-between"
+      >
         <Col xs={24} md={24} lg={24} xl={24} xxl={24}>
-          <Row justify="center" align={"middle"} gutter={30}>
-            {catagoryItem?.map((item) => (
-              <Col key={item.key}>
+          <Row justify="center" align={"middle"} gutter={50}>
+            {catagoryItem?.map((item, index) => (
+              <Col
+                key={index}
+                style={{
+                  textAlign: "center",
+                }}
+              >
+                <Image preview={false}
+                  style={{
+                    height: 50,
+                    width: 50,
+                    borderRadius: "50%",
+                  }}
+                  src={item.category_Image}
+                  alt={item.category_Name}
+                  onClick={() => Catagory(item)}
+                />
                 <div
                   onClick={item.onClick}
                   style={{ cursor: "pointer", color: "#555" }}

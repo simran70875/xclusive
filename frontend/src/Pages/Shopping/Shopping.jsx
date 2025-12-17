@@ -145,8 +145,8 @@ function Shopping() {
                   return (
                     <>
                       <div className={styles.showItem} key={index}>
-                        <Image
-                          preview={false}
+                        <Image preview={false}
+                          
                           src={close}
                           alt="close"
                           className={styles.close}
@@ -154,8 +154,8 @@ function Shopping() {
                         />
                         <div className={styles.foil}>
                           <div>
-                            <Image
-                              preview={false}
+                            <Image preview={false}
+                              
                               src={item?.Variation?.variation_Image}
                               alt="wear1"
                               className={styles.wear}

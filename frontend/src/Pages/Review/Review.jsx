@@ -22,11 +22,11 @@ function Review(productReview) {
               <>
                 <div className={styles.setreview} key={index}>
                   <div className={styles.review1}>
-                    <Image
+                    <Image preview={false}
                       src={data?.User_Image}
                       alt="User_Image"
                       className={styles.blank}
-                      preview={false}
+                      
                     />
                     <div>
                       <p>{data?.User_Name}</p>

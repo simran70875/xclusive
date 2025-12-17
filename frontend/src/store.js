@@ -21,6 +21,7 @@ import category from "./Features/Category/Category";
 import wishList from "./Features/WishList/WishList";
 import walletCoins from "./Features/Wallet&Coins/WalletCoins";
 import popUp from "./Features/Banner/getPopUpBanner";
+import specification from "./Features/Specification/Specification";
 
 const reducers = combineReducers({
   user: user,
@@ -30,6 +31,7 @@ const reducers = combineReducers({
   addCart: addCart,
   address: address,
   category: category,
+  specification: specification,
   wishList: wishList,
   setting: setting,
   walletCoins: walletCoins,

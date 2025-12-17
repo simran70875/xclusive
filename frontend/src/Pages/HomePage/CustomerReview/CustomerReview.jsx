@@ -106,18 +106,18 @@ function CustomerReview() {
                         <div className={styles.sets} key={index}>
                           <div className={styles.first}>
                             <div className={styles.second}>
-                              <Image
+                              <Image preview={false}
                                 src={item?.User_Image}
                                 alt=" "
                                 className={styles.reviewImg}
-                                preview={false}
+                                
                               />
                               <div className={styles.set}>
-                                <Image
+                                <Image preview={false}
                                   src={arroe}
                                   alt=" "
                                   className={styles.reviewImg2}
-                                  preview={false}
+                                  
                                 />
                                 <TextArea
                                   disabled

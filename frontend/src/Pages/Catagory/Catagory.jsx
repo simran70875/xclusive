@@ -506,10 +506,10 @@ function Catagory() {
                         ) : (
                           ""
                         )}
-                        <Image
+                        <Image preview={false}
                           // style={{height:'500px',width:'100%'}}
                           src={item?.Product_Image}
-                          preview={false}
+                          
                           alt="Product_Image"
                           onClick={() =>
                             handleAddCart(item?._id, item?.Product_Name)

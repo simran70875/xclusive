@@ -33,7 +33,7 @@ route.post('/add', checkAdminOrRole2, async (req, res) => {
 });
 
 // get all data 
-route.get('/get', checkAdminOrRole2, async (req, res) => {
+route.get('/get', async (req, res) => {
     try {
         const data = await Data.aggregate([
             {
@@ -65,8 +65,6 @@ route.get('/get', checkAdminOrRole2, async (req, res) => {
                 $sort: { createdAt: -1 }
             }
         ]);
-
-        console.log("specifications data ==> ", data);
 
         res.status(200).json({
             type: "success",

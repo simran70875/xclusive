@@ -317,7 +317,7 @@ function AddCart() {
               xxl={22}
               className={styles.addcart}
             >
-              <Image
+              <Image preview={false}
                 key={index}
                 src={
                   singleImg
@@ -326,7 +326,7 @@ function AddCart() {
                         ?.variation_Image || value.Product_Image
                 }
                 alt="add image"
-                preview={false}
+                
                 className={styles.cartImg}
               />
               <div>
@@ -355,9 +355,9 @@ function AddCart() {
                                       handleSingleImage(data?.variation_Image)
                                     }
                                   >
-                                    <Image
+                                    <Image preview={false}
                                       src={data?.variation_Image}
-                                      preview={false}
+                                      
                                       alt="ellips"
                                     />
                                   </div>
@@ -377,9 +377,9 @@ function AddCart() {
                                         handleSingleImage(data?.variation_Image)
                                       }
                                     >
-                                      <Image
+                                      <Image preview={false}
                                         src={data?.variation_Image}
-                                        preview={false}
+                                        
                                         alt="ellips"
                                       />
                                     </div>
@@ -434,11 +434,11 @@ function AddCart() {
                             hightLight === index ? styles.colorImg : styles.colorImg2
                           }
                         >
-                          <Image
+                          <Image preview={false}
                             key={index}
                             src={item?.variation_Images[0]?.variation_Image}
                             alt="color1"
-                            preview={false}
+                            
                             onClick={() => setHighLight(index)}
                           />
                         </div>
@@ -649,27 +649,27 @@ function AddCart() {
                     <div
                       onClick={() => window.open("https://www.instagram.com/")}
                     >
-                      <Image src={instagram} alt="instagram" preview={false} />
+                      <Image preview={false} src={instagram} alt="instagram"  />
                     </div>
                     <div
                       onClick={() => window.open("https://www.facebook.com/")}
                     >
-                      <Image src={facebook} alt="facebook" preview={false} />
+                      <Image preview={false} src={facebook} alt="facebook"  />
                     </div>
                     <div
                       onClick={() => window.open("https://www.linkedin.com/")}
                     >
-                      <Image src={linkedin} alt="linkedin" preview={false} />
+                      <Image preview={false} src={linkedin} alt="linkedin"  />
                     </div>
                     <div
                       onClick={() => window.open("https://www.whatsapp.com/")}
                     >
-                      <Image src={whatsapp} alt="whatsapp" preview={false} />
+                      <Image preview={false} src={whatsapp} alt="whatsapp"  />
                     </div>
                   </div>
                 </div>
                 <div className={styles.lastimg}>
-                  <Image preview={false} src={addlast} alt="addlast" />
+                  <Image preview={false}  src={addlast} alt="addlast" />
                 </div>
               </div>
             </Col>
@@ -693,9 +693,9 @@ function AddCart() {
                                   handleSingleImage(data?.variation_Image)
                                 }
                               >
-                                <Image
+                                <Image preview={false}
                                   src={data?.variation_Image}
-                                  preview={false}
+                                  
                                   alt="ellips"
                                 />
                               </div>
@@ -714,9 +714,9 @@ function AddCart() {
                                   handleSingleImage(data?.variation_Image)
                                 }
                               >
-                                <Image
+                                <Image preview={false}
                                   src={data?.variation_Image}
-                                  preview={false}
+                                  
                                   alt="ellips"
                                 />
                               </div>
@@ -775,9 +775,9 @@ function AddCart() {
                     ) : (
                       ""
                     )}
-                    <Image
+                    <Image preview={false}
                       src={item?.Product_Image}
-                      preview={false}
+                      
                       alt="Product_Image"
                       onClick={() =>
                         handleAddCart(item?._id, item?.Product_Name)
@@ -830,9 +830,9 @@ function AddCart() {
                     ) : (
                       ""
                     )}
-                    <Image
+                    <Image preview={false}
                       src={data?.Product_Image}
-                      preview={false}
+                      
                       alt="Product_Image"
                       onClick={() =>
                         handleAddCart(data?._id, data?.Product_Name)
@@ -880,9 +880,9 @@ function AddCart() {
                     ) : (
                       ""
                     )}
-                    <Image
+                    <Image preview={false}
                       src={item?.Product_Image}
-                      preview={false}
+                      
                       alt="Product_Image"
                       onClick={() =>
                         handleAddCart(item?._id, item?.Product_Name)
@@ -935,9 +935,9 @@ function AddCart() {
                     ) : (
                       ""
                     )}
-                    <Image
+                    <Image preview={false}
                       src={data?.Product_Image}
-                      preview={false}
+                      
                       alt="Product_Image"
                       onClick={() =>
                         handleAddCart(data?._id, data?.Product_Name)
