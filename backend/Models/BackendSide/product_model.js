@@ -2,10 +2,6 @@ const mongoose = require('mongoose');
 
 // Variation Schema
 const variationSchema = mongoose.Schema({
-    Variation_Name: {
-        type: String,
-        required: true,
-    },
     Variation_Images: [{
         filename: {
             type: String,
@@ -17,8 +13,23 @@ const variationSchema = mongoose.Schema({
             type: String,
         },
     }],
+
+    SKU_Code: {
+        type: String,
+    },
+
+    // Yellow Gold, Rose Gold, White Gold
+    Variation_Name: {
+        type: String,
+        required: true,
+    },
+
+    // SIZE LEVEL
     Variation_Size: [{
         Size_Name: {
+            type: String,  // XS (13.5-14.5)
+        },
+        Size_purity: { // 9K / 18K
             type: String,
         },
         Size_Stock: {
@@ -51,9 +62,7 @@ const productSchema = mongoose.Schema({
     Product_Name: {
         type: String,
     },
-    SKU_Code: {
-        type: String,
-    },
+
     Category: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Categories'
@@ -81,15 +90,15 @@ const productSchema = mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Variations',
     }],
-    Product_Dis_Price: {
-        type: Number
-    },
-    Product_Ori_Price: {
-        type: Number
-    },
-    Max_Dis_Price: {
-        type: Number
-    },
+    // Product_Dis_Price: {
+    //     type: Number
+    // },
+    // Product_Ori_Price: {
+    //     type: Number
+    // },
+    // Max_Dis_Price: {
+    //     type: Number
+    // },
     Description: {
         type: String,
     },

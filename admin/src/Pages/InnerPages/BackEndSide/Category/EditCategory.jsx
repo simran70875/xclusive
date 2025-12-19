@@ -28,7 +28,7 @@ const EditCategory = () => {
             const formData = new FormData();
             formData.append("Category_Name", categoryName);
             formData.append("image", categoryImage);
-            formData.append("Category_Label", categoryName);
+            formData.append("Category_Label", selectedCategoryData?.Category_Label);
             formData.append("secondaryImage", secondaryCategoryImage);
 
             try {

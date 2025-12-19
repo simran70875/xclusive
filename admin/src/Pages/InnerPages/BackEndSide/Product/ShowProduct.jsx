@@ -51,7 +51,7 @@ const ShowProduct = () => {
       width: 90,
       renderCell: (params) => (
         <img
-          src={`${process.env.REACT_APP_API_URL}/${params?.row?.Product_Images[0].path}`}
+          // src={`${process.env.REACT_APP_API_URL}/${params?.row?.Product_Images[0].path}`}
           alt="Product Image"
           height={35}
           width={35}

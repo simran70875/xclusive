@@ -66,216 +66,190 @@ function copyLocalImage(localPath, destFolder) {
   }
 }
 
+const normalize = (val = "") => val.trim().toLowerCase();
+
+function buildTree(categories, parentId = null) {
+  return categories
+    .filter(cat =>
+      String(cat.Parent_Category || null) === String(parentId)
+    )
+    .map(cat => ({
+      ...cat.toObject(),
+      children: buildTree(categories, cat._id)
+    }));
+}
+
+
 // import categories from csv file
-route.post("/upload-csv", checkAdminOrRole2, uploadcsv.single("csvFile"), (req, res) => {
-  if (!req.file) {
-    return res.status(400).json({ type: "error", message: "No file uploaded." });
-  }
+route.post(
+  "/upload-csv",
+  checkAdminOrRole2,
+  uploadcsv.single("csvFile"),
+  async (req, res) => {
+    if (!req.file) {
+      return res.status(400).json({ type: "error", message: "No file uploaded." });
+    }
 
-  const results = [];
-  const uploadFolder = "./imageUploads/backend/category";
+    const results = [];
+    const uploadFolder = "./imageUploads/backend/category";
 
-  fs.createReadStream(req.file.path)
-    .pipe(csv())
-    .on("data", (row) => results.push(row))
-    .on("end", async () => {
-      try {
+    fs.createReadStream(req.file.path)
+      .pipe(csv())
+      .on("data", (row) => results.push(row))
+      .on("end", async () => {
         let inserted = 0;
         let skipped = 0;
         let skippedNames = [];
 
-        for (let item of results) {
+        try {
+          for (const item of results) {
+            const categoryName = normalize(item.Category_Name);
+            const parentName = normalize(item.Parent_Category);
 
-          // -----------------------------
-          // Check if category already exists
-          // -----------------------------
-          const existingCat = await Category.findOne({
-            Category_Name: item.Category_Name.trim()
-          });
+            // find parent if exists
+            let parentCategoryId = null;
 
-          if (existingCat) {
-            skipped++;
-            skippedNames.push(item.Category_Name);
-            continue; // Skip insertion
+            if (parentName) {
+              const parent = await Category.findOne({
+                Category_Name: parentName
+              });
+
+              if (!parent) {
+                skipped++;
+                skippedNames.push(`${item.Category_Name} (Parent missing)`);
+                continue;
+              }
+
+              parentCategoryId = parent._id;
+            }
+
+            // prevent duplicate under same parent
+            const exists = await Category.findOne({
+              Category_Name: categoryName,
+              Parent_Category: parentCategoryId
+            });
+
+            if (exists) {
+              skipped++;
+              skippedNames.push(item.Category_Name);
+              continue;
+            }
+
+            const categoryImageObj = copyLocalImage(item.Category_Image, uploadFolder);
+            const categorySecImageObj = copyLocalImage(item.Category_Sec_Image, uploadFolder);
+
+            await Category.create({
+              Category_Name: categoryName,
+              Parent_Category: parentCategoryId,
+              Category_Label: item.Category_Label,
+              Category_Status: item.Category_Status !== "false",
+              Category_Feature: item.Category_Feature === "true",
+              Category_Image: categoryImageObj,
+              Category_Sec_Image: categorySecImageObj
+            });
+
+            inserted++;
           }
 
-          // -----------------------------
-          // Only copy image if not duplicate
-          // -----------------------------
-          const categoryImageObj = copyLocalImage(item.Category_Image, uploadFolder);
-          const categorySecImageObj = copyLocalImage(item.Category_Sec_Image, uploadFolder);
+          fs.unlinkSync(req.file.path);
 
-          await Category.create({
-            Category_Name: item.Category_Name.trim(),
-            Category_Label: item.Category_Label,
-            Category_Status: item.Category_Status !== "false",
-            Category_Feature: item.Category_Feature === "true",
-            Category_Image: categoryImageObj,
-            Category_Sec_Image: categorySecImageObj
+          return res.status(200).json({
+            type: "success",
+            message: "CSV processed",
+            inserted,
+            skipped,
+            skippedNames
           });
-
-          inserted++;
+        } catch (err) {
+          console.error(err);
+          return res.status(500).json({
+            type: "error",
+            message: "Error while processing CSV"
+          });
         }
-
-        fs.unlinkSync(req.file.path);
-
-        return res.status(200).json({
-          type: "success",
-          message: "CSV processed.",
-          inserted,
-          skipped,
-          skippedNames
-        });
-
-      } catch (err) {
-        console.error(err);
-        return res.status(500).json({
-          type: "error",
-          message: "Error while processing CSV."
-        });
-      }
-    })
-    .on("error", (err) => {
-      console.error(err);
-      res.status(500).send("Error parsing CSV file.");
-    });
-});
+      });
+  }
+);
 
 // Create Category
-route.post("/add",
-  checkAdminOrRole2,
+route.post("/add", checkAdminOrRole2,
   upload.fields([
     { name: "image", maxCount: 1 },
-    { name: "secImage", maxCount: 1 },
+    { name: "secImage", maxCount: 1 }
   ]),
   async (req, res) => {
     try {
-      const { Category_Name } = req.body;
-      const lowerCaseName = Category_Name?.toLowerCase();
+      const categoryName = normalize(req.body.Category_Name);
+      const parentValue = req.body.Parent_Category;
+
+      let parentCategoryId = null;
+
+      if (parentValue) {
+        const parent = await Category.findOne({
+          $or: [
+            { _id: parentValue },
+            { Category_Name: normalize(parentValue) }
+          ]
+        });
+
+        if (!parent) {
+          return res.status(400).json({
+            type: "error",
+            message: "Parent category not found"
+          });
+        }
+
+        parentCategoryId = parent._id;
+      }
+
+      // prevent duplicate under same parent
       const existingCategory = await Category.findOne({
-        Category_Name: lowerCaseName,
+        Category_Name: categoryName,
+        Parent_Category: parentCategoryId
       });
 
       if (existingCategory) {
-        if (req.files && req.files.image) {
-          // Handle primary image
-          const originalFilename = req.files.image[0]?.originalname;
-          const extension = originalFilename.substring(
-            originalFilename.lastIndexOf(".")
-          );
-          const timestamp = Date.now(); // Add current timestamp
-          const imageFilename = `${lowerCaseName.replace(
-            /\s/g,
-            "_"
-          )}_${timestamp}${extension}`;
-          const imagePath = "imageUploads/backend/category/" + imageFilename;
-
-          try {
-            fs.renameSync(req.files.image[0]?.path, imagePath);
-          } catch (err) { }
-
-          existingCategory.Category_Image.filename = imageFilename;
-          existingCategory.Category_Image.path = imagePath;
-          existingCategory.Category_Image.originalname = originalFilename;
-        }
-
-        if (req.files && req.files.secImage) {
-          // Handle secondary image
-          const originalFilename = req.files.secImage[0]?.originalname;
-          const extension = originalFilename.substring(
-            originalFilename.lastIndexOf(".")
-          );
-          const timestamp = Date.now(); // Add current timestamp
-          const imageFilename = `${lowerCaseName.replace(
-            /\s/g,
-            "_"
-          )}_secondary_${timestamp}${extension}`;
-          const imagePath = "imageUploads/backend/category/" + imageFilename;
-
-          fs.renameSync(req.files.secImage[0]?.path, imagePath);
-
-          existingCategory.Category_Sec_Image = {
-            filename: imageFilename,
-            path: imagePath,
-            originalname: originalFilename,
-          };
-        }
-
-        await existingCategory.save();
-
-        res
+        return res
           .status(202)
           .json({ type: "warning", message: "Category already exists!" });
-      } else {
-        const category = new Category({
-          Category_Name: lowerCaseName,
-          Category_Label: req.body.Category_Label,
-        });
-
-        if (req.files && req.files.image) {
-          // Handle primary image
-          const originalFilename = req.files.image[0]?.originalname;
-          const extension = originalFilename.substring(
-            originalFilename.lastIndexOf(".")
-          );
-          const timestamp = Date.now(); // Add current timestamp
-          const imageFilename = `${lowerCaseName.replace(
-            /\s/g,
-            "_"
-          )}_${timestamp}${extension}`;
-          const imagePath = "imageUploads/backend/category/" + imageFilename;
-
-          fs.renameSync(req.files.image[0]?.path, imagePath);
-
-          const image = {
-            filename: imageFilename,
-            path: imagePath,
-            originalname: originalFilename,
-          };
-          category.Category_Image = image;
-        }
-
-        if (req.files && req.files.secImage) {
-          // Handle secondary image
-          const originalFilename = req.files.secImage[0]?.originalname;
-          const extension = originalFilename.substring(
-            originalFilename.lastIndexOf(".")
-          );
-          const timestamp = Date.now(); // Add current timestamp
-          const imageFilename = `${lowerCaseName.replace(
-            /\s/g,
-            "_"
-          )}_secondary_${timestamp}${extension}`;
-          const imagePath = "imageUploads/backend/category/" + imageFilename;
-
-          fs.renameSync(req.files.secImage[0]?.path, imagePath);
-
-          category.Category_Sec_Image = {
-            filename: imageFilename,
-            path: imagePath,
-            originalname: originalFilename,
-          };
-        }
-
-        await category.save();
-
-        res
-          .status(200)
-          .json({ type: "success", message: "Category added successfully!" });
       }
+
+      const category = new Category({
+        Category_Name: categoryName,
+        Parent_Category: parentCategoryId,
+        Category_Label: req.body.Category_Label
+      });
+
+      if (req.files?.image) {
+        const file = req.files.image[0];
+        category.Category_Image = {
+          filename: file.filename,
+          path: file.path,
+          originalname: file.originalname
+        };
+      }
+
+      if (req.files?.secImage) {
+        const file = req.files.secImage[0];
+        category.Category_Sec_Image = {
+          filename: file.filename,
+          path: file.path,
+          originalname: file.originalname
+        };
+      }
+
+      await category.save();
+
+      res.status(200).json({
+        type: "success",
+        message: "Category added successfully"
+      });
     } catch (error) {
-      // if (req.files && req.files.image) {
-      //     fs.unlinkSync(req.files.image[0]?.path);
-      // }
-
-      // if (req.files && req.files.secImage) {
-      //     fs.unlinkSync(req.files.secImage[0]?.path);
-      // }
-
-      res
-        .status(500)
-        .json({ type: "error", message: "Server Error!", errorMessage: error });
-      console.log(error);
+      console.error(error);
+      res.status(500).json({
+        type: "error",
+        message: "Server Error"
+      });
     }
   }
 );
@@ -283,7 +257,7 @@ route.post("/add",
 // get all category
 route.get("/get", checkAdminOrRole2, async (req, res) => {
   try {
-    const category = await Category.find().sort({ createdAt: -1 });
+    const category = await Category.find().populate("Parent_Category", "Category_Name").sort({ createdAt: -1 });
     if (category) {
       // for data table (admin)
       const result = category.map((category) => ({
@@ -291,13 +265,16 @@ route.get("/get", checkAdminOrRole2, async (req, res) => {
         Category_Name: category.Category_Name,
         Category_Image: `${process.env.IP_ADDRESS}/${category.Category_Image?.path?.replace(/\\/g, "/")}` || "",
         Category_Sec_Image: `${process.env.IP_ADDRESS}/${category.Category_Sec_Image?.path?.replace(/\\/g, "/")}` || "",
+        Parent_Category: category.Parent_Category,
         Category_Label: category.Category_Label,
         Category_Status: category.Category_Status,
         Category_Feature: category.Category_Feature,
       }));
 
       // for show frontend side
-      const categories = await Category.find({ Category_Status: true }).sort({ createdAt: -1, });
+      const allCategories = await Category.find({ Category_Status: true }).sort({ createdAt: -1, });
+      const categories = buildTree(allCategories);
+
       res.status(200).json({
         type: "success",
         message: "Categories found successfully!",

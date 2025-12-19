@@ -4,7 +4,7 @@ const path = require("path");
 const route = express.Router();
 const multer = require("multer");
 const csv = require('csv-parser');
-
+const axios = require('axios');
 const { Product, Variation } = require("../../../Models/BackendSide/product_model");
 const User = require("../../../Models/FrontendSide/user_model");
 const Wishlist = require("../../../Models/FrontendSide/wish_list_model");
@@ -12,7 +12,6 @@ const Review = require("../../../Models/FrontendSide/review_model");
 
 const { default: mongoose } = require("mongoose");
 const checkAdminOrRole2 = require("../../../Middleware/checkAdminOrRole2");
-const { handleMulter } = require("../../../utils/handleMulter");
 const Category = require("../../../Models/BackendSide/category_model");
 const Data = require("../../../Models/BackendSide/data_model");
 
@@ -44,234 +43,197 @@ const storage_csv = multer.diskStorage({
 
 const uploadcsv = multer({ storage: storage_csv });
 
-function copyLocalImage(localPath, destFolder) {
-  // if no image in CSV
-  if (!localPath || localPath.trim() === "") return null;
+async function copyLocalImage(imagePath, uploadFolder) {
+  if (!imagePath) return null;
 
-  const originalname = path.basename(localPath);      // ex = cat1.jpg
-  const filename = Date.now() + "-" + originalname;   // unique file name
-  const destPath = path.join(destFolder, filename);
+  // Check if it's a URL
+  if (/^https?:\/\//.test(imagePath)) {
+    try {
+      const url = imagePath.split("?")[0]; // remove query string if needed
+      const ext = path.extname(url);
+      const fileName = `${Date.now()}-${path.basename(url)}`;
+      const filePath = path.join(uploadFolder, fileName);
 
-  try {
-    // Copy file from local system → backend storage
-    fs.promises.copyFile(localPath, destPath);
+      const writer = fs.createWriteStream(filePath);
+      const response = await axios.get(imagePath, { responseType: "stream" });
 
-    return {
-      filename,
-      path: destPath,
-      originalname
-    };
-  } catch (error) {
-    console.log("Error copying:", localPath, error);
-    return null;
+      response.data.pipe(writer);
+
+      // Wait for the download to finish
+      await new Promise((resolve, reject) => {
+        writer.on("finish", resolve);
+        writer.on("error", reject);
+      });
+
+      return fileName;
+    } catch (err) {
+      console.error("Image download failed:", imagePath, err.message);
+      return null;
+    }
+  } else {
+    // Local file path
+    if (fs.existsSync(imagePath)) {
+      const fileName = `${Date.now()}-${path.basename(imagePath)}`;
+      const destPath = path.join(uploadFolder, fileName);
+      fs.copyFileSync(imagePath, destPath);
+      return fileName;
+    } else {
+      console.warn("Local image not found:", imagePath);
+      return null;
+    }
   }
 }
 
 // 🚀 IMPORT PRODUCT CSV
-route.post("/upload-csv", checkAdminOrRole2, uploadcsv.single("csvFile"), (req, res) => {
-  if (!req.file) return res.status(400).json({ type: "error", message: "CSV not uploaded" });
-  console.log(" CSV ==> ", req.file);
+route.post(
+  "/upload-csv",
+  checkAdminOrRole2,
+  uploadcsv.single("csvFile"),
+  async (req, res) => {
+    if (!req.file) {
+      return res.status(400).json({ type: "error", message: "CSV not uploaded" });
+    }
 
-  const uploadFolder = "./imageUploads/backend/product";
-  const rows = [];
+    const rows = [];
+    const uploadFolder = "./imageUploads/backend/product";
 
-  fs.createReadStream(req.file.path).pipe(csv()).on("data", (row) => rows.push(row))
-    .on("end", async () => {
-      try {
-        fs.unlinkSync(req.file.path);
+    fs.createReadStream(req.file.path)
+      .pipe(csv())
+      .on("data", (row) => rows.push(row))
+      .on("end", async () => {
+        try {
+          fs.unlinkSync(req.file.path);
 
-        // 1️⃣ GROUP ROWS BY PRODUCT
-        const groupedByProduct = rows.reduce((acc, row) => {
-          const key = row.SKU_Code?.trim();  // unique per product
+          // 1️⃣ GROUP BY PRODUCT NAME
+          const productGroups = rows.reduce((acc, row) => {
+            const key = row.Product_Name?.trim();
+            if (!key) return acc;
 
-          if (!acc[key]) acc[key] = [];
-          acc[key].push(row);
-
-          return acc;
-        }, {});
-
-        let inserted = 0;
-        let skipped = 0;
-        let skippedNames = [];
-
-        // 2️⃣ PROCESS EACH PRODUCT GROUP
-        for (let sku in groupedByProduct) {
-          const productRows = groupedByProduct[sku];
-
-
-
-          const firstRow = productRows[0];
-
-          // 🔍 CHECK PRODUCT EXISTS
-          const existingProduct = await Product.findOne({ SKU_Code: sku });
-          if (existingProduct) {
-            skipped++;
-            skippedNames.push(firstRow.Product_Name);
-            continue;
-          }
-
-          // 3️⃣ CATEGORY
-          const categoryDoc = await Category.findOne({
-            Category_Name: firstRow.Category?.trim(),
-          });
-
-          // 🔍 BRAND HANDLING
-          let brandDoc = null;
-          if (firstRow.Brand_Name && firstRow.Brand_Name.trim() !== "") {
-
-            brandDoc = await Data.findOne({
-              Data_Type: "Brand",
-              Data_Name: firstRow.Brand_Name.trim(),
-            });
-
-            // ⭐ If brand does not exist → Create it
-            if (!brandDoc) {
-              brandDoc = await Data.create({
-                Data_Type: "Brand",
-                Data_Name: firstRow.Brand_Name.trim(),
-                Data_Label: firstRow.Brand_Name.trim(),
-                Data_Status: true,
-              });
-            }
-          }
-
-          // 🔍 COLLECTION HANDLING
-          let collectionDoc = null;
-          if (firstRow.Collection_Name && firstRow.Collection_Name.trim() !== "") {
-
-            collectionDoc = await Data.findOne({
-              Data_Type: "Collection",
-              Data_Name: firstRow.Collection_Name.trim(),
-            });
-
-            // ⭐ If collection does not exist → Create it
-            if (!collectionDoc) {
-              collectionDoc = await Data.create({
-                Data_Type: "Collection",
-                Data_Name: firstRow.Collection_Name.trim(),
-                Data_Label: firstRow.Collection_Name.trim(),
-                Data_Status: true,
-              });
-            }
-          }
-
-          // 4️⃣ PRODUCT IMAGES (only from 1st row)
-          let productImagesArray = [];
-          if (firstRow.Product_Images) {
-            productImagesArray = firstRow.Product_Images.split("|").map((img) => copyLocalImage(img, uploadFolder)).filter(Boolean);
-          }
-
-          // 5️⃣ CREATE PRODUCT FIRST
-          const newProduct = await Product.create({
-            Product_Name: firstRow.Product_Name,
-            SKU_Code: firstRow.SKU_Code,
-
-            Category: categoryDoc ? [categoryDoc._id] : [],
-
-            // ⬇️ Updated brand & collection IDs
-            Brand_Name: brandDoc ? brandDoc._id : null,
-            Collections: collectionDoc ? collectionDoc._id : null,
-
-            Product_Images: productImagesArray,
-
-            Product_Dis_Price: Number(firstRow.Product_Dis_Price),
-            Product_Ori_Price: Number(firstRow.Product_Ori_Price),
-            Max_Dis_Price: Number(firstRow.Max_Dis_Price),
-
-            Description: firstRow.Description,
-            Product_Label: firstRow.Product_Label,
-
-            Trendy_collection: firstRow.Trendy_collection === "true",
-            Popular_pick: firstRow.Popular_pick === "true",
-            HomePage: firstRow.HomePage === "true",
-
-            Product_Status: firstRow.Product_Status !== "false",
-            Shipping: firstRow.Shipping || "PRE LAUNCH",
-          });
-
-          // 6️⃣ GROUP VARIATIONS BY Variation_Name
-          const variationGroups = productRows.reduce((acc, row) => {
-            const name = row.Variation_Name?.trim();
-
-            if (!name) return acc;
-
-            if (!acc[name]) acc[name] = [];
-            acc[name].push(row);
+            if (!acc[key]) acc[key] = [];
+            acc[key].push(row);
 
             return acc;
           }, {});
 
+          let inserted = 0;
 
-          // Store Variation IDs
-          let variationIds = [];
+          // 2️⃣ PROCESS EACH PRODUCT
+          for (const productName in productGroups) {
+            const productRows = productGroups[productName];
+            const firstRow = productRows[0];
 
-          // 7️⃣ PROCESS EACH GROUP → ONE VARIATION
-          for (let varName in variationGroups) {
-            const rowsInVariation = variationGroups[varName];
+            // 3️⃣ CATEGORY
+            const categoryDoc = await Category.findOne({
+              Category_Name: firstRow.Category?.trim(),
+            });
 
-            // Variation images → take from first row
-            let variationImages = [];
-            if (rowsInVariation[0].Variation_Images) {
-              variationImages = rowsInVariation[0].Variation_Images.split("|").map((img) => copyLocalImage(img, uploadFolder)).filter(Boolean);
-            }
+            // 4️⃣ COLLECTION
+            let collectionDoc = null;
+            if (firstRow.Collection_Name) {
+              collectionDoc = await Data.findOne({
+                Data_Type: "Collection",
+                Data_Name: firstRow.Collection_Name.trim(),
+              });
 
-            // Build Variation_Size array
-            let sizeArray = [];
-
-            rowsInVariation.forEach((r) => {
-              if (r.Variation_Size) {
-                // Format: L(16.5-17.5)|100|2891
-                const sizeParts = r.Variation_Size.split("|");
-
-                const sizeName = sizeParts[0]?.trim();
-                const stock = Number(sizeParts[1] || 0);
-                const price = Number(sizeParts[2] || 0);
-
-                sizeArray.push({
-                  Size_Name: sizeName,
-                  Size_Stock: stock,
-                  Size_Price: price,
-                  Size_Status: true,
+              if (!collectionDoc) {
+                collectionDoc = await Data.create({
+                  Data_Type: "Collection",
+                  Data_Name: firstRow.Collection_Name.trim(),
+                  Data_Label: firstRow.Collection_Name.trim(),
                 });
               }
+            }
+
+            // 5️⃣ PRODUCT IMAGES (ONCE)
+            let productImages = [];
+            if (firstRow.Product_Images) {
+              productImages = firstRow.Product_Images
+                .split("|")
+                .map((img) => copyLocalImage(img, uploadFolder))
+                .filter(Boolean);
+            }
+
+            // 6️⃣ CREATE PRODUCT
+            const product = await Product.create({
+              Product_Name: firstRow.Product_Name,
+              Description: firstRow.Description,
+              Category: categoryDoc ? [categoryDoc._id] : [],
+              Collections: collectionDoc ? collectionDoc._id : null,
+              Product_Images: productImages,
+              Product_Status: firstRow.Status !== "false",
             });
 
-            // Create single variation
-            const createdVariation = await Variation.create({
-              Variation_Name: varName,
-              Variation_Images: variationImages,
-              Variation_Size: sizeArray,
-              Variation_Label: rowsInVariation[0].Variation_Label,
-              Variation_Status: rowsInVariation[0].Variation_Status !== "false",
-            });
+            // 7️⃣ GROUP BY COLOR (VARIATION)
+            const variationGroups = productRows.reduce((acc, row) => {
+              const color = row["Color Value"]?.trim();
+              if (!color) return acc;
 
-            variationIds.push(createdVariation._id);
+              if (!acc[color]) acc[color] = [];
+              acc[color].push(row);
+
+              return acc;
+            }, {});
+
+            const variationIds = [];
+
+            // 8️⃣ CREATE VARIATIONS
+            for (const color in variationGroups) {
+              const variationRows = variationGroups[color];
+              const vFirst = variationRows[0];
+
+              // Variation Images
+              let variationImages = [];
+              if (vFirst.Variation_Images) {
+                variationImages = vFirst.Variation_Images
+                  .split("|")
+                  .map((img) => copyLocalImage(img, uploadFolder))
+                  .filter(Boolean);
+              }
+
+              // 9️⃣ BUILD SIZE ARRAY
+              const sizeArray = variationRows.map((r) => ({
+                Size_Name: r["Size Value"],
+                Size_purity: r["Purity  Value"],
+                Size_Stock: Number(r["Variant Inventory Qty"] || 0),
+                Size_Price: Number(r["Product_Dis_Price"] || 0),
+                Size_Status: true,
+              }));
+
+              // 🔟 CREATE VARIATION
+              const variation = await Variation.create({
+                SKU_Code: vFirst.SKU_Code, // ✅ SKU AT VARIATION LEVEL
+                Variation_Name: color,
+                Variation_Label: vFirst["Color Name"],
+                Variation_Images: variationImages,
+                Variation_Size: sizeArray,
+                Variation_Status: true,
+              });
+
+              variationIds.push(variation._id);
+            }
+
+            // 1️⃣1️⃣ LINK VARIATIONS TO PRODUCT
+            product.Variation = variationIds;
+            await product.save();
+
+            inserted++;
           }
 
-          // 7️⃣ UPDATE PRODUCT WITH ALL VARIATIONS
-          newProduct.Variation = variationIds;
-          await newProduct.save();
-
-          inserted++;
+          return res.status(200).json({
+            type: "success",
+            message: "CSV imported successfully",
+            inserted,
+          });
+        } catch (err) {
+          console.error(err);
+          return res.status(500).json({
+            type: "error",
+            message: "CSV processing failed",
+          });
         }
-
-        return res.status(200).json({
-          type: "success",
-          message: "Product CSV imported successfully!",
-          inserted,
-          skipped,
-          skippedNames,
-        });
-
-      } catch (err) {
-        console.error(err);
-        return res.status(500).json({
-          type: "error",
-          message: "Error processing CSV",
-        });
-      }
-    });
-});
+      });
+  }
+);
 
 
 // 🚀 CREATE PRODUCT WITH MULTIPLE IMAGES

@@ -22,7 +22,7 @@ const ShowCategory = () => {
   const [selectedRows, setSelectedRows] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(true);
-  
+
   const fileInputRef = useRef(null);
   const [csvFile, setCsvFile] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -51,7 +51,32 @@ const ShowCategory = () => {
       headerName: "Id",
     },
     {
+      field: "Parent_Category.Category_Name",
+      headerName: "Parent Category",
+      width: 225,
+      filterable: true,
+      sortable: true,
+      filterType: "multiselect",
+      renderCell:(params) => {
+        return (
+          <>
+          {
+            params.row.Parent_Category?.Category_Name
+          }
+          </>
+        )
+      }
+    },
+    {
       field: "Category_Name",
+      headerName: "Category Name",
+      width: 225,
+      filterable: true,
+      sortable: true,
+      filterType: "multiselect",
+    },
+    {
+      field: "Category_Label",
       headerName: "Category Name",
       width: 225,
       filterable: true,
@@ -187,8 +212,6 @@ const ShowCategory = () => {
           Authorization: `${adminToken}`,
         },
       });
-
-      console.log("res ", res);
 
       setCategoryData(res?.data?.category || []);
       setIsLoading(false);
@@ -443,7 +466,7 @@ const ShowCategory = () => {
               <div className="col-2 table-heading">Category List</div>
               <div className="d-flex gap-2 mt-2">
                 <button
-                  onClick={() => Navigate("/addCategory")}
+                  onClick={() => Navigate("/addCategory",{ state: categoryData})}
                   className="btn btn-primary waves-effect waves-light"
                 >
                   Add Category <i className="fas fa-arrow-right ms-2"></i>
