@@ -556,14 +556,6 @@ const AddProduct = () => {
                           </div>
                         </div>
                       </div>
-                      {/* 
-                      <Modal
-                        className="main-content dark"
-                        isOpen={isModalOpen}
-                        onRequestClose={handleCloseModal}
-                      >
-                        <AddVariation />
-                      </Modal> */}
 
                       {!variations.length <= 0 && (
                         <div className="mb-3 row">

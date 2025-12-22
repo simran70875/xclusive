@@ -1,15 +1,8 @@
 const express = require('express');
 const route = express.Router();
 const User = require('../../../Models/FrontendSide/user_model')
-const { Product, Variation } = require('../../../Models/BackendSide/product_model')
+const { Product } = require('../../../Models/BackendSide/product_model')
 const Wishlist = require('../../../Models/FrontendSide/wish_list_model');
-const checkAdminRole = require('../../../Middleware/adminMiddleWares')
-const checkAdminOrRole1 = require('../../../Middleware/checkAdminOrRole1')
-const checkAdminOrRole2 = require('../../../Middleware/checkAdminOrRole2')
-const checkAdminOrRole3 = require('../../../Middleware/checkAdminOrRole3')
-const checkAdminOrRole4 = require('../../../Middleware/checkAdminOrRole4')
-const checkAdminOrRole5 = require('../../../Middleware/checkAdminOrRole5');
-const { default: mongoose } = require('mongoose');
 
 // get wishlist from wishlist Model
 const getWishList = async (userId) => {

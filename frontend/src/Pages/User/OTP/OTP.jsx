@@ -1,14 +1,13 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable eqeqeq */
-import { toast } from "react-toastify";
-import { InputOTP } from "antd-input-otp";
+// import { InputOTP } from "antd-input-otp";
 import { Button, Col, Form, Row } from "antd";
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import { routes } from "../../../Routes/Routes";
-import { sendotp, verifyotp } from "../../../Features/User/User";
+// import { sendotp, verifyotp } from "../../../Features/User/User";
 
 import styles from "./index.module.scss";
 
@@ -52,7 +51,7 @@ function OTP() {
         }
       }
     };
-    dispatch(verifyotp(obj, onSuccessCallback));
+    // dispatch(verifyotp(obj, onSuccessCallback));
   };
 
   const resendOtp = () => {
@@ -63,7 +62,7 @@ function OTP() {
       form.resetFields();
       setCount(30);
     };
-    dispatch(sendotp(obj, onSuccessCallback));
+    // dispatch(sendotp(obj, onSuccessCallback));
   };
 
   return (
@@ -87,7 +86,7 @@ function OTP() {
                   className="center-error-message"
                   rules={[{ validator: async () => Promise.resolve() }]}
                 >
-                  <InputOTP autoFocus inputType="numeric" length={4} />
+                  {/* <InputOTP autoFocus inputType="numeric" length={4} /> */}
                 </Form.Item>
                 {count === 0 ? "" : <p>Resend OTP in {count}</p>}
                 <p className={styles.recieve}>

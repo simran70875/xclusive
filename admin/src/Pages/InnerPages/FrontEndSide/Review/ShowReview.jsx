@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { DataGrid, GridToolbar } from "@mui/x-data-grid";
 import IconButton from "@mui/material/IconButton";
 import Stack from "@mui/material/Stack";
@@ -6,9 +6,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import ClearIcon from "@mui/icons-material/Clear";
 import axios from "axios";
 import Swal from "sweetalert2";
-import {
-  TextField,
-} from "@mui/material";
+import { TextField } from "@mui/material";
 
 let url = process.env.REACT_APP_API_URL;
 
@@ -249,7 +247,8 @@ const ShowReview = () => {
 
   const handleReviewStatus = async (review, newStatus) => {
     try {
-      await axios.patch(`${url}/review/update/status/${review?._id}`,
+      await axios.patch(
+        `${url}/review/update/status/${review?._id}`,
         {
           status: newStatus,
         },

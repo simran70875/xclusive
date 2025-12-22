@@ -58,7 +58,6 @@ const EditVariation = ({
       );
 
       const updatedVariation = response?.data?.type;
-      console.log(updatedVariation); // The updated variation object returned from the server
       handleVariationUpdate(); // Call the parent component function to update the variation state
 
       handleCloseModal();

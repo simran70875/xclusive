@@ -1,43 +1,10 @@
 const express = require("express");
 const route = express.Router();
 const Order = require("../../../Models/FrontendSide/order_model");
-const User = require("../../../Models/FrontendSide/user_model");
-const Coins = require("../../../Models/FrontendSide/coins_model");
 const Review = require("../../../Models/FrontendSide/review_model");
 const authMiddleWare = require("../../../Middleware/authMiddleWares");
 const checkAdminRole = require("../../../Middleware/adminMiddleWares");
-const checkAdminOrRole1 = require("../../../Middleware/checkAdminOrRole1");
-const checkAdminOrRole2 = require("../../../Middleware/checkAdminOrRole2");
-const checkAdminOrRole3 = require("../../../Middleware/checkAdminOrRole3");
-const checkAdminOrRole4 = require("../../../Middleware/checkAdminOrRole4");
-const checkAdminOrRole5 = require("../../../Middleware/checkAdminOrRole5");
 const Settings = require("../../../Models/Settings/general_settings_model");
-const cron = require("node-cron");
-
-async function addCoins(userId, amount, rating) {
-  try {
-    if (rating >= "5") {
-      const user = await User.findById(userId);
-
-      amount = Number(amount);
-
-      // Create a new coupon
-      const newCoinsRecord = new Coins({
-        userId: userId,
-        Amount: amount,
-        Description: `Congratulations! You've earned ${amount} coins for rating our product with 5 stars. Thank you for your valuable feedback and support. Keep enjoying our products and earning more rewards!`,
-        Type: "2",
-        Trans_Type: "Credit",
-      });
-      await newCoinsRecord.save();
-      user.Coins += amount;
-
-      await user.save();
-    }
-  } catch (error) {
-    console.log(error);
-  }
-}
 
 // Create review
 route.post("/add", authMiddleWare, async (req, res) => {
@@ -66,7 +33,6 @@ route.post("/add", authMiddleWare, async (req, res) => {
     const settings = await Settings.find();
 
     let amount = settings?.[0]?.review_reward_amount;
-    await addCoins(userId, amount, rating);
     res
       .status(200)
       .json({ type: "success", message: "Review add successfully!" });
@@ -204,11 +170,10 @@ route.get("/get/product/:productId", async (req, res) => {
       // User_Image: review.user.User_Image,
       User_Image:
         !review?.user?.User_Image?.path ||
-        review?.user?.User_Image?.path === "undefined"
+          review?.user?.User_Image?.path === "undefined"
           ? dummy
-          : `${
-              process.env.IP_ADDRESS
-            }/${review?.user?.User_Image?.path?.replace(/\\/g, "/")}`,
+          : `${process.env.IP_ADDRESS
+          }/${review?.user?.User_Image?.path?.replace(/\\/g, "/")}`,
     }));
 
     // Remove the user field from each review

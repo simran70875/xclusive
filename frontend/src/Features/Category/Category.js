@@ -33,7 +33,7 @@ export const getCategoryApi = () => (dispatch) => {
   dispatch(setCategoryLoading(true));
   try {
     const onSuccess = (response) => {
-      dispatch(getCategoryData(response?.category));
+      dispatch(getCategoryData(response?.category_data));
       dispatch(setCategoryLoading(false));
     };
     const onFailure = (error) => {

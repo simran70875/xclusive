@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { DataGrid, GridToolbar } from "@mui/x-data-grid";
 import IconButton from "@mui/material/IconButton";
 import Stack from "@mui/material/Stack";
@@ -11,7 +11,6 @@ import { useDispatch, useSelector } from "react-redux";
 import ImageModel from "../../../../Components/ImageComp/ImageModel";
 import Modal from "react-modal";
 
-// import { editvariation } from '../../../../Redux/Actions/BackendActions/variationAction';
 import { showVariationSize } from "../../../../Redux/Actions/BackendActions/VariationAction";
 import EditVariation from "./EditVariation";
 import AddVariation from "./AddVariation";
@@ -24,10 +23,11 @@ const Showvariation = () => {
   const selectedVariationData = useSelector(
     (state) => state?.VariationDataChange?.payload
   );
+
   const dispatch = useDispatch();
 
   const [variationData, setvariationData] = useState([]);
-  const [variationName, setvariationName] = useState("");
+
   const [selectedRows, setSelectedRows] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(true);
@@ -91,6 +91,9 @@ const Showvariation = () => {
             },
           }
         );
+
+        console.log("variations ==> ", res);
+
         setvariationData(res?.data?.products?.Variation);
         setIsLoading(false);
       } catch (error) {
@@ -107,13 +110,13 @@ const Showvariation = () => {
   const columns = [
     {
       field: "_id",
-      width: 90,
+      flex: 1,
       headerName: "Id",
     },
     {
       field: "variation_Name",
       headerName: "Color Name",
-      width: 120,
+      flex: 1,
       filterable: true,
       sortable: true,
       filterType: "multiselect",
@@ -121,7 +124,7 @@ const Showvariation = () => {
     {
       field: "Variation_Image",
       headerName: "Image",
-      width: 225,
+      width: 100,
       renderCell: (params) => (
         <img
           src={params?.row?.variation_Images?.[0]?.variation_Image}
@@ -140,6 +143,14 @@ const Showvariation = () => {
       filterable: false,
     },
     {
+      field: "variation_Label",
+      headerName: "Variation_Label",
+      flex: 1,
+      filterable: true,
+      sortable: true,
+      filterType: "multiselect",
+    },
+    {
       field: "size_count",
       headerName: "Total Size",
       width: 90,
@@ -150,7 +161,7 @@ const Showvariation = () => {
     {
       field: "variation_Status",
       headerName: "Status",
-      width: 120,
+      flex: 1,
       renderCell: (params) => (
         <div className="form-check form-switch">
           <input
@@ -322,16 +333,7 @@ const Showvariation = () => {
 
   const handleFilter = () => {
     const filteredvariationList = variationData?.filter((variation) => {
-      const formattedvariationName = (variation?.name || "")
-        .toUpperCase()
-        .replace(/\s/g, "");
       let isvariationName = true;
-      if (variationName) {
-        isvariationName = formattedvariationName.includes(
-          variationName.toUpperCase().replace(/\s/g, "")
-        );
-      }
-
       return isvariationName;
     });
 
@@ -339,7 +341,7 @@ const Showvariation = () => {
     const filteredData = filteredvariationList?.filter((variation) => {
       const formattedSearchQuery = searchQuery.toUpperCase().replace(/\s/g, "");
       const rowValues = Object.values(variation);
-      for (let i = 0; i < rowValues.length; i++) {
+      for (let i = 0; i < rowValues?.length; i++) {
         const formattedRowValue = String(rowValues[i])
           .toUpperCase()
           .replace(/\s/g, "");
@@ -423,9 +425,9 @@ const Showvariation = () => {
                       }}
                       pageSizeOptions={[10, 25, 50, 100]}
                     />
-                    {selectedRows.length > 0 && (
+                    {selectedRows?.length > 0 && (
                       <div className="row-data">
-                        <div>{selectedRows.length} Variation selected</div>
+                        <div>{selectedRows?.length} Variation selected</div>
                         <DeleteIcon
                           style={{ color: "red" }}
                           className="cursor-pointer"
@@ -452,19 +454,6 @@ const Showvariation = () => {
           handleVariationUpdate={handleVariationUpdate}
         />
       </Modal>
-
-      {/* <Modal
-        className="main-content dark"
-        isOpen={variationAddModel}
-        onRequestClose={handleCloseAddVariationModel}
-      >
-        <AddVariationByTable
-          handleCloseModal={handleCloseAddVariationModel}
-          variations={variations}
-          setVariations={setVariations}
-          productId={productId}
-        />
-      </Modal> */}
 
       <Modal
         className="main-content dark"

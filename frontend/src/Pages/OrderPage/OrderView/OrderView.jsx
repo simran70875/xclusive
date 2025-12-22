@@ -463,7 +463,7 @@ function OrderView() {
                           className={styles.addrate}
                           onClick={() => showModalViewRate()}
                           // style={{
-                          //   background: "#32140a",
+                          //   background: "#AB8000",
                           //   color: "#ffff",
                           //   width: "30%",
                           //   height: "40px",
@@ -477,7 +477,7 @@ function OrderView() {
                           className={styles.addrate}
                           onClick={() => showModalRate()}
                           // style={{
-                          //   background: "#32140a",
+                          //   background: "#AB8000",
                           //   color: "#ffff",
                           //   width: "30%",
                           //   height: "40px",
@@ -526,7 +526,7 @@ function OrderView() {
                             //   className={styles.addrate}
                             //   onClick={() => showModalOrder()}
                             //   // style={{
-                            //   //   background: "#32140a",
+                            //   //   background: "#AB8000",
                             //   //   color: "#ffff",
                             //   //   width: "30%",
                             //   //   height: "40px",

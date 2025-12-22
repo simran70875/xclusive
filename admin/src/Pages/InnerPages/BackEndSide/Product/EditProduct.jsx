@@ -236,12 +236,6 @@ const EditProduct = () => {
     setDescription(value);
   };
 
-  //   Quill.register(quillTable.TableCell);
-  //   Quill.register(quillTable.TableRow);
-  //   Quill.register(quillTable.Table);
-  //   Quill.register(quillTable.Contain);
-  //   Quill.register("modules/table", quillTable.TableModule);
-
   const tableOptions = [];
   const maxRows = 8;
   const maxCols = 5;

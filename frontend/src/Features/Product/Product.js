@@ -114,6 +114,7 @@ export const productNotifyApi =
     }
   };
 
+
 export const getProductAllApi = (catagoryId) => (dispatch) => {
   dispatch(setProductLoading(true));
   try {
@@ -276,36 +277,34 @@ export const getFilterProductApi =
     categoryId,
     brandname,
     colorsData,
-    fabric,
     rateWiseData,
-    occasionData,
-    shippingData,
     userid,
     sortData,
     currentPage
   ) =>
-  (dispatch) => {
-    dispatch(setProductLoading(true));
-    try {
-      const onSuccess = (response) => {
-        dispatch(getFilterProductData(response?.products));
-        dispatch(getFilterProductData2(response));
+    (dispatch) => {
+      dispatch(setProductLoading(true));
+      try {
+        const onSuccess = (response) => {
+          console.log("filter products ==> ", response)
+          dispatch(getFilterProductData(response?.products));
+          dispatch(getFilterProductData2(response));
+          dispatch(setProductLoading(false));
+        };
+        const onFailure = (error) => {
+          dispatch(setProductLoading(false));
+        };
+        apiCall(
+          "GET",
+          `${apiUrl.GET_FILTER_PRODUCT}?categoryId=${categoryId}&brands=${brandname}&color=${colorsData}&rate=${rateWiseData}&userId=${userid}&sortBy=${sortData}&page=${currentPage}`,
+          "",
+          onSuccess,
+          onFailure
+        );
+      } catch (error) {
         dispatch(setProductLoading(false));
-      };
-      const onFailure = (error) => {
-        dispatch(setProductLoading(false));
-      };
-      apiCall(
-        "GET",
-        `${apiUrl.GET_FILTER_PRODUCT}?categoryId=${categoryId}&brands=${brandname}&color=${colorsData}&fabric=${fabric}&rate=${rateWiseData}&occasion=${occasionData}&shipping=${shippingData}&userId=${userid}&sortBy=${sortData}&page=${currentPage}`,
-        "",
-        onSuccess,
-        onFailure
-      );
-    } catch (error) {
-      dispatch(setProductLoading(false));
-    }
-  };
+      }
+    };
 
 export const getFilterListApi = () => (dispatch) => {
   dispatch(setProductLoading(true));
@@ -343,8 +342,7 @@ export const getSearchProductApi =
       };
       apiCall(
         "GET",
-        `${
-          apiUrl.GET_SEARCH_PRODUCT
+        `${apiUrl.GET_SEARCH_PRODUCT
         }?query=${query}&userId=${userId}&limit=${100}`,
         "",
         onSuccess,

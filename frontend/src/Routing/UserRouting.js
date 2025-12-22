@@ -69,7 +69,9 @@ const UserRouting = () => {
   };
 
   const handleOnScrollTop = () => {
-    window.open("https://api.whatsapp.com/send?phone=+917289009522&text=Hello.");
+    // window.addEventListener("scroll", handleScroll);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    // return () => window.removeEventListener("scroll", handleScroll);
   };
 
   useEffect(() => {
@@ -79,10 +81,7 @@ const UserRouting = () => {
 
   return (
     <Router>
-      <ScrollToTop
-        handleOnScrollTop={handleOnScrollTop}
-        scrolled={scrolled}
-      />
+      <ScrollToTop handleOnScrollTop={handleOnScrollTop} scrolled={scrolled} />
       <Layout>
         <Routes>
           <Route path={routes.otpUrl} element={<OTP />} />

@@ -1,137 +1,151 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 // Variation Schema
-const variationSchema = mongoose.Schema({
-    Variation_Images: [{
+const variationSchema = mongoose.Schema(
+  {
+    Variation_Images: [
+      {
         filename: {
-            type: String,
+          type: String,
         },
         path: {
-            type: String,
+          type: String,
         },
         originalname: {
-            type: String,
+          type: String,
         },
-    }],
+      },
+    ],
 
     SKU_Code: {
-        type: String,
+      type: String,
     },
 
     // Yellow Gold, Rose Gold, White Gold
     Variation_Name: {
-        type: String,
-        required: true,
+      type: String,
+      required: true,
     },
 
     // SIZE LEVEL
-    Variation_Size: [{
+    Variation_Size: [
+      {
         Size_Name: {
-            type: String,  // XS (13.5-14.5)
+          type: String, // XS (13.5-14.5)
         },
-        Size_purity: { // 9K / 18K
-            type: String,
+        Size_purity: {
+          // 9K / 18K
+          type: String,
         },
         Size_Stock: {
-            type: Number
+          type: Number,
         },
         Size_Price: {
-            type: Number
+          type: Number,
         },
         Size_Status: {
-            type: Boolean,
-            default: true
+          type: Boolean,
+          default: true,
         },
-
-    }],
+      },
+    ],
     Variation_Label: {
-        type: String
+      type: String,
     },
     Variation_Status: {
-        type: Boolean,
-        default: true
+      type: Boolean,
+      default: true,
     },
-},
-    {
-        timestamps: true,
-    }
+  },
+  {
+    timestamps: true,
+  }
 );
 
 // Product Schema
-const productSchema = mongoose.Schema({
+const productSchema = mongoose.Schema(
+  {
     Product_Name: {
-        type: String,
+      type: String,
     },
-
-    Category: [{
+    SKU_Code: {
+      type: String,
+    },
+    Category: [
+      {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Categories'
-    }],
+        ref: "Categories",
+      },
+    ],
     Brand_Name: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Data'
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Data",
     },
     Collections: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Data'
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Data",
     },
-    Product_Images: [{
+    Product_Images: [
+      {
         filename: {
-            type: String,
+          type: String,
         },
         path: {
-            type: String,
+          type: String,
         },
         originalname: {
-            type: String,
+          type: String,
         },
-    }],
-    Variation: [{
+      },
+    ],
+    Variation: [
+      {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Variations',
-    }],
-    // Product_Dis_Price: {
-    //     type: Number
-    // },
-    // Product_Ori_Price: {
-    //     type: Number
-    // },
-    // Max_Dis_Price: {
-    //     type: Number
-    // },
+        ref: "Variations",
+      },
+    ],
+    Product_Dis_Price: {
+      type: Number,
+    },
+    Product_Ori_Price: {
+      type: Number,
+    },
+    Max_Dis_Price: {
+      type: Number,
+    },
     Description: {
-        type: String,
+      type: String,
     },
     Product_Label: {
-        type: String,
+      type: String,
     },
     Trendy_collection: {
-        type: Boolean,
-        default: false
+      type: Boolean,
+      default: false,
     },
     Popular_pick: {
-        type: Boolean,
-        default: false
+      type: Boolean,
+      default: false,
     },
     HomePage: {
-        type: Boolean,
-        default: false
+      type: Boolean,
+      default: false,
     },
     Product_Status: {
-        type: Boolean,
-        default: true
+      type: Boolean,
+      default: true,
     },
     Shipping: {
-        type: String,
-        default: 'PRE LAUNCH'
-    }
-},
-    {
-        timestamps: true,
-    }
+      type: String,
+      default: "PRE LAUNCH",
+    },
+  },
+  {
+    timestamps: true,
+  }
 );
 
-const Product = mongoose.model('Products', productSchema);
-const Variation = mongoose.model('Variations', variationSchema);
+const Product = mongoose.model("Products", productSchema);
+const Variation = mongoose.model("Variations", variationSchema);
 
 module.exports = { Product, Variation };

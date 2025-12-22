@@ -5,10 +5,6 @@ import AlertBox from "../../../Components/AlertComp/AlertBox";
 import axios from "axios";
 import GeneralSettings from "./GeneralSettings";
 import AppSettings from "./AppSettings";
-// import NotificationSettings from "./NotificationSettings";
-// import WalletCoinSettings from "./WalletCoinSettings";
-// import PaymentSettings from "./PaymentSettings";
-// import BankDetailsSettings from "./BankDetailsSettings";
 import PasswordChange from "./PasswordChange";
 
 let url = process.env.REACT_APP_API_URL;
@@ -38,33 +34,6 @@ const GeneralSettingsMain = () => {
   const [maintenance, setMetMaintenance] = useState(false);
   const [cancelOption, setCancelOption] = useState(false);
 
-  // // notification settings
-  // const [oneAppId, setOneAppId] = useState("");
-  // const [restKey, setRestKey] = useState("");
-  // const [serverKey, setServerKey] = useState("");
-  // const [twoFecApiKey, setTwoFecApiKey] = useState("");
-  // const [twoFecoptions, setTwoFecoptions] = useState(false);
-
-  // // coins & wallet settings
-  // const [minCoinsAmount, setMinCoinsAmount] = useState(0);
-  // const [minWalletAmount, setMinWalletAmount] = useState(0);
-  // const [priceCovertCoins, setPriceCovertCoins] = useState(0);
-  // const [reviewAmount, setReviewAmount] = useState(0);
-
-  // // payment settings
-  // const [razorKey, setRazorKey] = useState("");
-  // const [mapkey, setMapkey] = useState("");
-
-  // // Banking Settings
-  // const [address, setaddress] = useState("");
-  // const [gstNo, setGstNo] = useState("");
-  // const [panNo, setpanNo] = useState("");
-  // const [bankName, setBankName] = useState("");
-  // const [accountNo, setAccountNo] = useState("");
-  // const [ifscCode, setIfscCode] = useState("");
-  // const [branch, setBranch] = useState("");
-  // const [upiImage, setUpiImage] = useState("");
-  // const [bankImage, setBankImage] = useState("");
 
   const handleTabClick = (value) => {
     setActiveTab(value);
@@ -104,33 +73,6 @@ const GeneralSettingsMain = () => {
     setUpdateDesc(existingSettings?.app_update_description);
     setMetMaintenance(existingSettings?.app_maintenance_status);
     setCancelOption(existingSettings?.app_update_cancel_button);
-
-    // // notification_setting
-    // setOneAppId(existingSettings?.onesignal_app_id);
-    // setRestKey(existingSettings?.onesignal_rest_key);
-    // setServerKey(existingSettings?.firebase_server_key);
-    // setTwoFecApiKey(existingSettings?.factor_apikey);
-    // setTwoFecoptions(existingSettings?.app_update_factor_button);
-
-    // // coins & wallet settings
-    // setMinCoinsAmount(existingSettings?.coin_withdrawal_limit);
-    // setMinWalletAmount(existingSettings?.min_wallet_amount_limit);
-    // setPriceCovertCoins(existingSettings?.price_convert_coin);
-    // setReviewAmount(existingSettings?.review_reward_amount);
-
-    // // payment settings
-    // setRazorKey(existingSettings?.razorpay_key);
-    // setMapkey(existingSettings?.map_api_key);
-
-    // // banking settings
-    // setBankName(existingSettings?.bank_name);
-    // setIfscCode(existingSettings?.ifsc_code);
-    // setAccountNo(existingSettings?.account_no);
-    // setBranch(existingSettings?.branch_name);
-    // setBankImage(existingSettings?.app_upi_image);
-    // setaddress(existingSettings?.address);
-    // setpanNo(existingSettings?.pan_no);
-    // setGstNo(existingSettings?.gst_no);
   }, [existingSettings]);
 
   const [settingsAddStatus, setSettingsAddStatus] = useState("");
@@ -158,33 +100,6 @@ const GeneralSettingsMain = () => {
     formData.append("app_update_description", updateDesc);
     formData.append("app_maintenance_status", maintenance);
     formData.append("app_update_cancel_button", cancelOption);
-
-    // // notification
-    // formData.append("factor_apikey", twoFecApiKey);
-    // formData.append("firebase_server_key", serverKey);
-    // formData.append("onesignal_rest_key", restKey);
-    // formData.append("onesignal_app_id", oneAppId);
-    // formData.append("app_update_factor_button", twoFecoptions);
-
-    // // wallete & coins
-    // formData.append("price_convert_coin", priceCovertCoins);
-    // formData.append("min_wallet_amount_limit", minWalletAmount);
-    // formData.append("coin_withdrawal_limit", minCoinsAmount);
-    // formData.append("review_reward_amount", reviewAmount);
-
-    // // payment
-    // formData.append("map_api_key", mapkey);
-    // formData.append("razorpay_key", razorKey);
-
-    // // bank details
-    // formData.append("upi_image", upiImage);
-    // formData.append("branch_name", branch);
-    // formData.append("account_no", accountNo);
-    // formData.append("ifsc_code", ifscCode);
-    // formData.append("bank_name", bankName);
-    // formData.append("address", address);
-    // formData.append("gst_no", gstNo);
-    // formData.append("pan_no", panNo);
 
     try {
       const response = await axios.patch(
@@ -269,79 +184,7 @@ const GeneralSettingsMain = () => {
                       App Settings
                     </a>
                   </li>
-                  {/* <li
-                    style={{ padding: "4px 22px" }}
-                    role="presentation"
-                    className={
-                      activeTab === "notification_setting"
-                        ? "active activateSettings"
-                        : ""
-                    }
-                  >
-                    <a
-                      href="#notification_setting"
-                      aria-controls="notification_setting"
-                      role="tab"
-                      onClick={() => handleTabClick("notification_setting")}
-                    >
-                      Notification Setting
-                    </a>
-                  </li> */}
-                  {/* <li
-                    style={{ padding: "4px 22px" }}
-                    role="presentation"
-                    className={
-                      activeTab === "wallet&coins_setting"
-                        ? "active activateSettings"
-                        : ""
-                    }
-                  >
-                    <a
-                      href="#wallet&coins_setting"
-                      aria-controls="wallet&coins_setting"
-                      role="tab"
-                      onClick={() => handleTabClick("wallet&coins_setting")}
-                    >
-                      Wallet/Coins Setting
-                    </a>
-                  </li>
-                  <li
-                    style={{ padding: "4px 22px" }}
-                    role="presentation"
-                    className={
-                      activeTab === "payment_settings"
-                        ? "active activateSettings"
-                        : ""
-                    }
-                  >
-                    <a
-                      href="#payment_settings"
-                      aria-controls="payment_settings"
-                      role="tab"
-                      onClick={() => handleTabClick("payment_settings")}
-                    >
-                      Payment Settings
-                    </a>
-                  </li>
-                  <li
-                    style={{ padding: "4px 22px" }}
-                    role="presentation"
-                    className={
-                      activeTab === "bank_details"
-                        ? "active activateSettings"
-                        : ""
-                    }
-                  >
-                    <a
-                      href="#bank_details"
-                      aria-controls="bank_details"
-                      role="tab"
-                      onClick={() => handleTabClick("bank_details")}
-                    // style={{color: activeTab === 'bank_details' ? 'white' : ""}}
-                    >
-                      Bank Details
-                    </a>
-                  </li> */}
+
                   <li
                     style={{ padding: "4px 22px" }}
                     role="presentation"
@@ -403,65 +246,6 @@ const GeneralSettingsMain = () => {
                       />
                     )}
 
-                    {/* {activeTab === "notification_setting" && (
-                      <NotificationSettings
-                        oneAppId={oneAppId}
-                        restKey={restKey}
-                        twoFecApiKey={twoFecApiKey}
-                        serverKey={serverKey}
-                        setOneAppId={setOneAppId}
-                        setRestKey={setRestKey}
-                        setServerKey={setServerKey}
-                        setTwoFecApiKey={setTwoFecApiKey}
-                        twoFecoptions={twoFecoptions}
-                        setTwoFecoptions={setTwoFecoptions}
-                      />
-                    )}
-
-                    {activeTab === "wallet&coins_setting" && (
-                      <WalletCoinSettings
-                        minCoinsAmount={minCoinsAmount}
-                        minWalletAmount={minWalletAmount}
-                        CoinsAmount={priceCovertCoins}
-                        setMinCoinsAmount={setMinCoinsAmount}
-                        setMinWalletAmount={setMinWalletAmount}
-                        setCoinsAmount={setPriceCovertCoins}
-                        setReviewAmount={setReviewAmount}
-                        reviewAmount={reviewAmount}
-                      />
-                    )}
-
-                    {activeTab === "payment_settings" && (
-                      <PaymentSettings
-                        razorKey={razorKey}
-                        mapkey={mapkey}
-                        setMapKey={setMapkey}
-                        setRazorKey={setRazorKey}
-                      />
-                    )}
-
-                    {activeTab === "bank_details" && (
-                      <BankDetailsSettings
-                        address={address}
-                        setaddress={setaddress}
-                        gstNo={gstNo}
-                        setGstNo={setGstNo}
-                        panNo={panNo}
-                        setpanNo={setpanNo}
-                        bankName={bankName}
-                        setBankName={setBankName}
-                        accountNo={accountNo}
-                        setAccountNo={setAccountNo}
-                        ifscCode={ifscCode}
-                        setIfscCode={setIfscCode}
-                        branch={branch}
-                        setBranch={setBranch}
-                        upiImage={upiImage}
-                        setUpiImage={setUpiImage}
-                        bankImage={bankImage}
-                      />
-                    )} */}
-
                     {activeTab != "password_change" && (
                       <div className="row mb-10">
                         <div className="col ms-auto">
@@ -469,9 +253,7 @@ const GeneralSettingsMain = () => {
                             <button className="btn btn-success" type="submit">
                               <i className="fas fa-save"></i> Save
                             </button>
-                            {/* <a className="btn btn-danger" onClick={() => Navigate('/showCategory')}>
-                                                    <i className="fas fa-window-close"></i> Cancel
-                                                </a> */}
+
                           </div>
                           <AlertBox
                             status={settingsAddStatus}

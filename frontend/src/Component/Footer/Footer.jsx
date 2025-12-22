@@ -2,14 +2,11 @@ import moment from "moment";
 import { useSelector } from "react-redux";
 import { Button, Col, Image, Row } from "antd";
 import { useNavigate } from "react-router-dom";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { LoginOutlined } from "@ant-design/icons";
 import { routes } from "../../Routes/Routes";
 import logo2 from "../../Assets/PNG/logo.png";
 import facebook from "../../Assets/PNG/facebook.png";
-// import linkedin from "../../Assets/PNG/linkedin.png";
-// import whatsapp from "../../Assets/PNG/whatsapp.png";
-// import instagram from "../../Assets/PNG/instagram.png";
 import youtube from "../../Assets/PNG/youtube.png";
 import axios from "axios";
 import styles from "./index.module.scss";
@@ -43,13 +40,12 @@ function Footer() {
       const response = await axios.post(apiUrl.ADD_NEWSLETTER, obj);
       console.log(response);
       if (response.data.type === "success") {
-        setSuccessMessage("Successfully subscribed!"); // Show success message
-        setEmail(""); // Clear the input field
+        setSuccessMessage("Successfully subscribed!");
+        setEmail("");
       } else {
         setError(response.data.message || "Failed to subscribe");
       }
     } catch (error) {
-      // Handle error from the API
       setError(error + "Failed to subscribe. Please try again later.");
     }
   };
@@ -67,30 +63,22 @@ function Footer() {
               <div className={styles.logo}>
                 <img src={logo2} alt="logo" />
               </div>
-              <div className={styles.about}>
-                {/* <p className={styles.About_Paragraph}>Shubh Libaaz</p> */}
-              </div>
+              <div className={styles.about}></div>
               <div className={styles.icon}>
                 <div
                   onClick={() =>
-                    window.open("https://www.youtube.com/@shubhlibaas")
+                    window.open("https://www.youtube.com/@xclusivediamonds")
                   }
                 >
-                  <Image preview={false} src={youtube} alt="youtube"  />
+                  <Image preview={false} src={youtube} alt="youtube" />
                 </div>
                 <div
                   onClick={() =>
-                    window.open("https://www.facebook.com/shubhlibaas")
+                    window.open("https://www.facebook.com/xclusivediamonds")
                   }
                 >
-                  <Image preview={false} src={facebook} alt="facebook"  />
+                  <Image preview={false} src={facebook} alt="facebook" />
                 </div>
-                {/* <div onClick={() => window.open("https://www.linkedin.com/")}> */}
-                {/* <Image preview={false} src={linkedin} alt="linkedin"  /> */}
-                {/* </div> */}
-                {/* <div onClick={() => window.open("https://www.whatsapp.com/")}> */}
-                {/* <Image preview={false} src={whatsapp} alt="whatsapp"  /> */}
-                {/* </div> */}
               </div>
             </div>
           </Col>
@@ -184,11 +172,6 @@ function Footer() {
                     </div>
                   </>
                 )}
-                {/* <div className={styles.Services_footer}>
-                  <div onClick={() => navigate(routes.userUrl)}>
-                    Login/Register
-                  </div>
-                </div> */}
               </div>
             </div>
           </Col>
@@ -220,14 +203,13 @@ function Footer() {
                     Subscribe
                   </Button>
                 </div>
-             
               </div>
-                 {/* Error message */}
-                 {error && <p style={{ color: "red" }}>{error}</p>}
-                {/* Success message */}
-                {successMessage && (
-                  <p style={{ color: "green" }}>{successMessage}</p>
-                )}
+              {/* Error message */}
+              {error && <p style={{ color: "red" }}>{error}</p>}
+              {/* Success message */}
+              {successMessage && (
+                <p style={{ color: "green" }}>{successMessage}</p>
+              )}
             </div>
           </Col>
         </Row>
@@ -236,7 +218,7 @@ function Footer() {
             <div>
               <div>
                 <p className={styles.copyright_main}>
-                  Copyright © {date} Shubh Libaas . All Rights Reserved
+                  Copyright © {date} Xclusive Diamonds . All Rights Reserved
                 </p>
               </div>
             </div>

@@ -3,7 +3,6 @@ const express = require('express')
 const bcrypt = require('bcrypt');
 const Admin = require('../../Models/Admin/admin_model');
 const route = express.Router();
-const checkAdminRole = require('../../Middleware/adminMiddleWares')
 
 const secretKey = process.env.JWT_TOKEN;
 
@@ -34,7 +33,6 @@ route.post('/register', async (req, res) => {
         res.status(500).json({ type: 'error', message: 'Error authenticating admin', error });
     }
 });
-
 
 // Admin login route
 route.post('/login', async (req, res) => {
@@ -93,7 +91,6 @@ route.post('/changePassword', async (req, res) => {
         console.log(error);
     }
 });
-
 
 // get all admin
 route.get('/get', async (req, res) => {

@@ -51,7 +51,7 @@ const ShowProduct = () => {
       width: 90,
       renderCell: (params) => (
         <img
-          // src={`${process.env.REACT_APP_API_URL}/${params?.row?.Product_Images[0].path}`}
+          src={`${process.env.REACT_APP_API_URL}/${params?.row?.Product_Images[0].path}`}
           alt="Product Image"
           height={35}
           width={35}
@@ -110,24 +110,6 @@ const ShowProduct = () => {
     },
 
     {
-      field: "Product_Ori_Price",
-      headerName: "Original Price",
-      flex: 1,
-      filterable: true,
-      sortable: true,
-      filterType: "multiselect",
-    },
-
-    {
-      field: "Product_Dis_Price",
-      headerName: "Discount Price",
-      flex: 1,
-      filterable: true,
-      sortable: true,
-      filterType: "multiselect",
-    },
-
-    {
       field: "Features",
       headerName: "Features",
       flex: 1,
@@ -146,31 +128,6 @@ const ShowProduct = () => {
               <MenuItem value="popular">Popular Pick</MenuItem>
               <MenuItem value="trendy">Trendy Collection</MenuItem>
               <MenuItem value="home">Best Selling</MenuItem>
-            </Select>
-          </FormControl>
-        );
-      },
-      filterable: false,
-      sortable: false,
-      editable: true, // Allow editing the features directly in the DataGrid
-    },
-    {
-      field: "Shipping",
-      headerName: "Shipping",
-      flex: 1,
-      renderCell: (params) => {
-        return (
-          <FormControl variant="outlined" size="small">
-            <Select
-              style={{ height: "20px", width: "100px" }}
-              value={getSelectedShippingValue(params.row)}
-              onChange={(e) =>
-                handleProductShipping(params.row, !params.value, e.target.value)
-              }
-            >
-              {/* <MenuItem value="none">None</MenuItem> */}
-              <MenuItem value="PRE LAUNCH">PRE LAUNCH</MenuItem>
-              <MenuItem value="READY TO SHIP">READY TO SHIP</MenuItem>
             </Select>
           </FormControl>
         );
@@ -256,7 +213,10 @@ const ShowProduct = () => {
           Authorization: `${adminToken}`,
         },
       });
+      console.log(res);
+
       setProductData(res?.data?.product || []);
+
       setIsLoading(false);
     } catch (error) {
       setIsLoading(false);

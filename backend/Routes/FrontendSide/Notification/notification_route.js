@@ -1,21 +1,11 @@
 const express = require("express");
-const route = express.Router();
-const Order = require("../../../Models/FrontendSide/order_model");
-const Cart = require("../../../Models/FrontendSide/cart_model");
-const Notification = require("../../../Models/FrontendSide/notification_model");
-const { Variation } = require("../../../Models/BackendSide/product_model");
-const Wallet = require("../../../Models/FrontendSide/wallet_model");
-const User = require("../../../Models/FrontendSide/user_model");
-const Coupon = require("../../../Models/FrontendSide/coupon_model");
 const multer = require("multer");
 const fs = require("fs");
-const Charges = require("../../../Models/Settings/add_charges_model");
+const route = express.Router();
+const Notification = require("../../../Models/FrontendSide/notification_model");
+const User = require("../../../Models/FrontendSide/user_model");
 const authMiddleWare = require("../../../Middleware/authMiddleWares");
-const checkAdminOrRole1 = require("../../../Middleware/checkAdminOrRole1");
 const checkAdminOrRole2 = require("../../../Middleware/checkAdminOrRole2");
-const checkAdminOrRole3 = require("../../../Middleware/checkAdminOrRole3");
-const checkAdminOrRole4 = require("../../../Middleware/checkAdminOrRole4");
-const checkAdminOrRole5 = require("../../../Middleware/checkAdminOrRole5");
 const moment = require("moment-timezone");
 
 const admin = require("firebase-admin");
@@ -30,50 +20,6 @@ const storage = multer.diskStorage({
   },
 });
 const upload = multer({ storage: storage });
-
-// // send the notification
-// route.get('/send', async (req, res) => {
-//     try {
-
-//         admin.initializeApp({
-//             credential: admin.credential.cert(serviceAccount)
-//         });
-
-//         const message = {
-//             notification: {
-//                 title: 'Tushar',
-//                 body: 'This is a sample notification for tushar',
-//             },
-//             // data: {
-//             //     orderId: '123456' // Add your order ID here
-//             // }
-//         };
-
-//         // An array of FCM tokens for the devices you want to notify
-//         const fcmTokens = [
-//             'cEbnx24xTemfwq_Npb7sHy:APA91bGevhJc3yztTm9NhLOGw3C7komlPa5hi3PIS_mYGP8ytyEKKd3NFf9vmTOp4PjQ8Zpabz-ITwxhfTQDSJ0FGSV77RgYTHETI4Pk_2cADvdSJubc-qfhrmd0vdOq_uLF1zP4eiwC',
-//             'c94SrejSSUClsyWxSi7fuZ:APA91bHoEOyv0E7lJW17scv1DtPf3TpkO9GKwBVD21FFFJ0Df21MegKuPCwlFPOQ1NNkNT3Ru2yb2lKdBXiUQJ8SFm_EBIyUDEQT-OpSW1-o5OslGO6KeLEpLX070jSAX-sMeqCnd5b1',
-//         ];
-
-//         // Send a message to each device
-//         const sendPromises = fcmTokens.map(token => {
-//             message.token = token;
-//             return admin.messaging().send(message);
-//         });
-
-//         // Wait for all notifications to be sent
-//         Promise.all(sendPromises)
-//             .then(responses => {
-//                 console.log('Successfully sent messages:', responses);
-//             })
-//             .catch(error => {
-//                 console.error('Error sending messages:', error);
-//             });
-
-//     } catch (error) {
-//         console.log(error)
-//     }
-// })
 
 // send Notification
 route.post("/sendbyadmin",
@@ -151,16 +97,6 @@ route.post("/sendbyadmin",
           );
         }
 
-        // const sendPromises = userTokens.map(token => {
-        //     return admin.messaging().send({
-        //         token: token,
-        //         notification: {
-        //             title: title,
-        //             body: message,
-        //         }
-        //     });
-        // });
-
         const sendPromises = userTokens.map((token) => {
           const notificationPayload = {
             token: token,
@@ -172,8 +108,7 @@ route.post("/sendbyadmin",
           if (newNotification.Notification_Image) {
             notificationPayload.data = {
               picture:
-                `${
-                  process.env.IP_ADDRESS
+                `${process.env.IP_ADDRESS
                 }/${newNotification.Notification_Image.path?.replace(
                   /\\/g,
                   "/"
@@ -321,8 +256,7 @@ route.get("/getAll", checkAdminOrRole2, async (req, res) => {
           SendFor: sendFor,
           Type: type,
           notificationImage:
-            `${
-              process.env.IP_ADDRESS
+            `${process.env.IP_ADDRESS
             }/${notification?.Notification_Image?.path?.replace(/\\/g, "/")}` ||
             "",
           Date: new Date(notification?.createdAt)?.toLocaleDateString("en-IN"),
@@ -423,11 +357,11 @@ route.get("/get/byuser", authMiddleWare, async (req, res) => {
     }).sort({ updatedAt: -1 });
 
     res.status(200).send({
-        type: "success",
-        message: "All Notification get Successfully!",
-        total_count: notifications?.length || 0,
-        notificationList: notifications || [],
-      });
+      type: "success",
+      message: "All Notification get Successfully!",
+      total_count: notifications?.length || 0,
+      notificationList: notifications || [],
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Internal Server Error" });

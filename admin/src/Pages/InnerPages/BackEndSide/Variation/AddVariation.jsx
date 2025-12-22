@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import defualtImage from "../../../../resources/assets/images/add-image.png";
 import axios from "axios";
 
@@ -68,15 +68,12 @@ const AddVariation = ({
     handleCloseModal();
   };
 
-  useEffect(() => {
-    console.log(variationImages, colorName, metalPurity, sizeInputs);
-  }, [colorName, variationImages, metalPurity, sizeInputs]);
-
   const handleAddVariationDirect = async (e) => {
     e.preventDefault();
 
     const formData = new FormData();
     formData.append("Variation_Name", colorName);
+    formData.append("Variation_Label", metalPurity);
 
     sizeInputs?.forEach((size) => {
       formData.append("Size_Name", size?.size);

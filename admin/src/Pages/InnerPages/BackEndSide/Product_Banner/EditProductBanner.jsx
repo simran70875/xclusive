@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import AlertBox from '../../../../Components/AlertComp/AlertBox'
 import axios from "axios";
 import { useEffect } from "react";

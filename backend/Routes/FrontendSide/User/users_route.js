@@ -3,23 +3,13 @@ const route = express.Router();
 const User = require("../../../Models/FrontendSide/user_model");
 const multer = require("multer");
 const jwt = require("jsonwebtoken");
+const bcrypt = require("bcryptjs");
 const authMiddleWare = require("../../../Middleware/authMiddleWares");
 const fs = require("fs");
 const path = require("path");
 const Coupon = require("../../../Models/FrontendSide/coupon_model");
 const Charges = require("../../../Models/Settings/add_charges_model");
-const checkAdminRole = require("../../../Middleware/adminMiddleWares");
-const {
-  checkAdminWithMultRole123,
-} = require("../../../Middleware/checkAdminWithMultRole");
-const axios = require("axios"); // Import the Axios library for making HTTP requests
-var request = require("request");
-
-const msg91AuthKey = "412707AdE2f6UHYXWq65993b88P1"; // Replace with your MSG91 auth key
-const templateId = "659b85e4d6fc05229e0cf573"; // Replace with your actual template ID
-
-// Secret key for JWT
-const secretKey = process.env.JWT_TOKEN;
+const { checkAdminWithMultRole123 } = require("../../../Middleware/checkAdminWithMultRole");
 
 // Set up multer middleware to handle file uploads
 const storage = multer.diskStorage({
@@ -32,117 +22,166 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage });
 
-// Endpoint to generate and send OTP
-route.post("/send-otp", async (req, res) => {
-  let { mobileNumber } = req.body;
-
-  let to = "91" + mobileNumber;
-  mobileNumber = Number(mobileNumber);
-
+// SIGNUP API
+route.post("/signup", async (req, res) => {
   try {
-    let otp;
+    const {
+      name,
+      email,
+      password,
+      phoneNumber,
+      companyName,
+    } = req.body;
 
-    // Save the OTP to the user in the database
-    const existingMobileNumber = await User.findOne({
-      User_Mobile_No: mobileNumber,
+    // 1️⃣ Validation
+    if (!name || !email || !password || !phoneNumber || !companyName) {
+      return res.status(400).json({
+        type: "error",
+        message: "All fields are required",
+      });
+    }
+
+    // 2️⃣ Check existing email
+    const emailExists = await User.findOne({ User_Email: email });
+    if (emailExists) {
+      return res.status(400).json({
+        type: "error",
+        message: "Email already registered",
+      });
+    }
+
+    // 3️⃣ Check existing phone
+    const phoneExists = await User.findOne({
+      User_Mobile_No: phoneNumber,
+    });
+    if (phoneExists) {
+      return res.status(400).json({
+        type: "error",
+        message: "Phone number already registered",
+      });
+    }
+
+    // 4️⃣ Hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // 5️⃣ Create user
+    const newUser = new User({
+      User_Name: name,
+      User_Email: email,
+      User_Password: hashedPassword,
+      User_Mobile_No: phoneNumber,
+      Company: companyName,
+      User_Label: "User",
     });
 
-    const preventMobileNumber = [9958608002, 8743061386, 7777991598];
+    await newUser.save();
 
-    if (
-      existingMobileNumber?.Block ||
-      preventMobileNumber.includes(mobileNumber)
-    ) {
-      // Handle specific conditions here if needed
-      otp = 1234;
-    } else {
-      otp = Math.floor(1000 + Math.random() * 9000).toString();
-      // Make the HTTP request using axios
-      const response = await axios.post(
-        "https://control.msg91.com/api/v5/otp",
-        {
-          authkey: msg91AuthKey,
-          template_id: templateId,
-          mobile: to,
-          otp: otp,
-        }
-      );
+    // 6️⃣ (Optional) JWT Token
+    const token = jwt.sign(
+      { userId: newUser._id },
+      process.env.JWT_SECRET || "secretKey",
+      { expiresIn: "7d" }
+    );
 
-      // Log the response data
-      console.log(response.data);
-    }
-
-    if (existingMobileNumber?.Block) {
-      return res.status(200).json({ type: "error", message: "You are blocked by Admin" });
-    } else if (existingMobileNumber) {
-      existingMobileNumber.User_Otp = otp;
-      await existingMobileNumber.save();
-    } else {
-      const newUser = new User({
-        User_Mobile_No: mobileNumber,
-        User_Otp: otp,
-      });
-      await newUser.save();
-    }
-
-    res
-      .status(200)
-      .json({ type: "success", message: "OTP sent successfully!" });
+    return res.status(201).json({
+      type: "success",
+      message: "Signup successful",
+      token,
+      user: {
+        id: newUser._id,
+        name: newUser.User_Name,
+        email: newUser.User_Email,
+        phone: newUser.User_Mobile_No,
+        company: newUser.Company,
+      },
+    });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ type: "error", message: "Server Error!" });
+    console.error("Signup error:", error);
+    return res.status(500).json({
+      type: "error",
+      message: "Server error",
+      errorMessage: error.message,
+    });
   }
 });
 
-// Endpoint to verify the OTP
-route.post("/verify-otp", async (req, res) => {
-  let { mobileNumber, otp, token } = req.body;
-
-  console.log("otp", otp);
-  mobileNumber = Number(mobileNumber);
-  let notificationToken = token;
-  otp = Number(otp);
-
+// LOGIN API
+route.post("/login", async (req, res) => {
   try {
-    // Find the user in the database
-    const user = await User.findOne({ User_Mobile_No: mobileNumber });
+    const { email, phoneNumber, password } = req.body;
+
+    // 1️⃣ Validation
+    if ((!email && !phoneNumber) || !password) {
+      return res.status(400).json({
+        type: "error",
+        message: "Email/Phone and password are required",
+      });
+    }
+
+    // 2️⃣ Find user by email OR phone
+    const user = await User.findOne({
+      $or: [
+        { User_Email: email },
+        { User_Mobile_No: phoneNumber },
+      ],
+    });
 
     if (!user) {
-      return res.status(404).json({ type: "error", error: "User not found" });
-    }
-
-    console.log("user.User_Otp ==> ", user.User_Otp, "Otp ==> ", otp);
-
-    if (user.User_Otp === otp) {
-      // OTP verification successfuls
-      const tokenPayload = {
-        userId: user._id,
-        User_Mobile_No: user.mobileNumber,
-      };
-      const token = jwt.sign(tokenPayload, secretKey, { expiresIn: `365d` });
-      console.log("token ==> ", token);
-      user.Is_Verify = true;
-      user.Notification_Token = notificationToken;
-      await user.save();
-
-      return res.status(200).json({
-        type: "success",
-        message: "Login Successfully!",
-        token: token,
-        userId: user._id,
-        userName: user.User_Name || "",
-      });
-    } else {
-      // OTP verification failed
-      return res.status(201).json({
+      return res.status(400).json({
         type: "error",
-        message: "Invalid Otp!",
-        token: "",
-        userId: "",
+        message: "User not found",
       });
     }
+
+    // 3️⃣ Check if user is blocked
+    if (user.Block === true) {
+      return res.status(403).json({
+        type: "error",
+        message: "Your account is blocked. Please contact support.",
+      });
+    }
+
+    // 4️⃣ Verify password
+    const isMatch = await bcrypt.compare(
+      password,
+      user.User_Password
+    );
+
+    if (!isMatch) {
+      return res.status(400).json({
+        type: "error",
+        message: "Invalid credentials",
+      });
+    }
+
+    // 5️⃣ Generate JWT
+    const token = jwt.sign(
+      { userId: user._id },
+      process.env.JWT_SECRET || "secretKey",
+      { expiresIn: "7d" }
+    );
+
+    // 6️⃣ Success response
+    return res.status(200).json({
+      type: "success",
+      message: "Login successful",
+      token,
+      user: {
+        id: user._id,
+        name: user.User_Name,
+        email: user.User_Email,
+        phone: user.User_Mobile_No,
+        company: user.Company,
+        image: user.User_Image,
+      },
+    });
   } catch (error) {
-    res.status(500).json({ type: "error", message: "Internal server error" });
+    console.error("Login error:", error);
+    return res.status(500).json({
+      type: "error",
+      message: "Server error",
+      errorMessage: error.message,
+    });
   }
 });
 
@@ -234,10 +273,18 @@ route.get("/profile/get", authMiddleWare, async (req, res) => {
     const user = await User.findById(userId);
 
     if (!user) {
-      return res.status(200).json({ type: "error", message: " User not found!", user: [] });
+      return res
+        .status(200)
+        .json({ type: "error", message: " User not found!", user: [] });
     } else {
       let dummy = `${process.env.IP_ADDRESS}/imageUploads/frontend/users/profile-pic-dummy.png`;
-      const User_Image = (!user.User_Image?.path || user.User_Image?.path === "undefined")?dummy :`${process.env.IP_ADDRESS}/${user.User_Image.path.replace(/\\/g, "/")}` || "";
+      const User_Image =
+        !user.User_Image?.path || user.User_Image?.path === "undefined"
+          ? dummy
+          : `${process.env.IP_ADDRESS}/${user.User_Image.path.replace(
+              /\\/g,
+              "/"
+            )}` || "";
 
       const result = {
         _id: user?._id,
@@ -281,65 +328,6 @@ route.get("/get", authMiddleWare, async (req, res) => {
   }
 });
 
-// Update User Profile
-// route.patch("/profile/update", authMiddleWare, upload.single("image"), async (req, res) => {
-//     const userId = req.user.userId;
-//     const { name, email, mobileNumber } = req.body;
-//     const originalname = req.file?.originalname;
-//     console.log("image-filessss", req?.file);
-//     console.log("name", name);
-
-//     try {
-//       const user = await User.findById(userId);
-//       if (!user) {
-//         return res.status(404).json({ type: "error", message: "User does not exist!" });
-//       }
-
-//       if (mobileNumber && mobileNumber != user.User_Mobile_No) {
-//         const existingUserWithMobile = await User.findOne({
-//           User_Mobile_No: mobileNumber,
-//         });
-//         if (existingUserWithMobile) {
-//           return res.status(200).json({
-//             type: "error",
-//             message: "User Mobile Number already exists!",
-//           });
-//         }
-//       }
-
-//       user.User_Name = name || user.User_Name;
-//       user.User_Email = email || user.User_Email;
-//       user.User_Mobile_No = mobileNumber || user.User_Mobile_No;
-
-//       if (req.file) {
-//         const extension = path.extname(originalname);
-//         const imageFilename = `${user.User_Name}${user._id}${extension}`;
-//         const imagePath = `imageUploads/frontend/users/${imageFilename}`;
-
-//         fs.renameSync(req?.file?.path, imagePath);
-
-//         user.User_Image.filename = imageFilename;
-//         user.User_Image.path = imagePath;
-//         user.User_Image.originalname = originalname;
-//       }
-
-//       await user.save();
-//       res
-//         .status(200)
-//         .json({ type: "success", message: "User updated successfully!" });
-//     } catch (error) {
-//       if (req?.file) {
-//         fs.unlinkSync(req?.file?.path);
-//       }
-//       res
-//         .status(500)
-//         .json({ type: "error", message: "Server Error!", errorMessage: error });
-//       console.log(error);
-//     }
-//   }
-// );
-
-// Update User Profile (for website)
 route.patch(
   "/profile/update",
   authMiddleWare,
@@ -358,13 +346,6 @@ route.patch(
         return res
           .status(404)
           .json({ type: "error", message: "User does not exist!" });
-
-      // if (mobileNumber && mobileNumber !== user.User_Mobile_No) {
-      //     const existingUserWithMobile = await User.findOne({ User_Mobile_No: mobileNumber });
-      //     if (existingUserWithMobile) {
-      //         return res.status(409).json({ type: "error", message: "User Mobile Number already exists!" });
-      //     }
-      // }
 
       user.User_Name = name || user.User_Name;
       user.User_Email = email || user.User_Email;
@@ -645,7 +626,7 @@ route.patch(
 
 // update user from admin
 route.patch("/update/byAdmin/:id", async (req, res) => {
-  const UserId =  req.params.id;
+  const UserId = req.params.id;
 
   try {
     const { wallet, coins, type } = req.body;
@@ -717,7 +698,9 @@ route.delete("/delete/:id", checkAdminWithMultRole123, async (req, res) => {
     const user = await User.findById(userId);
 
     if (!user) {
-      return res.status(404).json({ type: "error", message: "User not found!" });
+      return res
+        .status(404)
+        .json({ type: "error", message: "User not found!" });
     }
 
     if (user.User_Image && fs.existsSync(user?.User_Image?.path)) {
@@ -725,10 +708,14 @@ route.delete("/delete/:id", checkAdminWithMultRole123, async (req, res) => {
     }
 
     await User.findByIdAndDelete(userId);
-    return res.status(200).json({ type: "success", message: "User deleted successfully!" });
+    return res
+      .status(200)
+      .json({ type: "success", message: "User deleted successfully!" });
   } catch (error) {
     console.log(error);
-    return res.status(500).json({ type: "error", message: "Server Error!", errorMessage: error });
+    return res
+      .status(500)
+      .json({ type: "error", message: "Server Error!", errorMessage: error });
   }
 });
 

@@ -1,5 +1,4 @@
-import React, { useEffect, useState } from "react";
-// import './ShowOrderDetails.css'
+import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
@@ -7,7 +6,6 @@ let url = process.env.REACT_APP_API_URL;
 
 const ShowOrderDetails = () => {
   const adminToken = localStorage.getItem("token");
-  // this data provided by redux store
   const selectOrderId = useSelector((state) => state?.OrderDataChange?.payload);
   const navigate = useNavigate();
   const [orderDetails, setOrderDetails] = useState([]);
@@ -18,7 +16,6 @@ const ShowOrderDetails = () => {
   const [tracking_id, setTracking_id] = useState();
 
   useEffect(() => {
-    // console.log(selectOrderId);
     async function getOrderDetails() {
       try {
         let response = await axios.get(

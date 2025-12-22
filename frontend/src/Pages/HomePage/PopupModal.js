@@ -47,7 +47,7 @@ const PopupModal = () => {
     return (
       <Modal
         width={"60%"}
-        title="Welcome! To Shubh Libaas"
+        title="Welcome! To Xclusive Diamonds"
         open={visible}
         onOk={handleOk}
         onCancel={handleCancel}

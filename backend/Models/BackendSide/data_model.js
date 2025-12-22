@@ -7,10 +7,10 @@ const DataSchema = mongoose.Schema(
       required: true
     },
 
-    Data_Name: [{
+    Data_Name: {
       type: String,
       trim: true
-    }],
+    },
 
     Data_Label: String,
 

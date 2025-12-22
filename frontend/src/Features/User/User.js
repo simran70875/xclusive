@@ -59,45 +59,6 @@ export const {
 
 export default userSlice.reducer;
 
-export const sendotp = (value, onSuccessCallback) => (dispatch) => {
-  dispatch(setIsLoginLoading(true));
-  try {
-    const onSuccess = (response) => {
-      toast.success(response?.message);
-      onSuccessCallback(response);
-      dispatch(setIsLoginLoading(false));
-    };
-    const onFailure = (error) => {
-      dispatch(setIsLoginLoading(false));
-    };
-
-    apiCall("POST", apiUrl.SEND_OTP, value, onSuccess, onFailure);
-  } catch (error) {
-    dispatch(setIsLoginLoading(false));
-  }
-};
-
-export const verifyotp = (value, onSuccessCallback) => (dispatch) => {
-  dispatch(setIsLoginLoading(true));
-  try {
-    const onSuccess = (response) => {
-      toast.success(response?.message);
-      dispatch(setUserName(response?.userName));
-      dispatch(setUserID(response?.userId));
-      dispatch(setToken(response?.token));
-      dispatch(setIsLoginLoading(false));
-      onSuccessCallback(response);
-    };
-    const onFailure = (error) => {
-      dispatch(setIsLoginLoading(false));
-    };
-
-    apiCall("POST", apiUrl.VERIFY_OTP, value, onSuccess, onFailure);
-  } catch (error) {
-    dispatch(setIsLoginLoading(false));
-  }
-};
-
 export const getProfileApi = (token) => (dispatch) => {
   dispatch(setIsLoginLoading(true));
   try {
@@ -125,11 +86,14 @@ export const updateProfileApi =
         dispatch(getProfileApi(token));
         dispatch(setIsLoginLoading(false));
       };
-      const onFailure = (error) => { 
+      const onFailure = (error) => {
         dispatch(setIsLoginLoading(false));
       };
 
-      apiCall("PATCH", `${apiUrl.UPDATE_PROFILE}`, value,
+      apiCall(
+        "PATCH",
+        `${apiUrl.UPDATE_PROFILE}`,
+        value,
         onSuccess,
         onFailure,
         token
@@ -139,7 +103,8 @@ export const updateProfileApi =
     }
   };
 
-export const updateFirstTimeApi = (value, token, successCallBack) => async (dispatch) => {
+export const updateFirstTimeApi =
+  (value, token, successCallBack) => async (dispatch) => {
     dispatch(setIsLoginLoading(true));
     try {
       const onSuccess = (response) => {
@@ -153,7 +118,9 @@ export const updateFirstTimeApi = (value, token, successCallBack) => async (disp
         dispatch(setIsLoginLoading(false));
       };
 
-      apiCall("PUT", `${apiUrl.UPDATE_PROFILE}`,
+      apiCall(
+        "PUT",
+        `${apiUrl.UPDATE_PROFILE}`,
         value,
         onSuccess,
         onFailure,

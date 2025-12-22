@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import AlertBox from "../../../../Components/AlertComp/AlertBox";
 import axios from "axios";
 import { useEffect } from "react";
@@ -227,10 +227,12 @@ const EditBanner = () => {
                           <div className="fileupload_img col-md-10 mt-3 mb-2">
                             <img
                               type="image"
-                              src={bannerImage ? URL.createObjectURL(bannerImage) : `${selectedBannerData?.banner_Image}`
+                              src={
+                                bannerImage
+                                  ? URL.createObjectURL(bannerImage)
+                                  : `${selectedBannerData?.banner_Image}`
                               }
                               alt="user image"
-                              
                               width={400}
                             />
                           </div>

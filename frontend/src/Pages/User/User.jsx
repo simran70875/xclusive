@@ -5,14 +5,14 @@ import { useNavigate } from "react-router-dom";
 import { Button, Col, Form, Image, Input, Row } from "antd";
 import logo from "../../Assets/PNG/logo.png";
 import { routes } from "../../Routes/Routes";
-import { sendotp } from "../../Features/User/User";
+// import { sendotp } from "../../Features/User/User";
 
 import styles from "./index.module.scss";
 
 function User() {
   const [form] = Form.useForm();
   const navigate = useNavigate();
-  const dispatch = useDispatch();
+  // const dispatch = useDispatch();
   const [number, setNumber] = useState();
   const loader = useSelector((state) => state.user?.isLoginLoading);
 
@@ -33,7 +33,7 @@ function User() {
         });
       }
     };
-    dispatch(sendotp(obj, onSuccessCallback));
+    // dispatch(sendotp(obj, onSuccessCallback));
   };
 
   const setting = () => {

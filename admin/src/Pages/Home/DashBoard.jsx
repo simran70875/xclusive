@@ -1,5 +1,5 @@
 import axios from "axios";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import pendingImage from "../../../src/resources/assets/images/pending_order.png";
 import totalImage from "../../../src/resources/assets/images/total.png";
 import retunImage from "../../../src/resources/assets/images/return.png";

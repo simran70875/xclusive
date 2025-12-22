@@ -22,7 +22,6 @@ const ShowVariationSize = () => {
   let variationId = selectedVariationData?._id;
 
   const [sizeData, setsizeData] = useState([]);
-  const [sizeName, setsizeName] = useState("");
   const [selectedRows, setSelectedRows] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(true);
@@ -78,6 +77,14 @@ const ShowVariationSize = () => {
     {
       field: "Size_Name",
       headerName: "Name",
+      width: 160,
+      filterable: true,
+      sortable: true,
+      filterType: "multiselect",
+    },
+    {
+      field: "Size_purity",
+      headerName: "Purity",
       width: 160,
       filterable: true,
       sortable: true,
@@ -298,15 +305,7 @@ const ShowVariationSize = () => {
 
   const handleFilter = () => {
     const filteredvariationList = sizeData?.filter((variation) => {
-      const formattedsizeName = (variation?.name || "")
-        .toUpperCase()
-        .replace(/\s/g, "");
       let issizeName = true;
-      if (sizeName) {
-        issizeName = formattedsizeName.includes(
-          sizeName.toUpperCase().replace(/\s/g, "")
-        );
-      }
 
       return issizeName;
     });

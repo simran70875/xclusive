@@ -1,6 +1,6 @@
 import axios from "axios";
-import React, { useEffect, useState } from "react";
-import { Navigate, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 let url = process.env.REACT_APP_API_URL;
 
@@ -28,7 +28,7 @@ const LoginPage = () => {
       }
     }
     getSettings();
-  }, [settingsData,adminToken]);
+  }, [settingsData, adminToken]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

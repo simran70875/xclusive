@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import coins from "../../../../coin.png";
 import { DataGrid, GridToolbar } from "@mui/x-data-grid";
 import IconButton from "@mui/material/IconButton";
@@ -65,7 +65,7 @@ const ShowOrder = () => {
         >
           <strong>Name:</strong> {params.row.User_Name}
           <br />
-        <strong>Type:</strong> {params.row.User_Type}
+          <strong>Type:</strong> {params.row.User_Type}
           <br />
           <strong>Mobile:</strong> {params.row.User_Mobile_No}
         </div>
@@ -101,7 +101,11 @@ const ShowOrder = () => {
               <br></br>
               <strong>Payment Status:</strong> {params.row.payment_status}{" "}
               <br />
-              <strong>{params.row.payment_status === "Paid" ? `Paid Amount:` : `Pending Amount:`} </strong>{" "}
+              <strong>
+                {params.row.payment_status === "Paid"
+                  ? `Paid Amount:`
+                  : `Pending Amount:`}{" "}
+              </strong>{" "}
               {params.row.FinalPrice - params.row.cod_advance_amt}
             </>
           ) : (
@@ -346,7 +350,8 @@ const ShowOrder = () => {
       confirmButtonText: "Yes, delete it!",
     }).then((result) => {
       if (result.isConfirmed) {
-        axios.delete(`${url}/order/delete/${id}`, {
+        axios
+          .delete(`${url}/order/delete/${id}`, {
             headers: {
               Authorization: `${adminToken}`,
             },
@@ -629,7 +634,13 @@ const ShowOrder = () => {
                 <DataGrid
                   getRowHeight={() => "auto"}
                   style={{ textTransform: "capitalize", fontSize: 13 }}
-                  rows={searchQuery === "" && startDateFilter === "" && endDateFilter === "" ? orderData : handleFilter()}
+                  rows={
+                    searchQuery === "" &&
+                    startDateFilter === "" &&
+                    endDateFilter === ""
+                      ? orderData
+                      : handleFilter()
+                  }
                   columns={columns}
                   checkboxSelection
                   disableSelectionOnClick
@@ -648,8 +659,20 @@ const ShowOrder = () => {
                   onCellClick={handleCellClick}
                   onRowSelectionModelChange={(e) => setSelectedRows(e)}
                   pagination
-                  paginationMode={searchQuery === "" && startDateFilter === "" && endDateFilter === "" ? "server" : "client"} // Use client pagination during search
-                  rowCount={searchQuery === "" && startDateFilter === "" && endDateFilter === "" ? rowCount : handleFilter().length}
+                  paginationMode={
+                    searchQuery === "" &&
+                    startDateFilter === "" &&
+                    endDateFilter === ""
+                      ? "server"
+                      : "client"
+                  } // Use client pagination during search
+                  rowCount={
+                    searchQuery === "" &&
+                    startDateFilter === "" &&
+                    endDateFilter === ""
+                      ? rowCount
+                      : handleFilter().length
+                  }
                   pageSizeOptions={[10, 25, 50, 100]}
                   paginationModel={paginationModel}
                   onPaginationModelChange={handlePaginationChange}

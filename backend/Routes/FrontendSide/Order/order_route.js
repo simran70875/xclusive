@@ -3,11 +3,9 @@ const route = express.Router();
 const { Variation } = require("../../../Models/BackendSide/product_model");
 const Order = require("../../../Models/FrontendSide/order_model");
 const Cart = require("../../../Models/FrontendSide/cart_model");
-const Wallet = require("../../../Models/FrontendSide/wallet_model");
 const User = require("../../../Models/FrontendSide/user_model");
 const Coupons = require("../../../Models/FrontendSide/coupon_model");
 const Review = require("../../../Models/FrontendSide/review_model");
-const Coins = require("../../../Models/FrontendSide/coins_model");
 const authMiddleware = require("../../../Middleware/authMiddleWares");
 const checkAdminOrRole1 = require("../../../Middleware/checkAdminOrRole1");
 const checkAdminRole = require("../../../Middleware/adminMiddleWares");
@@ -1291,509 +1289,113 @@ route.delete("/delete", checkAdminOrRole1, async (req, res) => {
 });
 
 // coins reward
-const processOrderResponse = async (orderId, UserName) => {
-  try {
-    const order = await Order.findById(orderId)
-      .populate("cartData.product", "Product_Name")
-      .populate("userId", "User_Name User_Mobile_No")
-      .populate("Coupon");
-
-    if (order.Coupon && order.Coupon.createdBy) {
-      const userId = order.Coupon.createdBy?.id
-        ? order.Coupon.createdBy?.id
-        : null;
-      const coinsReward = order.Coupon.coinsReward;
-      const couponCode = order.Coupon.couponCode;
-      const orderId = order._id;
-      const showOrderId = order.orderId;
-      const user = await User.findById(userId);
-      const userName = UserName;
-
-      // Calculate the amount based on coinsReward and cartData
-      const amount =
-        coinsReward *
-        order.cartData.reduce((total, item) => total + (item.Quantity || 0), 0);
-
-      // Check if the user already has a coins record for the same coupon and order
-      const existingCoinsRecord = await Coins.findOne({
-        userId: userId,
-        Coupon: couponCode,
-        orderId: orderId,
-      });
-
-      if (!userId === null || userId !== null) {
-        if (!existingCoinsRecord) {
-          // Create a new Coins record
-          const newCoinsRecord = new Coins({
-            userId: userId,
-            Amount: amount,
-            Description: `Greetings! You earned ${amount} coins on order placed by ${userName} with Order ID ${showOrderId}.`,
-            orderId: orderId,
-            Coupon: couponCode,
-            Type: "0",
-            Trans_Type: "Credit",
-          });
-          await newCoinsRecord.save();
-          if (user) {
-            user.Coins += amount;
-            await user.save();
-          }
-        } else {
-          console.log(
-            `Coins reward already added for user ${userName} and coupon ${couponCode}`
-          );
-        }
-      }
-    } else {
-      console.log("Conditions not met for adding coins reward.");
-    }
-  } catch (error) {
-    console.error("Error processing order response:", error);
-  }
-};
-
-// cancel coins reward
-const processOrderResponseinReturn = async (orderId, UserName) => {
-  try {
-    const order = await Order.findById(orderId)
-      .populate("cartData.product", "Product_Name")
-      .populate("userId", "User_Name User_Mobile_No")
-      .populate("Coupon");
-
-    if (order.Coupon && order.Coupon.createdBy) {
-      const userId = order.Coupon.createdBy?.id
-        ? order.Coupon.createdBy?.id
-        : null;
-      const coinsReward = order.Coupon.coinsReward;
-      const couponCode = order.Coupon.couponCode;
-      const orderId = order._id;
-      const showOrderId = order.orderId;
-      const user = await User.findById(userId);
-      const userName = UserName;
-
-      // Calculate the amount based on coinsReward and cartData
-      const amount =
-        coinsReward *
-        order.cartData.reduce((total, item) => total + (item.Quantity || 0), 0);
-
-      // Check if the user already has a coins record for the same coupon and order
-      // const existingCoinsRecord = await Coins.findOne({
-      //     userId: userId,
-      //     Coupon: couponCode,
-      //     orderId: orderId,
-      // });
-
-      // Create a new Coins record
-      const newCoinsRecord = new Coins({
-        userId: userId,
-        Amount: amount,
-        // Description: `Sorry! Your ${amount} coins deduct, beacause of ${userName} Cancelled their order , Order ID ${showOrderId}.`,
-        Description: `We regret having to deduct the credited ${amount} reward coins owing to the return of an order with Order ID ${showOrderId} placed by ${userName}.`,
-        orderId: orderId,
-        Coupon: couponCode,
-        Type: "0",
-        Trans_Type: "Debit",
-      });
-      await newCoinsRecord.save();
-      if (user) {
-        user.Coins -= amount;
-        await user.save();
-      }
-    } else {
-      console.log("Conditions not met for adding coins reward.");
-    }
-  } catch (error) {
-    console.error("Error processing order response:", error);
-  }
-};
-
-// funcation for send SMS
-// const sendSMS = async (to, orderId, templateId) => {
-//   const msg91AuthKey = "412707AdE2f6UHYXWq65993b88P1";
-
-//   try {
-//     const response = await axios.post(
-//       "https://api.msg91.com/api/v5/flow/sms/send/",
-//       {
-//         authkey: msg91AuthKey,
-//         template_id: templateId,
-//         short_url: "1",
-//         recipients: [{ mobiles: to, var: orderId, VAR2: "VALUE2" }],
-//       }
-//     );
-
-//     console.log("SMS Sent Successfully:", response.data);
-//   } catch (error) {
-//     console.error("Error sending SMS:", error.response.data);
-//   }
-// };
-
-// funcation for send notification
-// const notifyUserOfOrderStatusChange = async (orderId, orderType) => {
+// const processOrderResponse = async (orderId, UserName) => {
 //   try {
 //     const order = await Order.findById(orderId)
 //       .populate("cartData.product", "Product_Name")
 //       .populate("userId", "User_Name User_Mobile_No")
 //       .populate("Coupon");
 
-//     const OrderId = order?.orderId;
-//     const userId = order?.userId;
-//     const user = await User.findById(userId);
-//     const userName = user?.User_Name;
-//     const userType = user?.User_Type;
-//     const userMobile = user?.User_Mobile_No;
-//     const toPhoneNumber = "91" + userMobile;
-//     const notificationToken = user?.Notification_Token;
-//     const mainOrderId = order?._id;
+//     if (order.Coupon && order.Coupon.createdBy) {
+//       const userId = order.Coupon.createdBy?.id
+//         ? order.Coupon.createdBy?.id
+//         : null;
+//       const coinsReward = order.Coupon.coinsReward;
+//       const couponCode = order.Coupon.couponCode;
+//       const orderId = order._id;
+//       const showOrderId = order.orderId;
+//       const user = await User.findById(userId);
+//       const userName = UserName;
 
-//     await notifyAdminOfNewOrder(
-//       mainOrderId,
-//       OrderId,
-//       userId,
-//       userName,
-//       orderType,
-//       notificationToken
-//     );
+//       // Calculate the amount based on coinsReward and cartData
+//       const amount =
+//         coinsReward *
+//         order.cartData.reduce((total, item) => total + (item.Quantity || 0), 0);
 
-//     let sendFor;
-//     if (userType === "0") {
-//       sendFor = "3";
+
+//       if (!userId === null || userId !== null) {
+//         if (!existingCoinsRecord) {
+//           // Create a new Coins record
+//           const newCoinsRecord = new Coins({
+//             userId: userId,
+//             Amount: amount,
+//             Description: `Greetings! You earned ${amount} coins on order placed by ${userName} with Order ID ${showOrderId}.`,
+//             orderId: orderId,
+//             Coupon: couponCode,
+//             Type: "0",
+//             Trans_Type: "Credit",
+//           });
+//           await newCoinsRecord.save();
+//           if (user) {
+//             user.Coins += amount;
+//             await user.save();
+//           }
+//         } else {
+//           console.log(
+//             `Coins reward already added for user ${userName} and coupon ${couponCode}`
+//           );
+//         }
+//       }
 //     } else {
-//       sendFor = "4";
+//       console.log("Conditions not met for adding coins reward.");
 //     }
-
-//     let message;
-//     let title;
-//     if (orderType === "2") {
-//       const templateId = "65940fead6fc053236350e32";
-//       sendSMS(toPhoneNumber, OrderId, templateId);
-//       title = "Order Placed";
-//       message = `Greetings, ${userName}! We appreciate your order at Budai Exclusive. Order ID: ${OrderId} has been successfully placed. Thank you for choosing us!`;
-//     } else if (orderType === "3") {
-//       const templateId = "659410a8d6fc052ec5516172";
-//       sendSMS(toPhoneNumber, OrderId, templateId);
-//       title = `Order Picked Up`;
-//       message = `Hello, ${userName}! We're pleased to inform you that your order with Order ID: ${OrderId} has been successfully picked up and is now en route to you. Expect it to arrive on time according to the planned schedule. Thank you for selecting our services!`;
-//     } else if (orderType === "4") {
-//       title = "Order Rejected";
-//       message = `Hi, ${userName}! We regret to inform you that Budai Exclusive has rejected your order bearing Order ID: ${OrderId}.`;
-//     } else if (orderType === "5") {
-//       title = "Order Deliverd";
-//       message = `Greetings, ${userName}! We'd like to inform you that your order bearing Order ID: ${OrderId} has been successfully delivered by Budai Exclusive. Shop Again!.`;
-//     } else if (orderType === "6") {
-//       title = "Order Cancelled";
-//       message = `Hi, ${userName}! We regret to inform you that Budai Exclusive has cancelled your order with Order ID: ${OrderId}. Feel free to explore our offerings and shop again.`;
-//     } else if (orderType === "7") {
-//       title = "Order Returend";
-//       message = `Greetings, ${userName}! We'd like to inform you that your order bearing Order ID: ${orderId} is currently undergoing the return process initiated by Budai Exclusive.`;
-//     }
-
-//     const newNotification = new Notification({
-//       sendFor: sendFor,
-//       userType,
-//       title,
-//       message,
-//       userId: [userId],
-//       orderId: mainOrderId,
-//       type: "1",
-//     });
-
-//     await newNotification.save();
 //   } catch (error) {
-//     console.log(error);
+//     console.error("Error processing order response:", error);
 //   }
 // };
 
-// funcation for send notification to user for order
-// const notifyAdminOfNewOrder = async (
-//   mainOrderId,
-//   orderId,
-//   userId,
-//   userName,
-//   orderType,
-//   notificationToken
-// ) => {
+// cancel coins reward
+// const processOrderResponseinReturn = async (orderId, UserName) => {
 //   try {
-//     let message;
-
-//     if (orderType === "2") {
-//       message = {
-//         notification: {
-//           title: `Order Placed`,
-//           body: `Greetings, ${userName}! We appreciate your order at Budai Exclusive. Order ID: ${orderId} has been successfully placed. Thank you for choosing us!`,
-//         },
-//         data: {
-//           orderId: `${mainOrderId}`,
-//         },
-//       };
-//     } else if (orderType === "3") {
-//       message = {
-//         notification: {
-//           title: `Order Picked Up`,
-//           body: `Hello, ${userName}! We're pleased to inform you that your order with Order ID: ${orderId} has been successfully picked up and is now en route to you. Expect it to arrive on time according to the planned schedule. Thank you for selecting our services!`,
-//         },
-//         data: {
-//           orderId: `${mainOrderId}`,
-//         },
-//       };
-//     } else if (orderType === "4") {
-//       message = {
-//         notification: {
-//           title: `Order Rejected`,
-//           body: `Hi, ${userName}! We regret to inform you that Budai Exclusive has rejected your order bearing Order ID: ${orderId}.`,
-//         },
-//         data: {
-//           orderId: `${mainOrderId}`,
-//         },
-//       };
-//     } else if (orderType === "5") {
-//       message = {
-//         notification: {
-//           title: `Order Deliverd`,
-//           body: `Greetings, ${userName}! We'd like to inform you that your order bearing Order ID: ${orderId} has been successfully delivered by Budai Exclusive. Shop Again!.`,
-//         },
-//         data: {
-//           orderId: `${mainOrderId}`,
-//         },
-//       };
-//     } else if (orderType === "6") {
-//       message = {
-//         notification: {
-//           title: `Order Cancelled`,
-//           body: `Hi, ${userName}! We regret to inform you that Budai Exclusive has cancelled your order with Order ID: ${orderId}. Feel free to explore our offerings and shop again.`,
-//         },
-//         data: {
-//           orderId: `${mainOrderId}`,
-//         },
-//       };
-//     } else if (orderType === "7") {
-//       message = {
-//         notification: {
-//           title: `Order Returend`,
-//           body: `Greetings, ${userName}! We'd like to inform you that your order bearing Order ID: ${orderId} is currently undergoing the return process initiated by Budai Exclusive.`,
-//         },
-//         data: {
-//           orderId: `${mainOrderId}`,
-//         },
-//       };
-//     }
-
-//     // An array of FCM tokens for the devices you want to notify
-//     const fcmTokens = [notificationToken];
-
-//     // Send a message to each device
-//     const sendPromises = fcmTokens.map((token) => {
-//       message.token = token;
-//       return admin.messaging().send(message);
-//     });
-
-//     // Wait for all notifications to be sent
-//     Promise.all(sendPromises)
-//       .then((responses) => {
-//         console.log("Successfully sent messages:", responses);
-//       })
-//       .catch((error) => {
-//         console.error("Error sending messages:", error);
-//       });
-//   } catch (error) {
-//     // console.log(error, "err")
-//   }
-// };
-
-// push order into ship rocket
-// const pushOrderIntoShipRocket = async (id) => {
-//     try {
-
-//         const order = await Order.findById(id)
-//             .populate('cartData.product', 'Product_Name')
-//             .populate('userId', 'User_Name User_Mobile_No')
-
-//         const OrderId = order?.orderId
-//         const mainOrderId = order?._id
-//         const userId = order?.userId
-//         const user = await User.findById(userId);
-//         const userName = user?.User_Name
-//         const userType = user?.User_Type
-
-//     } catch (error) {
-
-//     }
-// }
-
-// const pushOrderIntoShipRocket = async (id) => {
-//   try {
-//     const order = await Order.findById(id)
+//     const order = await Order.findById(orderId)
 //       .populate("cartData.product", "Product_Name")
 //       .populate("userId", "User_Name User_Mobile_No")
-//       .populate(
-//         "Address",
-//         "landmark Full_Address State City Name Pincode Phone_Number"
-//       );
+//       .populate("Coupon");
 
-//     const OrderId = order?.orderId;
-//     const mainOrderId = order?._id;
-//     const userId = order?.userId;
-//     const user = await User.findById(userId);
-//     const userName = user?.User_Name;
-//     const userType = user?.User_Type;
-//     const PaymentType = user?.PaymentType;
-//     let paymentMethod = "";
-//     if (PaymentType === "2") {
-//       paymentMethod = "COD";
-//     } else {
-//       paymentMethod = "Prepaid";
-//     }
+//     if (order.Coupon && order.Coupon.createdBy) {
+//       const userId = order.Coupon.createdBy?.id
+//         ? order.Coupon.createdBy?.id
+//         : null;
+//       const coinsReward = order.Coupon.coinsReward;
+//       const couponCode = order.Coupon.couponCode;
+//       const orderId = order._id;
+//       const showOrderId = order.orderId;
+//       const user = await User.findById(userId);
+//       const userName = UserName;
 
-//     // Fetch products separately
-//     const products = await Product.find({
-//       _id: { $in: order.cartData.map((item) => item.product) },
-//     });
+//       // Calculate the amount based on coinsReward and cartData
+//       const amount =
+//         coinsReward *
+//         order.cartData.reduce((total, item) => total + (item.Quantity || 0), 0);
 
-//     // "billing_customer_name": order?.Address?.Name,
-//     //     "billing_last_name": "Not",
-//     //     "billing_address": order?.Address?.Full_Address,
-//     //     "billing_address_2":  order?.Address?.landmark,
-//     //     "billing_city": order?.Address?.City,
-//     //     "billing_pincode": order?.Address?.Pincode,
-//     //     "billing_state": order?.Address?.State,
-//     //     "billing_country": "India",
-//     //     "billing_email": user?.User_Email,
-//     //     "billing_phone": order?.Address?.Phone_Number,
+//       // Check if the user already has a coins record for the same coupon and order
+//       // const existingCoinsRecord = await Coins.findOne({
+//       //     userId: userId,
+//       //     Coupon: couponCode,
+//       //     orderId: orderId,
+//       // });
 
-//     // Construct the payload for Shiprocket API
-//     // const shiprocketPayload = {
-//     //     "order_id": OrderId.toString(),
-//     //     "order_date": order.createdAt.toISOString(),
-//     //     "pickup_location": "shankey chawla",
-//     //     "channel_id": "",
-//     //     "comment": "Reseller: M/s Goku",
-//     //     "billing_customer_name": order?.Address?.Name,
-//     //     "billing_last_name": order?.Address?.Name,
-//     //     "billing_address": order?.Address?.Full_Address,
-//     //     "billing_address_2": order?.Address?.landmark,
-//     //     "billing_city": order?.Address?.City,
-//     //     "billing_pincode": order?.Address?.Pincode,
-//     //     "billing_state": order?.Address?.State,
-//     //     "billing_country": "India",
-//     //     "billing_email": user?.User_Email,
-//     //     "billing_phone": order?.Address?.Phone_Number,
-//     //     "shipping_is_billing": true,
-//     //     "shipping_customer_name": userName,
-//     //     "shipping_last_name": "",
-//     //     "shipping_address": order.shippingAddress,
-//     //     "shipping_address_2": order.shippingAddress2,
-//     //     "shipping_city": order?.Address?.City,
-//     //     "shipping_pincode": order?.Address?.Pincode,
-//     //     "shipping_country": 'India',
-//     //     "shipping_state": order?.Address?.State,
-//     //     "shipping_email": user?.User_Email,
-//     //     "shipping_phone": user?.User_Mobile_No,
-//     //     // "order_items": order.cartData.map(item => {
-//     //     //     const product = products.find(p => p._id.toString() === item.product.toString());
-//     //     //     return {
-//     //     //         "name": product?.Product_Name,
-//     //     //         "sku": product?.SKU_Code,
-//     //     //         "units": item?.Quantity || 1,
-//     //     //         "selling_price": item?.discountPrice?.toString(),
-//     //     //         "discount": "",
-//     //     //         "tax": "",
-//     //     //         "hsn": 441122,
-//     //     //     };
-//     //     // }),
-//     //     "order_items": [
-//     //         {
-//     //             "name": "Kunai",
-//     //             "sku": "chakra123",
-//     //             "units": 10,
-//     //             "selling_price": "900",
-//     //             "discount": "",
-//     //             "tax": "",
-//     //             "hsn": 441122
-//     //         }
-//     //     ],
-//     //     "payment_method": "COD",
-//     //     "shipping_charges": 0,
-//     //     "giftwrap_charges": 0,
-//     //     "transaction_charges": 0,
-//     //     "total_discount": 0,
-//     //     "sub_total": order?.FinalPrice,
-//     //     "length": 10,
-//     //     "breadth": 15,
-//     //     "height": 20,
-//     //     "weight": 2.5,
-//     // };
-
-//     const shiprocketPayload = {
-//       order_id: OrderId.toString(),
-//       order_date: order.createdAt.toISOString(),
-//       pickup_location: "shankey chawla",
-//       channel_id: "",
-//       comment: "Reseller: M/s Goku",
-//       billing_customer_name: order?.Address?.Name,
-//       billing_last_name: "",
-//       billing_address: order?.Address?.Full_Address,
-//       billing_address_2: order?.Address?.landmark,
-//       billing_city: order?.Address?.City,
-//       billing_pincode: order?.Address?.Pincode,
-//       billing_state: order?.Address?.State,
-//       billing_country: "India",
-//       billing_email: user?.User_Email || "",
-//       billing_phone: order?.Address?.Phone_Number,
-//       shipping_is_billing: true,
-//       shipping_customer_name: "",
-//       shipping_last_name: "",
-//       shipping_address: "",
-//       shipping_address_2: "",
-//       shipping_city: "",
-//       shipping_pincode: "",
-//       shipping_country: "",
-//       shipping_state: "",
-//       shipping_email: "",
-//       shipping_phone: "",
-//       order_items: order.cartData.map((item) => {
-//         const product = products.find(
-//           (p) => p._id.toString() === item.product.toString()
-//         );
-//         return {
-//           name: product?.Product_Name,
-//           sku: product?.SKU_Code,
-//           units: item?.Quantity || 1,
-//           selling_price: item?.discountPrice?.toString(),
-//           discount: "",
-//           tax: "",
-//           hsn: 441122,
-//         };
-//       }),
-//       payment_method: paymentMethod,
-//       shipping_charges: 0,
-//       giftwrap_charges: 0,
-//       transaction_charges: 0,
-//       total_discount: 0,
-//       sub_total: order?.FinalPrice,
-//       length: 10,
-//       breadth: 15,
-//       height: 20,
-//       weight: 2.5,
-//     };
-
-//     // Make a POST request to Shiprocket API
-//     const response = await axios.post(
-//       "https://apiv2.shiprocket.in/v1/external/orders/create/adhoc",
-//       shiprocketPayload,
-//       {
-//         headers: {
-//           "Content-Type": "application/json",
-//           Authorization:
-//             "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczovL2FwaXYyLnNoaXByb2NrZXQuaW4vdjEvZXh0ZXJuYWwvYXV0aC9sb2dpbiIsImlhdCI6MTcwMDIxMjM0NSwiZXhwIjoxNzAxMDc2MzQ1LCJuYmYiOjE3MDAyMTIzNDUsImp0aSI6Ikw1ekxUZU5Ma0g0UmRqN2UiLCJzdWIiOjM4MjQ3NjUsInBydiI6IjA1YmI2NjBmNjdjYWM3NDVmN2IzZGExZWVmMTk3MTk1YTIxMWU2ZDkifQ.IYY-5oLgJY0Kazeu6CZYXQSaKCCCH7QcC_C8SK3USgY",
-//         },
+//       // Create a new Coins record
+//       const newCoinsRecord = new Coins({
+//         userId: userId,
+//         Amount: amount,
+//         // Description: `Sorry! Your ${amount} coins deduct, beacause of ${userName} Cancelled their order , Order ID ${showOrderId}.`,
+//         Description: `We regret having to deduct the credited ${amount} reward coins owing to the return of an order with Order ID ${showOrderId} placed by ${userName}.`,
+//         orderId: orderId,
+//         Coupon: couponCode,
+//         Type: "0",
+//         Trans_Type: "Debit",
+//       });
+//       await newCoinsRecord.save();
+//       if (user) {
+//         user.Coins -= amount;
+//         await user.save();
 //       }
-//     );
-
-//     // Handle the Shiprocket API response as needed
-//     console.log(response.data);
+//     } else {
+//       console.log("Conditions not met for adding coins reward.");
+//     }
 //   } catch (error) {
-//     // console.error(error);
-//     // Handle the error as needed
+//     console.error("Error processing order response:", error);
 //   }
 // };
 

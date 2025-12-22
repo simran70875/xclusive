@@ -1,6 +1,5 @@
 import axios from 'axios';
-import React, { useEffect, useState } from 'react'
-import AlertBox from '../../Components/AlertComp/AlertBox';
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom';
 
 let url = process.env.REACT_APP_API_URL

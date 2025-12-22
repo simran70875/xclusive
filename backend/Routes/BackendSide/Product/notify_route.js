@@ -1,14 +1,8 @@
 const express = require('express');
 const route = express.Router();
 const Notify = require('../../../Models/FrontendSide/notify_me_model');
-const mongoose = require('mongoose');
 const authMiddleWare = require('../../../Middleware/authMiddleWares')
-const checkAdminRole = require('../../../Middleware/adminMiddleWares')
-const checkAdminOrRole1 = require('../../../Middleware/checkAdminOrRole1')
 const checkAdminOrRole2 = require('../../../Middleware/checkAdminOrRole2')
-const checkAdminOrRole4 = require('../../../Middleware/checkAdminOrRole4')
-const checkAdminOrRole5 = require('../../../Middleware/checkAdminOrRole5');
-const { Variation } = require('../../../Models/BackendSide/product_model');
 
 // add notify
 route.post('/add', authMiddleWare, async (req, res) => {

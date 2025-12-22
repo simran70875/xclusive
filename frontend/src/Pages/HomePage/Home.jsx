@@ -1,7 +1,6 @@
 import { useEffect } from "react";
 import Slider from "react-slick";
 import { memo, useState } from "react";
-import ReactPlayer from "react-player";
 import { useNavigate } from "react-router-dom";
 import { Col, Image, Row } from "antd";
 import { useDispatch, useSelector } from "react-redux";
@@ -18,14 +17,7 @@ import {
   getProductFeatureListApi2,
   getProductFeatureListApi3,
 } from "../../Features/Product/Product";
-import logo from "../../Assets/PNG/logo.png";
 import logo2 from "../../Assets/PNG/logo.png";
-import reseller from "../../Assets/PNG/reseller.png";
-import thankyou from "../../Assets/PNG/thankyou.png";
-import simple from "../../Assets/PNG/simple.png";
-import appstore from "../../Assets/PNG/appstore.png";
-import playstore from "../../Assets/PNG/playstore.png";
-import CustomerReview from "./CustomerReview/CustomerReview";
 import { getSettingApi } from "../../Features/Setting/Setting";
 import { getProfileApi } from "../../Features/User/User";
 import { getCategoryFeatureApi } from "../../Features/Category/Category";
@@ -45,7 +37,6 @@ function Home() {
   const productFeatureListing1 = useSelector(
     (state) => state.product?.productList1
   );
-  console.log("productFeatureListing1 ==> ", productFeatureListing1);
 
   const productFeatureListing2 = useSelector(
     (state) => state.product?.productList2
@@ -60,6 +51,9 @@ function Home() {
   const likeCounter = useSelector((state) => state.user?.likeCount);
   const bannerPrpduct = useSelector((state) => state.banner?.bannerProductData);
   const givewishlist = useSelector((state) => state.wishList?.wishlist);
+
+  const catagoryItem = useSelector((state) => state.category?.categoryData);
+  
   const settingVideo = useSelector((state) => state.setting?.settingData);
   const profileData = useSelector((state) => state.user?.profileData);
 
@@ -292,7 +286,7 @@ function Home() {
                   key={index}
                   src={item?.banner_Image}
                   alt="banner_Image"
-                  onClick={() => Catagory(item)}
+                  // onClick={() => Catagory(item)}
                 />
               </div>
             ))}
@@ -335,8 +329,14 @@ function Home() {
             <h2 className={styles.sectionTitle}>TRENDY COLLACTION</h2>
             <Row justify="start">
               {productFeatureListing1?.map((item, index) => (
-                <Col lg={24} xl={6} xxl={6} className={styles.setMain}>
-                  <div className={styles.slider} key={index}>
+                <Col
+                  lg={24}
+                  xl={6}
+                  xxl={6}
+                  key={index}
+                  className={styles.setMain}
+                >
+                  <div className={styles.slider}>
                     {userToken ? (
                       <div className={styles.hearticon}>
                         {getProductIsLikedOrNot(item?._id) ? (
@@ -390,8 +390,8 @@ function Home() {
             <h2 className={styles.sectionTitle}>TRENDY COLLECTIONS</h2>
             <Slider {...settings3} className={styles.smain}>
               {productFeatureListing1?.map((data, index) => (
-                <Col lg={24} xl={6} xxl={6}>
-                  <div className={styles.slider} key={index}>
+                <Col lg={24} xl={6} xxl={6} key={index}>
+                  <div className={styles.slider}>
                     {userToken ? (
                       <div className={styles.hearticon}>
                         {getProductIsLikedOrNot(data?._id) ? (
@@ -435,11 +435,11 @@ function Home() {
           </Col>
         )}
 
-        {productFeatureListing1?.length <= 4 ? (
+        {productFeatureListing2?.length <= 4 ? (
           <Col xs={22} md={22} lg={22} xl={22} xxl={22} className={styles.wear}>
             <h2 className={styles.sectionTitle}>BEST SELLING PRODUCTS</h2>
             <Row justify="start">
-              {productFeatureListing1?.map((item, index) => (
+              {productFeatureListing2?.map((item, index) => (
                 <Col xl={6} xxl={6} className={styles.setMain}>
                   <div className={styles.slider} key={index}>
                     {userToken ? (
@@ -494,9 +494,9 @@ function Home() {
           >
             <h2 className={styles.sectionTitle}>BEST SELLING PRODUCTS</h2>
             <Slider {...settings3} className={styles.smain}>
-              {productFeatureListing1?.map((data, index) => (
-                <Col lg={24} xl={6} xxl={6}>
-                  <div className={styles.slider} key={index}>
+              {productFeatureListing2?.map((data, index) => (
+                <Col lg={24} xl={6} xxl={6} key={index}>
+                  <div className={styles.slider}>
                     {userToken ? (
                       <div className={styles.hearticon}>
                         {getProductIsLikedOrNot(data?._id) ? (
@@ -540,44 +540,10 @@ function Home() {
           </Col>
         )}
 
-        <Row className={styles.banner}>
-          <Col xs={24} md={12} lg={12}>
-            {profileData?.User_Type === "1" ||
-            profileData?.User_Type === "2" ||
-            profileData?.User_Type === "3" ? (
-              <Image
-                preview={false}
-                style={{ height: "100%", width: "100%" }}
-                src={thankyou}
-                alt="reseller"
-              />
-            ) : (
-              <img
-                style={{ height: "100%", width: "100%" }}
-                src={reseller}
-                alt="reseller"
-              />
-            )}
-          </Col>
-          <Col xs={24} md={12} lg={12}>
-            {settingVideo?.app_youtube_video ? (
-              <ReactPlayer
-                url={
-                  "https://www.youtube.com/watch?v=" +
-                  settingVideo?.app_youtube_video
-                }
-                className={styles.video}
-              />
-            ) : (
-              <Image preview={false} src={simple} alt="simple" />
-            )}{" "}
-          </Col>
-        </Row>
-
         <Col xs={24} md={24} lg={24} xl={24} xxl={24} className={styles.banner}>
           <Slider {...settings2} className={styles.bannercourasel}>
             {bannerPrpduct?.map((item, index) => (
-              <>
+              <div key={index}>
                 <Image
                   preview={false}
                   key={index}
@@ -587,14 +553,14 @@ function Home() {
                     handleAddCart(item?.productId, item?.productName)
                   }
                 />
-              </>
+              </div>
             ))}
           </Slider>
         </Col>
 
         {productFeatureListing3?.length <= 4 ? (
           <Col xs={22} md={22} lg={22} xl={22} xxl={22} className={styles.wear}>
-            <h2>POPULAR PICKS</h2>
+            <h2 className={styles.sectionTitle}>POPULAR PICKS</h2>
             <Row justify="start">
               {productFeatureListing3?.map((item, index) => (
                 <Col xl={6} xxl={6} className={styles.setMain} key={index}>
@@ -649,11 +615,11 @@ function Home() {
             xxl={22}
             className={styles.wearSet}
           >
-            <h2>POPULAR PICKS</h2>
+            <h2 className={styles.sectionTitle}>POPULAR PICKS</h2>
             <Slider {...settings3} className={styles.smain}>
               {productFeatureListing3?.map((data, index) => (
-                <Col lg={24} xl={6} xxl={6}>
-                  <div className={styles.slider} key={index}>
+                <Col lg={24} xl={6} xxl={6} key={index}>
+                  <div className={styles.slider}>
                     {userToken ? (
                       <div className={styles.hearticon}>
                         {getProductIsLikedOrNot(data?._id) ? (
@@ -696,22 +662,8 @@ function Home() {
             </Slider>
           </Col>
         )}
+
         {/* <Col
-          xs={24}
-          md={24}
-          lg={24}
-          xl={24}
-          xxl={24}
-          className={styles.banner0}
-        >
-          <Image preview={false}
-            src={manaali}
-            alt="manaali"
-            
-            style={{ width: "100%", height: "auto", marginBottom: "50px" }}
-          />
-        </Col> */}
-        <Col
           style={{ backgroundColor: "#ebe8e7" }}
           xs={22}
           md={22}
@@ -720,62 +672,8 @@ function Home() {
           xxl={22}
           className={styles.banner2}
         >
-          {/* <Image preview={false} src={customer} alt="customer"  /> */}
           <CustomerReview />
-        </Col>
-        <Col
-          xs={22}
-          md={22}
-          lg={22}
-          xl={22}
-          xxl={22}
-          className={styles.reseller}
-        >
-          <div style={{ flex: 1 }}>
-            <img src={simple} alt="simple" />
-          </div>
-          <div style={{ flex: 1 }}>
-            <div className={styles.details}>
-              <img
-                src={logo}
-                alt="logo"
-
-                // className={styles.logo}
-              />
-              <p>
-                Step into a world of elegance with Shubh Libaas!
-                <br /> Elevate your style effortlessly by downloading
-                <br /> the Shubh Libaas app
-              </p>
-              <br />
-              <br />
-              <div>
-                <Image
-                  preview={false}
-                  src={playstore}
-                  alt="logo"
-                  className={styles.google}
-                  onClick={() =>
-                    window.open(
-                      "https://play.google.com/store/apps/details?id=com.shubhlibaas&pli=1"
-                    )
-                  }
-                />
-                <Image
-                  preview={false}
-                  src={appstore}
-                  alt="logo"
-                  className={styles.google}
-                  onClick={() =>
-                    window.open(
-                      "https://apps.apple.com/in/app/shubh-libaas/id6468953659"
-                    )
-                  }
-                />
-              </div>
-            </div>
-          </div>
-        </Col>
+        </Col> */}
       </Row>
       <PopupModal />
     </div>

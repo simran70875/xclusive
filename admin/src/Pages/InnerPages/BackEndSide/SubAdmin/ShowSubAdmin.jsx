@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { DataGrid, GridToolbar } from "@mui/x-data-grid";
 import IconButton from "@mui/material/IconButton";
 import Stack from "@mui/material/Stack";
@@ -26,12 +26,6 @@ const ShowSubAdmin = () => {
   // for big image
   const [selectedImage, setSelectedImage] = useState("");
   const [isModalOpenforImage, setIsModalOpenforImage] = useState(false);
-
-//   const handleImageClick = (imageURL) => {
-//     setSelectedImage(imageURL);
-//     setIsModalOpenforImage(true);
-//   };
-
   const Navigate = useNavigate();
   const dispatch = useDispatch();
 

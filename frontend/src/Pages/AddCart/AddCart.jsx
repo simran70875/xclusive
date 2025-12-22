@@ -24,7 +24,6 @@ import whatsapp from "../../Assets/PNG/whatsapp.png";
 import Description from "../Description/Description";
 import { addCartApi } from "../../Features/AddCart/AddCart";
 import { getProductReviewApi } from "../../Features/Setting/Setting";
-import { setCartCount, setLikeCount } from "../../Features/User/User";
 import { addWishList, getWishListApi } from "../../Features/WishList/WishList";
 
 import styles from "./index.module.scss";

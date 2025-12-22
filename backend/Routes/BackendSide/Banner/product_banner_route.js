@@ -3,12 +3,7 @@ const route = express.Router()
 const multer = require('multer')
 const Banner = require('../../../Models/BackendSide/product_banner_model')
 const fs = require('fs');
-const checkAdminRole = require('../../../Middleware/adminMiddleWares')
-const { checkAdminWithMultRole354 } = require('../../../Middleware/checkAdminWithMultRole')
-const checkAdminOrRole1 = require('../../../Middleware/checkAdminOrRole1')
 const checkAdminOrRole2 = require('../../../Middleware/checkAdminOrRole2')
-const checkAdminOrRole3 = require('../../../Middleware/checkAdminOrRole3')
-const checkAdminOrRole4 = require('../../../Middleware/checkAdminOrRole4')
 
 
 // Set up multer middleware to handle file uploads

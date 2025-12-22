@@ -1,14 +1,16 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import AlertBox from "../../../../Components/AlertComp/AlertBox";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
-import Select from "react-select";
+
 let url = process.env.REACT_APP_API_URL;
 
 const EditPopBanner = () => {
   const Navigate = useNavigate();
-  const selectedBannerData = useSelector((state) => state?.BannerDataChange?.payload);
+  const selectedBannerData = useSelector(
+    (state) => state?.BannerDataChange?.payload
+  );
 
   const [bannerName, setBannerName] = useState(selectedBannerData?.Banner_Name);
   const [bannerImage, setBannerImage] = useState(null);
@@ -30,7 +32,8 @@ const EditPopBanner = () => {
       try {
         const adminToken = localStorage.getItem("token");
         const bannerId = selectedBannerData?._id;
-        let response = await axios.put(`${url}/popup/banner/update/${bannerId}`,
+        let response = await axios.put(
+          `${url}/popup/banner/update/${bannerId}`,
           formData,
           {
             headers: {
@@ -39,7 +42,7 @@ const EditPopBanner = () => {
           }
         );
 
-        console.log("updated banner response " , response);
+        console.log("updated banner response ", response);
         if (response.data.type === "success") {
           setBannerAddStatus(response.data.type);
           let alertBox = document.getElementById("alert-box");
@@ -75,8 +78,6 @@ const EditPopBanner = () => {
 
     return () => clearTimeout(timer);
   }, [bannerAddStatus, statusMessage]);
-
-
 
   return (
     <>
@@ -115,7 +116,7 @@ const EditPopBanner = () => {
                           />
                         </div>
                       </div>
-                    
+
                       <div className="mb-3 row">
                         <label
                           htmlFor="example-text-input"
@@ -144,13 +145,13 @@ const EditPopBanner = () => {
                                   : `${previewImage}`
                               }
                               alt="user image"
-                              height={'auto'}
+                              height={"auto"}
                               width={300}
                             />
                           </div>
                         </div>
                       </div>
-                  
+
                       <div className="row mb-10">
                         <div className="col ms-auto">
                           <div className="d-flex flex-reverse flex-wrap gap-2">

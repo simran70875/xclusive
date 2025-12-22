@@ -51,39 +51,6 @@ const ShowCategory = () => {
       headerName: "Id",
     },
     {
-      field: "Parent_Category.Category_Name",
-      headerName: "Parent Category",
-      width: 225,
-      filterable: true,
-      sortable: true,
-      filterType: "multiselect",
-      renderCell:(params) => {
-        return (
-          <>
-          {
-            params.row.Parent_Category?.Category_Name
-          }
-          </>
-        )
-      }
-    },
-    {
-      field: "Category_Name",
-      headerName: "Category Name",
-      width: 225,
-      filterable: true,
-      sortable: true,
-      filterType: "multiselect",
-    },
-    {
-      field: "Category_Label",
-      headerName: "Category Name",
-      width: 225,
-      filterable: true,
-      sortable: true,
-      filterType: "multiselect",
-    },
-    {
       field: "Category_Image",
       headerName: "Image",
       width: 150,
@@ -101,27 +68,31 @@ const ShowCategory = () => {
       filterable: false,
     },
     {
-      field: "Category_Sec_Image",
-      headerName: "Second Image",
-      width: 150,
-      renderCell: (params) => (
-        <>
-          {params?.row?.Category_Sec_Image ==
-          `${process.env.REACT_APP_API_URL}/undefined` ? (
-            <>NA</>
-          ) : (
-            <img
-              src={params?.row?.Category_Sec_Image}
-              alt="Category Image"
-              height={35}
-              width={35}
-              style={{ borderRadius: "50%", cursor: "pointer" }}
-              onClick={() => handleImageClick(params?.row?.Category_Sec_Image)}
-            />
-          )}
-        </>
-      ),
-      sortable: false,
+      field: "Parent_Category.Category_Name",
+      headerName: "Parent Category",
+      width: 225,
+      filterable: true,
+      sortable: true,
+      filterType: "multiselect",
+      renderCell: (params) => {
+        return <>{params.row.Parent_Category?.Category_Name}</>;
+      },
+    },
+    {
+      field: "Category_Name",
+      headerName: "Category Name",
+      width: 225,
+      filterable: true,
+      sortable: true,
+      filterType: "multiselect",
+    },
+    {
+      field: "Category_Label",
+      headerName: "Category Name",
+      width: 225,
+      filterable: true,
+      sortable: true,
+      filterType: "multiselect",
     },
     {
       field: "Category_Status",
@@ -466,7 +437,9 @@ const ShowCategory = () => {
               <div className="col-2 table-heading">Category List</div>
               <div className="d-flex gap-2 mt-2">
                 <button
-                  onClick={() => Navigate("/addCategory",{ state: categoryData})}
+                  onClick={() =>
+                    Navigate("/addCategory", { state: categoryData })
+                  }
                   className="btn btn-primary waves-effect waves-light"
                 >
                   Add Category <i className="fas fa-arrow-right ms-2"></i>

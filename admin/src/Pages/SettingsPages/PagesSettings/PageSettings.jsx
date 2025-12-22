@@ -135,12 +135,6 @@ const PageSettings = () => {
     setFaq(value);
   };
 
-  // Quill.register(quillTable.TableCell);
-  // Quill.register(quillTable.TableRow);
-  // Quill.register(quillTable.Table);
-  // Quill.register(quillTable.Contain);
-  // Quill.register('modules/table', quillTable.TableModule);
-
   const tableOptions = [];
   const maxRows = 8;
   const maxCols = 5;
@@ -496,9 +490,6 @@ const PageSettings = () => {
                           <button className="btn btn-success" type="submit">
                             <i className="fas fa-save"></i> Save
                           </button>
-                          {/* <a className="btn btn-danger" onClick={() => Navigate('/showCategory')}>
-                                                    <i className="fas fa-window-close"></i> Cancel
-                                                </a> */}
                         </div>
                       </div>
                       <AlertBox

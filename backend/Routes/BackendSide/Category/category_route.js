@@ -255,7 +255,7 @@ route.post("/add", checkAdminOrRole2,
 );
 
 // get all category
-route.get("/get", checkAdminOrRole2, async (req, res) => {
+route.get("/get", async (req, res) => {
   try {
     const category = await Category.find().populate("Parent_Category", "Category_Name").sort({ createdAt: -1 });
     if (category) {
@@ -336,47 +336,6 @@ route.get("/get/:id", checkAdminOrRole2, async (req, res) => {
       .status(500)
       .json({ type: "error", message: "Server Error!", errorMessage: error });
     console.log(error);
-  }
-});
-
-// get all category on mobile
-route.get("/mob/get", async (req, res) => {
-  try {
-    const category = await Category.find({ Category_Status: true });
-    if (!category) {
-      res
-        .status(404)
-        .json({
-          type: "success",
-          message: " No Category Found!",
-          category: [],
-        });
-    } else {
-      const result = category.map((category) => ({
-        category_id: category._id,
-        category_Name: category.Category_Name,
-        category_Image:
-          `${process.env.IP_ADDRESS}/${category.Category_Image?.path?.replace(
-            /\\/g,
-            "/"
-          )}` || "",
-        Category_Sec_Image:
-          `${process.env.IP_ADDRESS
-          }/${category.Category_Sec_Image?.path?.replace(/\\/g, "/")}` || "",
-        category_Status: category.Category_Status,
-      }));
-      res
-        .status(200)
-        .json({
-          type: "success",
-          message: " Category found successfully!",
-          category: result,
-        });
-    }
-  } catch (error) {
-    res
-      .status(500)
-      .json({ type: "error", message: "Server Error!", errorMessage: error });
   }
 });
 

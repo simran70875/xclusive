@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import Header from "../../Components/HeaderComp/Header";
 import LeftSide from "../../Components/SideBarComp/LeftSide";
 import RightSide from "../../Components/SideBarComp/RightSide";
 import AddCategory from "../InnerPages/BackEndSide/Category/AddCategory";
-import { Outlet, Route, Routes } from "react-router-dom";
+import { Route, Routes } from "react-router-dom";
 import ShowCategory from "../InnerPages/BackEndSide/Category/ShowCategory";
 import EditCategory from "../InnerPages/BackEndSide/Category/EditCategory";
 import AddBanner from "../InnerPages/BackEndSide/Banner/AddBanner";
@@ -20,21 +20,14 @@ import ShowUser from "../InnerPages/FrontEndSide/User/ShowUser";
 import AddChargesSettings from "../SettingsPages/ChargesSettings/AddChargesSettings";
 import EditProduct from "../InnerPages/BackEndSide/Product/EditProduct";
 import ShowOrder from "../InnerPages/FrontEndSide/Order/ShowOrder";
-import MemberShipSettings from "../SettingsPages/ChargesSettings/MemberShipSettings";
 import EditUser from "../InnerPages/FrontEndSide/User/EditUser";
 import GeneralSettingsMain from "../SettingsPages/GeneralSettings/GeneralSettingsMain";
-import GeneralSettings from "../SettingsPages/GeneralSettings/GeneralSettings";
 import PageSettings from "../SettingsPages/PagesSettings/PageSettings";
 import ShowCoupon from "../InnerPages/FrontEndSide/Coupon/ShowCoupon";
 import AddCoupon from "../InnerPages/FrontEndSide/Coupon/AddCoupon";
 import EditCoupon from "../InnerPages/FrontEndSide/Coupon/EditCoupon";
 import EditOrder from "../InnerPages/FrontEndSide/Order/EditOrder";
-import ShowMemberShip from "../InnerPages/FrontEndSide/MemberShip/ShowMemberShip";
-import ShowUserAllMemberShip from "../InnerPages/FrontEndSide/MemberShip/ShowUserAllMemberShip";
-import ShowWalletHistory from "../InnerPages/FrontEndSide/Wallet/ShowWalletHistory";
-import ShowCoinsHistory from "../InnerPages/FrontEndSide/Coins/ShowCoinsHistory";
-import AddWallet from "../InnerPages/FrontEndSide/Wallet/AddWallet";
-import AddCoins from "../InnerPages/FrontEndSide/Coins/AddCoins";
+
 import DashBoard from "./DashBoard";
 import ShowReview from "../InnerPages/FrontEndSide/Review/ShowReview";
 import AddProductBanner from "../InnerPages/BackEndSide/Product_Banner/AddProductBanner";
@@ -89,7 +82,7 @@ const HomePage = () => {
       <RightSide />
 
       <Routes>
-       <Route exact path="/addMarquee" element={<AddMarquee />} />
+        <Route exact path="/addMarquee" element={<AddMarquee />} />
         {/* Banner */}
         <Route exact path="/addBanner" element={<AddBanner />} />
         <Route exact path="/showBanner" element={<ShowBanner />} />
@@ -98,11 +91,18 @@ const HomePage = () => {
         <Route exact path="/addPopBanner" element={<AddPopBanner />} />
         <Route exact path="/editPopBanner" element={<EditPopBanner />} />
 
-        
         <Route exact path="/editBanner" element={<EditBanner />} />
         <Route exact path="/addProductBanner" element={<AddProductBanner />} />
-        <Route exact path="/showProductBanner" element={<ShowProductBanner />}/>
-        <Route exact path="/editProductBanner" element={<EditProductBanner />}/>
+        <Route
+          exact
+          path="/showProductBanner"
+          element={<ShowProductBanner />}
+        />
+        <Route
+          exact
+          path="/editProductBanner"
+          element={<EditProductBanner />}
+        />
 
         {/* Category */}
         <Route exact path="/addCategory" element={<AddCategory />} />
@@ -118,12 +118,24 @@ const HomePage = () => {
         <Route exact path="/addProduct" element={<AddProduct />} />
         <Route exact path="/showProduct" element={<ShowProduct />} />
         <Route exact path="/editProduct" element={<EditProduct />} />
-        <Route exact path="/showLowStockProduct" element={<ShowLowStockProducts />}/>
-        <Route exact path="/showProductNotify" element={<ShowProductNotify />}/>
+        <Route
+          exact
+          path="/showLowStockProduct"
+          element={<ShowLowStockProducts />}
+        />
+        <Route
+          exact
+          path="/showProductNotify"
+          element={<ShowProductNotify />}
+        />
 
         {/* Variation */}
         <Route exact path="/showVariation" element={<ShowVariation />} />
-        <Route exact path="/showVariationSize" element={<ShowVariationSize />} />
+        <Route
+          exact
+          path="/showVariationSize"
+          element={<ShowVariationSize />}
+        />
 
         {/* User */}
         <Route exact path="/showUser" element={<ShowUser />} />
@@ -135,9 +147,17 @@ const HomePage = () => {
         <Route exact path="/newOrder" element={<CreateNewOrder />} />
 
         {/* Settings */}
-        <Route exact path="/addChargesSettings" element={<AddChargesSettings />}/>
-        <Route exact path="/memberShipSettings" element={<MemberShipSettings />}/>
-        <Route exact path="/generalSettings" element={<GeneralSettingsMain />}/>
+        <Route
+          exact
+          path="/addChargesSettings"
+          element={<AddChargesSettings />}
+        />
+
+        <Route
+          exact
+          path="/generalSettings"
+          element={<GeneralSettingsMain />}
+        />
         <Route exact path="/pageSettings" element={<PageSettings />} />
 
         {/* Coupon */}
@@ -145,23 +165,6 @@ const HomePage = () => {
         <Route exact path="/addCoupon" element={<AddCoupon />} />
         <Route exact path="/editCoupon" element={<EditCoupon />} />
 
-        {/* MemberShip */}
-        <Route exact path="/showMemberShip" element={<ShowMemberShip />} />
-        <Route  exact path="/showAllMemberShipOfUser"
-          element={<ShowUserAllMemberShip />}
-        />
-
-        {/* Wallet */}
-        <Route
-          exact
-          path="/showWalletHistory"
-          element={<ShowWalletHistory />}
-        />
-        <Route exact path="/addWallet" element={<AddWallet />} />
-
-        {/* Coins */}
-        <Route exact path="/showCoinsHistory" element={<ShowCoinsHistory />} />
-        <Route exact path="/addCoins" element={<AddCoins />} />
 
         {/* DashBoard */}
         <Route exact path="/" element={<DashBoard />} />

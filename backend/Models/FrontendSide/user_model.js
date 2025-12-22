@@ -28,14 +28,6 @@ const UserSchema = mongoose.Schema(
         User_Password: {
             type: String,
         },
-        User_Otp: {
-            type: Number,
-            default: 1234
-        },
-        Is_Verify: {
-            type: Boolean,
-            default: false
-        },
 
         Block: {
             type: Boolean,

@@ -1,6 +1,5 @@
 const jwt = require("jsonwebtoken");
 const express = require("express");
-const bcrypt = require("bcrypt");
 const Admin = require("../../Models/Admin/admin_model");
 const SubAdmin = require("../../Models/Admin/subAdmin_model");
 const checkAdminRole = require("../../Middleware/adminMiddleWares");

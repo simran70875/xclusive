@@ -3,9 +3,12 @@ const fs = require("fs");
 const path = require("path");
 const route = express.Router();
 const multer = require("multer");
-const csv = require('csv-parser');
-const axios = require('axios');
-const { Product, Variation } = require("../../../Models/BackendSide/product_model");
+const csv = require("csv-parser");
+const axios = require("axios");
+const {
+  Product,
+  Variation,
+} = require("../../../Models/BackendSide/product_model");
 const User = require("../../../Models/FrontendSide/user_model");
 const Wishlist = require("../../../Models/FrontendSide/wish_list_model");
 const Review = require("../../../Models/FrontendSide/review_model");
@@ -29,16 +32,16 @@ const upload = multer({
   storage: storage,
   limits: {
     fileSize: 20 * 1024 * 1024,
-  }
+  },
 });
 
 const storage_csv = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, './imageUploads/backend/product'); // Specify the directory to store uploaded files
+    cb(null, "./imageUploads/backend/product"); // Specify the directory to store uploaded files
   },
   filename: (req, file, cb) => {
     cb(null, `${Date.now()}-${file.originalname}`); // Unique filename
-  }
+  },
 });
 
 const uploadcsv = multer({ storage: storage_csv });
@@ -46,56 +49,213 @@ const uploadcsv = multer({ storage: storage_csv });
 async function copyLocalImage(imagePath, uploadFolder) {
   if (!imagePath) return null;
 
-  // Check if it's a URL
+  const fileName = `${Date.now()}-${path.basename(imagePath.split("?")[0])}`;
+  const destPath = path.join(uploadFolder, fileName);
+
+  // URL image
   if (/^https?:\/\//.test(imagePath)) {
     try {
-      const url = imagePath.split("?")[0]; // remove query string if needed
-      const ext = path.extname(url);
-      const fileName = `${Date.now()}-${path.basename(url)}`;
-      const filePath = path.join(uploadFolder, fileName);
-
-      const writer = fs.createWriteStream(filePath);
+      const writer = fs.createWriteStream(destPath);
       const response = await axios.get(imagePath, { responseType: "stream" });
 
       response.data.pipe(writer);
 
-      // Wait for the download to finish
       await new Promise((resolve, reject) => {
         writer.on("finish", resolve);
         writer.on("error", reject);
       });
 
-      return fileName;
+      return {
+        filename: fileName,
+        path: destPath,
+        originalname: path.basename(imagePath),
+      };
     } catch (err) {
       console.error("Image download failed:", imagePath, err.message);
       return null;
     }
-  } else {
-    // Local file path
-    if (fs.existsSync(imagePath)) {
-      const fileName = `${Date.now()}-${path.basename(imagePath)}`;
-      const destPath = path.join(uploadFolder, fileName);
-      fs.copyFileSync(imagePath, destPath);
-      return fileName;
-    } else {
-      console.warn("Local image not found:", imagePath);
-      return null;
-    }
   }
+
+  // Local image
+  if (fs.existsSync(imagePath)) {
+    fs.copyFileSync(imagePath, destPath);
+
+    return {
+      filename: fileName,
+      path: destPath,
+      originalname: path.basename(imagePath),
+    };
+  }
+
+  console.warn("Local image not found:", imagePath);
+  return null;
 }
+
+// // 🚀 IMPORT PRODUCT CSV
+// route.post(
+//   "/upload-csv",
+//   checkAdminOrRole2,
+//   uploadcsv.single("csvFile"),
+//   async (req, res) => {
+//     if (!req.file) {
+//       return res.status(400).json({ type: "error", message: "CSV not uploaded" });
+//     }
+
+//     const rows = [];
+//     const uploadFolder = "./imageUploads/backend/product";
+
+//     fs.createReadStream(req.file.path)
+//       .pipe(csv())
+//       .on("data", (row) => rows.push(row))
+//       .on("end", async () => {
+//         try {
+//           fs.unlinkSync(req.file.path);
+
+//           // 1️⃣ GROUP BY PRODUCT NAME
+//           const productGroups = rows.reduce((acc, row) => {
+//             const key = row.Product_Name?.trim();
+//             if (!key) return acc;
+
+//             if (!acc[key]) acc[key] = [];
+//             acc[key].push(row);
+
+//             return acc;
+//           }, {});
+
+//           let inserted = 0;
+
+//           // 2️⃣ PROCESS EACH PRODUCT
+//           for (const productName in productGroups) {
+//             const productRows = productGroups[productName];
+//             const firstRow = productRows[0];
+
+//             // 3️⃣ CATEGORY
+//             const categoryDoc = await Category.findOne({
+//               Category_Name: firstRow.Category?.trim(),
+//             });
+
+//             // 4️⃣ COLLECTION
+//             let collectionDoc = null;
+//             if (firstRow.Collection_Name) {
+//               collectionDoc = await Data.findOne({
+//                 Data_Type: "Collection",
+//                 Data_Name: firstRow.Collection_Name.trim(),
+//               });
+
+//               if (!collectionDoc) {
+//                 collectionDoc = await Data.create({
+//                   Data_Type: "Collection",
+//                   Data_Name: firstRow.Collection_Name.trim(),
+//                   Data_Label: firstRow.Collection_Name.trim(),
+//                 });
+//               }
+//             }
+
+//             // 5️⃣ PRODUCT IMAGES (ONCE)
+//             let productImages = [];
+//             if (firstRow.Product_Images) {
+//               productImages = firstRow.Product_Images
+//                 .split("|")
+//                 .map((img) => copyLocalImage(img, uploadFolder))
+//                 .filter(Boolean);
+//             }
+
+//             // 6️⃣ CREATE PRODUCT
+//             const product = await Product.create({
+//               Product_Name: firstRow.Product_Name,
+//               Description: firstRow.Description,
+//               Category: categoryDoc ? [categoryDoc._id] : [],
+//               Collections: collectionDoc ? collectionDoc._id : null,
+//               Product_Images: productImages,
+//               Product_Status: firstRow.Status !== "false",
+//             });
+
+//             // 7️⃣ GROUP BY COLOR (VARIATION)
+//             const variationGroups = productRows.reduce((acc, row) => {
+//               const color = row["Color Value"]?.trim();
+//               if (!color) return acc;
+
+//               if (!acc[color]) acc[color] = [];
+//               acc[color].push(row);
+
+//               return acc;
+//             }, {});
+
+//             const variationIds = [];
+
+//             // 8️⃣ CREATE VARIATIONS
+//             for (const color in variationGroups) {
+//               const variationRows = variationGroups[color];
+//               const vFirst = variationRows[0];
+
+//               // Variation Images
+//               let variationImages = [];
+//               if (vFirst.Variation_Images) {
+//                 variationImages = vFirst.Variation_Images
+//                   .split("|")
+//                   .map((img) => copyLocalImage(img, uploadFolder))
+//                   .filter(Boolean);
+//               }
+
+//               // 9️⃣ BUILD SIZE ARRAY
+//               const sizeArray = variationRows.map((r) => ({
+//                 Size_Name: r["Size Value"],
+//                 Size_purity: r["Purity  Value"],
+//                 Size_Stock: Number(r["Variant Inventory Qty"] || 0),
+//                 Size_Price: Number(r["Product_Dis_Price"] || 0),
+//                 Size_Status: true,
+//               }));
+
+//               // 🔟 CREATE VARIATION
+//               const variation = await Variation.create({
+//                 SKU_Code: vFirst.SKU_Code, // ✅ SKU AT VARIATION LEVEL
+//                 Variation_Name: color,
+//                 Variation_Label: vFirst["Color Name"],
+//                 Variation_Images: variationImages,
+//                 Variation_Size: sizeArray,
+//                 Variation_Status: true,
+//               });
+
+//               variationIds.push(variation._id);
+//             }
+
+//             // 1️⃣1️⃣ LINK VARIATIONS TO PRODUCT
+//             product.Variation = variationIds;
+//             await product.save();
+
+//             inserted++;
+//           }
+
+//           return res.status(200).json({
+//             type: "success",
+//             message: "CSV imported successfully",
+//             inserted,
+//           });
+//         } catch (err) {
+//           console.error(err);
+//           return res.status(500).json({
+//             type: "error",
+//             message: "CSV processing failed",
+//           });
+//         }
+//       });
+//   }
+// );
 
 // 🚀 IMPORT PRODUCT CSV
 route.post(
   "/upload-csv",
   checkAdminOrRole2,
   uploadcsv.single("csvFile"),
-  async (req, res) => {
-    if (!req.file) {
-      return res.status(400).json({ type: "error", message: "CSV not uploaded" });
-    }
+  (req, res) => {
+    if (!req.file)
+      return res
+        .status(400)
+        .json({ type: "error", message: "CSV not uploaded" });
+    console.log(" CSV ==> ", req.file);
 
-    const rows = [];
     const uploadFolder = "./imageUploads/backend/product";
+    const rows = [];
 
     fs.createReadStream(req.file.path)
       .pipe(csv())
@@ -104,10 +264,9 @@ route.post(
         try {
           fs.unlinkSync(req.file.path);
 
-          // 1️⃣ GROUP BY PRODUCT NAME
-          const productGroups = rows.reduce((acc, row) => {
-            const key = row.Product_Name?.trim();
-            if (!key) return acc;
+          // 1️⃣ GROUP ROWS BY PRODUCT
+          const groupedByProduct = rows.reduce((acc, row) => {
+            const key = row.SKU_Code?.trim(); // unique per product
 
             if (!acc[key]) acc[key] = [];
             acc[key].push(row);
@@ -116,125 +275,207 @@ route.post(
           }, {});
 
           let inserted = 0;
+          let skipped = 0;
+          let skippedNames = [];
 
-          // 2️⃣ PROCESS EACH PRODUCT
-          for (const productName in productGroups) {
-            const productRows = productGroups[productName];
+          // 2️⃣ PROCESS EACH PRODUCT GROUP
+          for (let sku in groupedByProduct) {
+            const productRows = groupedByProduct[sku];
+
             const firstRow = productRows[0];
 
-            // 3️⃣ CATEGORY
-            const categoryDoc = await Category.findOne({
-              Category_Name: firstRow.Category?.trim(),
-            });
+            // 🔍 CHECK PRODUCT EXISTS
+            const existingProduct = await Product.findOne({ SKU_Code: sku });
+            if (existingProduct) {
+              skipped++;
+              skippedNames.push(firstRow.Product_Name);
+              continue;
+            }
 
-            // 4️⃣ COLLECTION
+            // 3️⃣ CATEGORY
+
+            const categoryName = firstRow.Category?.trim().toLowerCase();
+
+            const categoryDoc = categoryName
+              ? await Category.findOne({ Category_Name: categoryName })
+              : null;
+
+            // 🔍 BRAND HANDLING
+            let brandDoc = null;
+            if (firstRow.Brand_Name && firstRow.Brand_Name.trim() !== "") {
+              brandDoc = await Data.findOne({
+                Data_Type: "Brand",
+                Data_Name: firstRow.Brand_Name.trim(),
+              });
+
+              // ⭐ If brand does not exist → Create it
+              if (!brandDoc) {
+                brandDoc = await Data.create({
+                  Data_Type: "Brand",
+                  Data_Name: firstRow.Brand_Name.trim(),
+                  Data_Label: firstRow.Brand_Name.trim(),
+                  Data_Status: true,
+                });
+              }
+            }
+
+            // 🔍 COLLECTION HANDLING
             let collectionDoc = null;
-            if (firstRow.Collection_Name) {
+            if (
+              firstRow.Collection_Name &&
+              firstRow.Collection_Name.trim() !== ""
+            ) {
               collectionDoc = await Data.findOne({
                 Data_Type: "Collection",
                 Data_Name: firstRow.Collection_Name.trim(),
               });
 
+              // ⭐ If collection does not exist → Create it
               if (!collectionDoc) {
                 collectionDoc = await Data.create({
                   Data_Type: "Collection",
                   Data_Name: firstRow.Collection_Name.trim(),
                   Data_Label: firstRow.Collection_Name.trim(),
+                  Data_Status: true,
                 });
               }
             }
 
-            // 5️⃣ PRODUCT IMAGES (ONCE)
-            let productImages = [];
+            // 4️⃣ PRODUCT IMAGES (only from 1st row)
+            let productImagesArray = [];
+
             if (firstRow.Product_Images) {
-              productImages = firstRow.Product_Images
-                .split("|")
-                .map((img) => copyLocalImage(img, uploadFolder))
-                .filter(Boolean);
+              productImagesArray = await Promise.all(
+                firstRow.Product_Images.split("|").map((img) =>
+                  copyLocalImage(img, uploadFolder)
+                )
+              );
+
+              productImagesArray = productImagesArray.filter(Boolean);
             }
 
-            // 6️⃣ CREATE PRODUCT
-            const product = await Product.create({
+            console.log(productImagesArray);
+
+            // 5️⃣ CREATE PRODUCT FIRST
+            const newProduct = await Product.create({
               Product_Name: firstRow.Product_Name,
-              Description: firstRow.Description,
+              SKU_Code: firstRow.SKU_Code,
+
               Category: categoryDoc ? [categoryDoc._id] : [],
+
+              // ⬇️ Updated brand & collection IDs
+              Brand_Name: brandDoc ? brandDoc._id : null,
               Collections: collectionDoc ? collectionDoc._id : null,
-              Product_Images: productImages,
-              Product_Status: firstRow.Status !== "false",
+
+              Product_Images: productImagesArray,
+
+              // Product_Dis_Price: Number(firstRow.Product_Dis_Price),
+              // Product_Ori_Price: Number(firstRow.Product_Ori_Price),
+              // Max_Dis_Price: Number(firstRow.Max_Dis_Price),
+
+              Description: firstRow.Description,
+              Product_Label: firstRow.Product_Label,
+
+              Trendy_collection: firstRow.Trendy_collection === "true",
+              Popular_pick: firstRow.Popular_pick === "true",
+              HomePage: firstRow.HomePage === "true",
+
+              Product_Status: firstRow.Product_Status !== "false",
+              Shipping: firstRow.Shipping || "PRE LAUNCH",
             });
 
-            // 7️⃣ GROUP BY COLOR (VARIATION)
+            // 6️⃣ GROUP VARIATIONS BY Variation_Name
             const variationGroups = productRows.reduce((acc, row) => {
-              const color = row["Color Value"]?.trim();
-              if (!color) return acc;
+              const name = row.Variation_Name?.trim();
 
-              if (!acc[color]) acc[color] = [];
-              acc[color].push(row);
+              if (!name) return acc;
+
+              if (!acc[name]) acc[name] = [];
+              acc[name].push(row);
 
               return acc;
             }, {});
 
-            const variationIds = [];
+            // Store Variation IDs
+            let variationIds = [];
 
-            // 8️⃣ CREATE VARIATIONS
-            for (const color in variationGroups) {
-              const variationRows = variationGroups[color];
-              const vFirst = variationRows[0];
+            // 7️⃣ PROCESS EACH GROUP → ONE VARIATION
+            for (let varName in variationGroups) {
+              const rowsInVariation = variationGroups[varName];
 
-              // Variation Images
+              // Variation images → take from first row
               let variationImages = [];
-              if (vFirst.Variation_Images) {
-                variationImages = vFirst.Variation_Images
-                  .split("|")
-                  .map((img) => copyLocalImage(img, uploadFolder))
-                  .filter(Boolean);
+
+              if (rowsInVariation[0].Variation_Images) {
+                variationImages = await Promise.all(
+                  rowsInVariation[0].Variation_Images.split("|").map((img) =>
+                    copyLocalImage(img, uploadFolder)
+                  )
+                );
+
+                variationImages = variationImages.filter(Boolean);
               }
 
-              // 9️⃣ BUILD SIZE ARRAY
-              const sizeArray = variationRows.map((r) => ({
-                Size_Name: r["Size Value"],
-                Size_purity: r["Purity  Value"],
-                Size_Stock: Number(r["Variant Inventory Qty"] || 0),
-                Size_Price: Number(r["Product_Dis_Price"] || 0),
-                Size_Status: true,
-              }));
+              // Build Variation_Size array
+              let sizeArray = [];
 
-              // 🔟 CREATE VARIATION
-              const variation = await Variation.create({
-                SKU_Code: vFirst.SKU_Code, // ✅ SKU AT VARIATION LEVEL
-                Variation_Name: color,
-                Variation_Label: vFirst["Color Name"],
-                Variation_Images: variationImages,
-                Variation_Size: sizeArray,
-                Variation_Status: true,
+              rowsInVariation.forEach((r) => {
+                if (r.Variation_Size) {
+                  // Format: L(16.5-17.5)|100|2891
+                  const sizeParts = r.Variation_Size.split("|");
+
+                  const sizeName = sizeParts[0]?.trim();
+                  const stock = Number(sizeParts[1] || 0);
+                  const price = Number(sizeParts[2] || 0);
+                  const purity = sizeParts[3];
+
+                  sizeArray.push({
+                    Size_Name: sizeName,
+                    Size_Stock: stock,
+                    Size_Price: price,
+                    Size_Status: true,
+                    Size_purity: purity,
+                  });
+                }
               });
 
-              variationIds.push(variation._id);
+              // Create single variation
+              const createdVariation = await Variation.create({
+                Variation_Name: varName,
+                Variation_Images: variationImages,
+                Variation_Label: varName,
+                Variation_Size: sizeArray,
+                Variation_Status:
+                  rowsInVariation[0].Variation_Status !== "false",
+              });
+
+              variationIds.push(createdVariation._id);
             }
 
-            // 1️⃣1️⃣ LINK VARIATIONS TO PRODUCT
-            product.Variation = variationIds;
-            await product.save();
+            // 7️⃣ UPDATE PRODUCT WITH ALL VARIATIONS
+            newProduct.Variation = variationIds;
+            await newProduct.save();
 
             inserted++;
           }
 
           return res.status(200).json({
             type: "success",
-            message: "CSV imported successfully",
+            message: "Product CSV imported successfully!",
             inserted,
+            skipped,
+            skippedNames,
           });
         } catch (err) {
           console.error(err);
           return res.status(500).json({
             type: "error",
-            message: "CSV processing failed",
+            message: "Error processing CSV",
           });
         }
       });
   }
 );
-
 
 // 🚀 CREATE PRODUCT WITH MULTIPLE IMAGES
 route.post(
@@ -285,9 +526,10 @@ route.post(
       // 📸 Handle Multiple Images
       const Product_Images = (req.files || []).map((file) => {
         const ext = path.extname(file.originalname);
-        const imageFilename = `${Product_Name.replace(/\s/g, "_")}_${Date.now()}_${Math.floor(
-          Math.random() * 9999
-        )}${ext}`;
+        const imageFilename = `${Product_Name.replace(
+          /\s/g,
+          "_"
+        )}_${Date.now()}_${Math.floor(Math.random() * 9999)}${ext}`;
 
         const newPath = `imageUploads/backend/product/${imageFilename}`;
 
@@ -370,9 +612,9 @@ route.get("/get", async (req, res) => {
         _id: p.Collections?._id,
         Collections: p.Collections?.Data_Name,
       },
-      Product_Dis_Price: p.Product_Dis_Price,
-      Product_Ori_Price: p.Product_Ori_Price,
-      Max_Dis_Price: p.Max_Dis_Price,
+      // Product_Dis_Price: p.Product_Dis_Price,
+      // Product_Ori_Price: p.Product_Ori_Price,
+      // Max_Dis_Price: p.Max_Dis_Price,
       Variation_Count: p.Variation.length,
       Popular_pick: p.Popular_pick,
       Trendy_collection: p.Trendy_collection,
@@ -462,7 +704,9 @@ route.get("/list/getAll", async (req, res) => {
         _id: product._id,
         Product_Name: product.Product_Name,
         SKU_Code: product.SKU_Code,
-        Product_Image: `http://${process.env.IP_ADDRESS}/${product?.Product_Image?.path?.replace(/\\/g, "/")}`,
+        Product_Image: `http://${
+          process.env.IP_ADDRESS
+        }/${product?.Product_Image?.path?.replace(/\\/g, "/")}`,
         Brand: {
           _id: product?.Brand_Name?._id,
           Brand_Name: product.Brand_Name?.Data_Name,
@@ -519,8 +763,9 @@ route.get("/mob/demo/get", async (req, res) => {
       const adminProducts = products.map((product) => ({
         _id: product._id,
         Product_Name: product.Product_Name,
-        Product_Image: `${process.env.IP_ADDRESS
-          }/${product?.Product_Image?.path?.replace(/\\/g, "/")}`,
+        Product_Image: `${
+          process.env.IP_ADDRESS
+        }/${product?.Product_Image?.path?.replace(/\\/g, "/")}`,
         Category_Name: product.Category[0]?.Category_Name,
         CategoryId: product?.Category[0]?._id,
       }));
@@ -584,18 +829,16 @@ route.get("/get/:id", checkAdminOrRole2, async (req, res) => {
           _id: products?.Collections?._id,
           Collections: products.Collections?.Data_Name,
         },
-        Product_Dis_Price: products.Product_Dis_Price,
-        Product_Ori_Price: products.Product_Ori_Price,
-        Max_Dis_Price: products.Max_Dis_Price,
-        Gold_Price: products.Gold_Price,
-        Silver_Price: products.Silver_Price,
-        PPO_Price: products.PPO_Price,
+        // Product_Dis_Price: products.Product_Dis_Price,
+        // Product_Ori_Price: products.Product_Ori_Price,
+        // Max_Dis_Price: products.Max_Dis_Price,
         Description: products.Description,
         Product_Label: products.Product_Label,
         Variation_Count: products.Variation.length,
         Variation: products?.Variation?.map((variation) => ({
           _id: variation?._id,
           variation_Name: variation?.Variation_Name,
+          variation_Label: variation?.Variation_Label,
           size_count: variation?.Variation_Size?.length,
           variation_Sizes: variation?.Variation_Size?.map((variation) => ({
             _id: variation?._id,
@@ -603,7 +846,9 @@ route.get("/get/:id", checkAdminOrRole2, async (req, res) => {
             stock: variation?.Size_Stock,
           })),
           variation_Images: variation?.Variation_Images?.map((variation) => ({
-            variation_Image: `${process.env.IP_ADDRESS}/${variation?.path?.replace(/\\/g, "/")}`,
+            variation_Image: `${
+              process.env.IP_ADDRESS
+            }/${variation?.path?.replace(/\\/g, "/")}`,
           })),
           variation_Status: variation?.Variation_Status,
         })),
@@ -667,7 +912,7 @@ route.get("/mob/get/productlist/:id", async (req, res) => {
         select: "-__v",
       })
       .populate("Brand_Name", "Data_Name")
-      .populate("Collections", "Data_Name")
+      .populate("Collections", "Data_Name");
 
     const userWishlist = await getWishList(userId);
 
@@ -682,8 +927,9 @@ route.get("/mob/get/productlist/:id", async (req, res) => {
         _id: product._id,
         Product_Name: product.Product_Name,
         SKU_Code: product.SKU_Code,
-        Product_Image: `${process.env.IP_ADDRESS
-          }/${product?.Product_Image?.path?.replace(/\\/g, "/")}`,
+        Product_Image: `${
+          process.env.IP_ADDRESS
+        }/${product?.Product_Image?.path?.replace(/\\/g, "/")}`,
         Category: product.Category[0]?.Category_Name,
         Brand_Name: product?.Brand_Name?.Data_Name,
         Collections: product?.Collections?.Data_Name,
@@ -692,10 +938,10 @@ route.get("/mob/get/productlist/:id", async (req, res) => {
           user?.User_Type === "0" || userId === "0"
             ? product.Product_Dis_Price
             : user?.User_Type === "1"
-              ? product.Gold_Price
-              : user?.User_Type === "2"
-                ? product.Silver_Price
-                : product.PPO_Price,
+            ? product.Gold_Price
+            : user?.User_Type === "2"
+            ? product.Silver_Price
+            : product.PPO_Price,
 
         Product_Ori_Price:
           user?.User_Type === "0" || userId === "0"
@@ -741,10 +987,7 @@ route.get("/mob/get/features/productlist", async (req, res) => {
 
   try {
     if (HomeFeatures === "1") {
-      products = await Product.find({
-        Product_Status: true,
-        Popular_pick: true,
-      })
+      products = await Product.find({Product_Status: true, Popular_pick: true})
         .sort({ createdAt: -1 })
         .populate("Category", "Category_Name")
         .populate({
@@ -752,7 +995,7 @@ route.get("/mob/get/features/productlist", async (req, res) => {
           select: "-__v",
         })
         .populate("Brand_Name", "Data_Name")
-        .populate("Collections", "Data_Name")
+        .populate("Collections", "Data_Name");
     } else if (HomeFeatures === "2") {
       products = await Product.find({
         Product_Status: true,
@@ -765,7 +1008,7 @@ route.get("/mob/get/features/productlist", async (req, res) => {
           select: "-__v",
         })
         .populate("Brand_Name", "Data_Name")
-        .populate("Collections", "Data_Name")
+        .populate("Collections", "Data_Name");
     } else if (HomeFeatures === "3") {
       products = await Product.find({ Product_Status: true, HomePage: true })
         .sort({ createdAt: -1 })
@@ -775,45 +1018,24 @@ route.get("/mob/get/features/productlist", async (req, res) => {
           select: "-__v",
         })
         .populate("Brand_Name", "Data_Name")
-        .populate("Collections", "Data_Name")
+        .populate("Collections", "Data_Name");
     }
 
     let result = [];
     const userWishlist = await getWishList(userId);
+
     if (products.length === 0) {
-      res
-        .status(200)
-        .json({ type: "warning", message: "No products found!", products: [] });
+      res.status(200).json({ type: "warning", message: "No products found!", products: [] });
     } else {
       result = products.map((product) => ({
         _id: product._id,
         Product_Name: product.Product_Name,
         SKU_Code: product.SKU_Code,
-        Product_Image: `${process.env.IP_ADDRESS
-          }/${product?.Product_Image?.path?.replace(/\\/g, "/")}`,
+        Product_Image: `${process.env.IP_ADDRESS}/${product?.Product_Images[0].path?.replace(/\\/g, "/")}`,
         Category: product.Category[0]?.Category_Name,
         categoryId: product.Category[0]?._id,
         Brand_Name: product?.Brand_Name?.Data_Name,
         Collections: product?.Collections?.Data_Name,
-
-        Product_Dis_Price:
-          user?.User_Type === "0" || userId === "0"
-            ? product.Product_Dis_Price
-            : user?.User_Type === "1"
-              ? product.Gold_Price
-              : user?.User_Type === "2"
-                ? product.Silver_Price
-                : product.PPO_Price,
-
-        Product_Ori_Price:
-          user?.User_Type === "0" || userId === "0"
-            ? product.Product_Ori_Price
-            : product.Product_Dis_Price,
-
-        Max_Dis_Price: product.Max_Dis_Price,
-        Gold_Price: product.Gold_Price,
-        Silver_Price: product.Silver_Price,
-        PPO_Price: product.PPO_Price,
         Description: product.Description,
         Product_Label: product.Product_Label,
         Popular_pick: product.Popular_pick,
@@ -878,7 +1100,7 @@ route.get("/mob/get/single/:id", async (req, res) => {
         match: { Variation_Status: true },
       })
       .populate("Brand_Name", "Data_Name")
-      .populate("Collections", "Data_Name")
+      .populate("Collections", "Data_Name");
     if (!product) {
       return res
         .status(200)
@@ -895,8 +1117,9 @@ route.get("/mob/get/single/:id", async (req, res) => {
         _id: product._id,
         Product_Name: product.Product_Name,
         SKU_Code: product.SKU_Code,
-        Product_Image: `${process.env.IP_ADDRESS
-          }/${product?.Product_Image?.path?.replace(/\\/g, "/")}`,
+        Product_Image: `${
+          process.env.IP_ADDRESS
+        }/${product?.Product_Image?.path?.replace(/\\/g, "/")}`,
         Category: product.Category[0]?.Category_Name,
         CategoryId: product.Category[0]?._id,
         Brand_Name: product?.Brand_Name?.Data_Name,
@@ -906,10 +1129,10 @@ route.get("/mob/get/single/:id", async (req, res) => {
           user?.User_Type === "0" || userId === "0"
             ? product.Product_Dis_Price
             : user?.User_Type === "1"
-              ? product.Gold_Price
-              : user?.User_Type === "2"
-                ? product.Silver_Price
-                : product.PPO_Price,
+            ? product.Gold_Price
+            : user?.User_Type === "2"
+            ? product.Silver_Price
+            : product.PPO_Price,
 
         Product_Ori_Price:
           user?.User_Type === "0" || userId === "0"
@@ -940,8 +1163,9 @@ route.get("/mob/get/single/:id", async (req, res) => {
                 })),
                 variation_Images: variation?.Variation_Images?.map(
                   (variation) => ({
-                    variation_Image: `${process.env.IP_ADDRESS
-                      }/${variation?.path?.replace(/\\/g, "/")}`,
+                    variation_Image: `${
+                      process.env.IP_ADDRESS
+                    }/${variation?.path?.replace(/\\/g, "/")}`,
                   })
                 ),
               });
@@ -1163,9 +1387,6 @@ route.patch(
         Product_Dis_Price,
         Product_Ori_Price,
         Max_Dis_Price,
-        Gold_Price,
-        Silver_Price,
-        PPO_Price,
         Description,
       } = req.body;
 
@@ -1189,7 +1410,7 @@ route.patch(
       // Check if the product name is being changed and if there is another product with the same name and category
       if (
         Product_Name.toLowerCase() !==
-        existingProduct.Product_Name.toLowerCase() ||
+          existingProduct.Product_Name.toLowerCase() ||
         Category !== existingProduct.Category
       ) {
         const duplicateProduct = null;
@@ -1221,9 +1442,6 @@ route.patch(
       existingProduct.Product_Dis_Price = Product_Dis_Price;
       existingProduct.Product_Ori_Price = Product_Ori_Price;
       existingProduct.Max_Dis_Price = Max_Dis_Price;
-      existingProduct.Gold_Price = Gold_Price;
-      existingProduct.Silver_Price = Silver_Price;
-      existingProduct.PPO_Price = PPO_Price;
       existingProduct.Description = Description;
 
       // Handle the image update
@@ -1361,8 +1579,9 @@ route.get("/lowstockproducts/get", checkAdminOrRole2, async (req, res) => {
 
         if (lowStockSizes.length > 0) {
           // const imagePath = constructImagePath(process.env.IP_ADDRESS, process.env.PORT, variation.Variation_Image?.path);
-          const imagePath = `${process.env.IP_ADDRESS
-            }/${variation?.Variation_Images[0]?.path?.replace(/\\/g, "/")}`;
+          const imagePath = `${
+            process.env.IP_ADDRESS
+          }/${variation?.Variation_Images[0]?.path?.replace(/\\/g, "/")}`;
 
           lowStockVariationSizes.push(
             ...lowStockSizes.map((size) => ({
@@ -1396,7 +1615,8 @@ route.get("/lowstockproducts/get", checkAdminOrRole2, async (req, res) => {
 });
 
 // change the particular size stock of variations
-route.put("/edit/variation/size/stock/:variationId/:sizeId",
+route.put(
+  "/edit/variation/size/stock/:variationId/:sizeId",
   checkAdminOrRole2,
   async (req, res) => {
     const { variationId, sizeId } = req.params;

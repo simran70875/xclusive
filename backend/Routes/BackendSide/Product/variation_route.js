@@ -20,9 +20,8 @@ const upload = multer({ storage, limits: { fileSize: 5 * 1024 * 1024 } }); // 5 
 // Create variations
 route.post("/add/:productId", checkAdminOrRole2, upload.array("images", 5), async (req, res) => {
     try {
-        const { Variation_Name, Size_Name, Size_Stock, Size_Price } = req.body;
+        const { Variation_Name, Variation_Label, Size_Name, Size_Stock, Size_Price } = req.body;
 
-        console.log("variation ", Variation_Name, Size_Stock, Size_Name, Size_Price, req.files);
         const productId = req.params.productId;
 
         const images = req.files.map((file) => ({
@@ -53,7 +52,7 @@ route.post("/add/:productId", checkAdminOrRole2, upload.array("images", 5), asyn
             Variation_Name: Variation_Name,
             Variation_Images: images,
             Variation_Size: variationSizes,
-            Variation_Label: Variation_Name,
+            Variation_Label: Variation_Label,
         });
 
         await newVariation.save();
@@ -388,7 +387,7 @@ route.patch('/update/:variationId', checkAdminOrRole2, upload.array('images', 5)
         else {
             variation.Variation_Images = images;
         }
-        variation.Variation_Label = Variation_Name;
+        // variation.Variation_Label = Variation_Name;
 
         // Save the updated variation to the database
         await variation.save();
@@ -436,7 +435,7 @@ route.patch("/update/size/:variationId/:sizeId", checkAdminOrRole2, async (req, 
 route.post("/add/size/:variationId", checkAdminOrRole2, async (req, res) => {
     try {
         const variationId = req.params.variationId;
-        const { Size_Name, Size_Stock, Size_Price } = req.body;
+        const { Size_Name, Size_Stock, Size_Price, Size_Purity } = req.body;
 
         const variation = await Variation.findById(variationId);
         if (!variation) {
@@ -448,6 +447,7 @@ route.post("/add/size/:variationId", checkAdminOrRole2, async (req, res) => {
             Size_Name,
             Size_Stock,
             Size_Price,
+            Size_purity: Size_Purity,
             Size_Status: true, // Set the default status to true (enabled)
         };
 

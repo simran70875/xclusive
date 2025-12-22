@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import axios from "axios";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
@@ -179,21 +179,7 @@ const EditUser = () => {
                             //   setEmail(e.target.value);
                             // }}
                           />
-                          {/* <select */}
-                            {/* required */}
-                            {/* className="form-select" */}
-                            {/* id="user-select" */}
-                            {/* value={selectedUserData} */}
-                            {/* onChange={(e) => { */}
-                              {/* setUserType(e.target.value); */}
-                            {/* }} */}
-                          {/* > */}
-                            {/* <option value="">{userType}</option> */}
-                            {/* <option value="0">Normal</option> */}
-                            {/* <option value="1">Gold</option> */}
-                            {/* <option value="2">Silver</option> */}
-                            {/* <option value="3">PPO</option> */}
-                          {/* </select> */}
+                        
                         </div>
                       </div>
                       <div className="mb-3 row">

@@ -1,7 +1,6 @@
 const express = require("express");
 const Marquee = require("../../Models/FrontendSide/marquee_model");
 const checkAdminRole = require("../../Middleware/adminMiddleWares");
-const authenticates = require("../../Middleware/authMiddleWares");
 const route = express.Router();
 
 route.post("/addMarquee",checkAdminRole, async (req, res) => {

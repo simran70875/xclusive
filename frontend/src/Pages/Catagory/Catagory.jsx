@@ -1,7 +1,4 @@
-/* eslint-disable eqeqeq */
-/* eslint-disable no-unused-vars */
-/* eslint-disable react-hooks/exhaustive-deps */
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
@@ -10,7 +7,6 @@ import {
   Col,
   Image,
   Modal,
-  Pagination,
   Radio,
   Row,
   Select,
@@ -24,8 +20,6 @@ import {
   getFilterListApi,
   getFilterProductApi,
 } from "../../Features/Product/Product";
-import { routes } from "../../Routes/Routes";
-import { setLikeCount } from "../../Features/User/User";
 import { addWishList, getWishListApi } from "../../Features/WishList/WishList";
 
 import styles from "./index.module.scss";
@@ -36,20 +30,16 @@ function Catagory() {
   const navigate = useNavigate();
   const { state } = useLocation();
   const [data, setData] = useState();
-  const [Add, setAdd] = useState();
-  const [type, setType] = useState();
-  const [fabric, setFabric] = useState([]);
   const [sortData, setSortData] = useState([]);
   const [checkedItems, setCheckedItems] = useState([]);
   const [selectedRate, setSelectedRate] = useState(null);
-  const [selectedRate2, setSelectedRate2] = useState(null);
   const [isLiked, setIsLiked] = useState(false);
+
   const [brandName, setBrandName] = useState([]);
   const [colorsData, setColorsData] = useState([]);
-  const [productId, setProductId] = useState(null);
   const [rateWiseData, setRateWiseData] = useState([]);
-  const [occasionData, setOccasionData] = useState([]);
-  const [shippingData, setShippingData] = useState([]);
+  const [categoryData, setcategoryData] = useState([]);
+
   const [currentPage, setCurrentPage] = useState(1);
   const userid = useSelector((state) => state.user?.userId);
   const userToken = useSelector((state) => state.user.token);
@@ -57,7 +47,6 @@ function Catagory() {
   const loader = useSelector((state) => state.product.productLoading);
 
   const filterSideData = useSelector((state) => state.product?.filterList);
-  const allProduct = useSelector((state) => state.product?.productAllData);
   const filterProducct = useSelector((state) => state.product?.filterProduct);
   const paginationData = useSelector((state) => state.product?.filterProduct2);
   const givewishlist = useSelector((state) => state.wishList?.wishlist);
@@ -69,10 +58,7 @@ function Catagory() {
         state?.id,
         brandName,
         colorsData,
-        fabric,
         rateWiseData,
-        occasionData,
-        shippingData,
         userid !== null ? userid : 0,
         sortData,
         currentPage
@@ -87,8 +73,6 @@ function Catagory() {
   }, []);
 
   const onChange = (e, item, filterType) => {
-    setSelectedRate(item);
-    setType(filterType);
     const isChecked = e.target.checked;
     if (isChecked) {
       setCheckedItems((prevCheckedItems) => [...prevCheckedItems, item]);
@@ -97,7 +81,6 @@ function Catagory() {
         prevCheckedItems.filter((checkedItem) => checkedItem !== item)
       );
     }
-    setAdd(item);
     if (filterType === "color") {
       if (e.target.checked === true) {
         colorsData.push(item);
@@ -118,58 +101,33 @@ function Catagory() {
         }
       }
       setBrandName(brandName);
-    } else if (filterType === "fabricType") {
-      if (e.target.checked === true) {
-        fabric.push(item);
-      } else {
-        const index = fabric.indexOf(item);
-        if (index > -1) {
-          fabric.splice(index, 1);
-        }
-      }
-      setFabric(fabric);
     } else if (filterType === "rateWise") {
       if (e.target.checked === true) {
         rateWiseData.push(item);
-        // setSelectedRate(item);
       } else {
         const index = rateWiseData.indexOf(item);
         if (index > -1) {
-          // setSelectedRate(null);
           rateWiseData.splice(index, 1);
         }
       }
       setRateWiseData(rateWiseData);
-    } else if (filterType === "occasion") {
+    } else if (filterType === "category") {
       if (e.target.checked === true) {
-        occasionData.push(item);
+        categoryData.push(item);
       } else {
-        const index = occasionData.indexOf(item);
+        const index = categoryData.indexOf(item);
         if (index > -1) {
-          occasionData.splice(index, 1);
+          categoryData.splice(index, 1);
         }
       }
-      setOccasionData(occasionData);
-    } else if (filterType === "shipping") {
-      if (e.target.checked === true) {
-        shippingData.push(item);
-      } else {
-        const index = shippingData.indexOf(item);
-        if (index > -1) {
-          shippingData.splice(index, 1);
-        }
-      }
-      setShippingData(shippingData);
+      setcategoryData(categoryData);
     }
     dispatch(
       getFilterProductApi(
         state?.id,
         brandName,
         colorsData,
-        fabric,
         rateWiseData,
-        occasionData,
-        shippingData,
         userid !== null ? userid : 0,
         sortData,
         currentPage
@@ -178,8 +136,7 @@ function Catagory() {
   };
 
   const onChange2 = (e, item, filterType) => {
-    setSelectedRate2(item);
-    setType(filterType);
+    setSelectedRate(item);
 
     if (filterType === "rateWise") {
       // Update rateWiseData with the newly selected value
@@ -191,10 +148,7 @@ function Catagory() {
         state?.id,
         brandName,
         colorsData,
-        fabric,
         item,
-        occasionData,
-        shippingData,
         userid !== null ? userid : 0,
         sortData,
         currentPage
@@ -209,19 +163,14 @@ function Catagory() {
         state?.id,
         brandName,
         colorsData,
-        fabric,
         rateWiseData,
-        occasionData,
-        shippingData,
         userid !== null ? userid : 0,
-        e,
         currentPage
       )
     );
   };
 
   const handleAddCart = (id, name) => {
-    setProductId(id);
     navigate(`/product-detail/${name}`, {
       state: {
         productId: id,
@@ -264,16 +213,12 @@ function Catagory() {
 
   const handleClear = () => {
     setCheckedItems([]);
-    setSelectedRate(null);
     dispatch(
       getFilterProductApi(
         state?.id,
         brandName,
         colorsData,
-        fabric,
         rateWiseData,
-        occasionData,
-        shippingData,
         userid !== null ? userid : 0,
         sortData,
         currentPage
@@ -285,18 +230,6 @@ function Catagory() {
   const getProductIsLikedOrNot = (id) =>
     Boolean(givewishlist?.find((e) => e._id == id));
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
-
-  const showModal = () => {
-    setIsModalOpen(true);
-  };
-  const handleOk = () => {
-    setIsModalOpen(false);
-  };
-  const handleCancel = () => {
-    setIsModalOpen(false);
-  };
-
   const onShowSizeChange = (current, pageSize) => {
     // console.log(current, pageSize);
     setCurrentPage(current);
@@ -305,10 +238,7 @@ function Catagory() {
         state?.id,
         brandName,
         colorsData,
-        fabric,
         rateWiseData,
-        occasionData,
-        shippingData,
         userid !== null ? userid : 0,
         sortData,
         current
@@ -320,9 +250,7 @@ function Catagory() {
   return (
     <div>
       <div className={styles.setbtn}>
-        <Button onClick={() => showModal()} className={styles.filterbtn}>
-          Filter
-        </Button>
+        <Button className={styles.filterbtn}>Filter</Button>
       </div>
       <Row justify="space-around" className={styles.mainLine}>
         <Col lg={8} xl={5} xxl={5} className={styles.sider}>
@@ -334,14 +262,34 @@ function Catagory() {
                   Clear
                 </p>
               </div>
-              {/* <div className={styles.blank}></div> */}
 
               <Collapse
                 style={{ padding: 5 }}
                 defaultActiveKey={["1"]}
                 accordion
               >
-                <Panel header="Brands" key="1" style={{ padding: 0 }}>
+                <Panel header="Categories" key="1" style={{ padding: 0 }}>
+                  <div className={styles.check}>
+                    <div className={styles.checkname}>
+                      {filterSideData?.categories?.map((item, index) => (
+                        <Checkbox
+                          onChange={(e) => onChange(e, item, "category")}
+                          key={index}
+                          className={styles.list}
+                          checked={checkedItems.includes(item)}
+                        >
+                          {item.Category_Name}
+                        </Checkbox>
+                      ))}
+                    </div>
+                  </div>
+                </Panel>
+
+                <Panel
+                  header="Brands & Collections"
+                  key="1"
+                  style={{ padding: 0 }}
+                >
                   <div className={styles.check}>
                     <div className={styles.checkname}>
                       {filterSideData?.brand?.map((item, index) => (
@@ -375,23 +323,6 @@ function Catagory() {
                   </div>
                 </Panel>
 
-                <Panel header="Fabric Type" key="3" style={{ padding: 0 }}>
-                  <div className={styles.check}>
-                    <div className={styles.checkname}>
-                      {filterSideData?.fabric?.map((item, index) => (
-                        <Checkbox
-                          onChange={(e) => onChange(e, item, "fabricType")}
-                          key={index}
-                          className={styles.list}
-                          checked={checkedItems.includes(item)}
-                        >
-                          {item}
-                        </Checkbox>
-                      ))}
-                    </div>
-                  </div>
-                </Panel>
-
                 <Panel header="Rate" key="4" style={{ padding: 0 }}>
                   <div className={styles.check}>
                     <div className={styles.checkname3}>
@@ -400,44 +331,10 @@ function Catagory() {
                           onChange={(e) => onChange2(e, item, "rateWise")}
                           key={index}
                           className={styles.list}
-                          checked={item === selectedRate2}
+                          checked={item === selectedRate}
                         >
                           {item}
                         </Radio>
-                      ))}
-                    </div>
-                  </div>
-                </Panel>
-
-                <Panel header="Occasion" key="5" style={{ padding: 0 }}>
-                  <div className={styles.check}>
-                    <div className={styles.checkname3}>
-                      {filterSideData?.occasion?.map((item, index) => (
-                        <Checkbox
-                          onChange={(e) => onChange(e, item, "occasion")}
-                          key={index}
-                          className={styles.list}
-                          checked={checkedItems.includes(item)}
-                        >
-                          {item}
-                        </Checkbox>
-                      ))}
-                    </div>
-                  </div>
-                </Panel>
-
-                <Panel header="Shipping" key="6" style={{ padding: 0 }}>
-                  <div className={styles.check}>
-                    <div className={styles.checkname3}>
-                      {filterSideData?.shipping?.map((item, index) => (
-                        <Checkbox
-                          onChange={(e) => onChange(e, item, "shipping")}
-                          key={index}
-                          className={styles.list}
-                          checked={checkedItems.includes(item)}
-                        >
-                          {item}
-                        </Checkbox>
                       ))}
                     </div>
                   </div>
@@ -448,7 +345,12 @@ function Catagory() {
         </Col>
         <Col xs={22} md={22} lg={23} xl={15} xxl={15} className={styles.wear}>
           <div className={styles.new}>
-            <p className={styles.home}><Link style={{color:'#000'}} to="/">Home</Link> &gt; {data?.item}</p>
+            <p className={styles.home}>
+              <Link style={{ color: "#000" }} to="/">
+                Home
+              </Link>{" "}
+              &gt; {data?.item}
+            </p>
           </div>
           <div className={styles.shop}>
             <p className={styles.show}></p>
@@ -506,10 +408,10 @@ function Catagory() {
                         ) : (
                           ""
                         )}
-                        <Image preview={false}
+                        <Image
+                          preview={false}
                           // style={{height:'500px',width:'100%'}}
                           src={item?.Product_Image}
-                          
                           alt="Product_Image"
                           onClick={() =>
                             handleAddCart(item?._id, item?.Product_Name)
@@ -551,137 +453,6 @@ function Catagory() {
           />
         </Col>
       </Row>
-      <Modal
-        open={isModalOpen}
-        onOk={handleOk}
-        onCancel={handleCancel}
-        footer={null}
-      >
-        <Row justify="center">
-          <Col
-            xs={24}
-            md={24}
-            lg={24}
-            xl={24}
-            xxl={24}
-            className={styles.sider0}
-          >
-            <div>
-              <div className={styles.main}>
-                <div className={styles.clear}>
-                  <p className={styles.filter}>Filters</p>
-                  <p className={styles.clear2} onClick={() => handleClear()}>
-                    Clear
-                  </p>
-                </div>
-                <div className={styles.blank}></div>
-                <p className={styles.brand}>Brands</p>
-                <div className={styles.check}>
-                  <div className={styles.checkname}>
-                    {filterSideData?.brand?.map((item, index) => (
-                      <>
-                        <Checkbox
-                          onChange={(e) => onChange(e, item, "brands")}
-                          key={index}
-                          className={styles.list}
-                          checked={checkedItems.includes(item)}
-                        >
-                          {item}
-                        </Checkbox>
-                      </>
-                    ))}
-                  </div>
-                </div>
-                <div className={styles.colors}>
-                  <p className={styles.color}>Colors</p>
-                  <div className={styles.check}>
-                    <div className={styles.checkname}>
-                      {filterSideData?.colors?.map((item, index) => (
-                        <>
-                          <Checkbox
-                            onChange={(e) => onChange(e, item, "colors")}
-                            key={index}
-                            className={styles.list}
-                            checked={checkedItems.includes(item)}
-                          >
-                            {item}
-                          </Checkbox>
-                        </>
-                      ))}
-                    </div>
-                  </div>
-                  <p className={styles.color}>Fabric Type</p>
-                  <div className={styles.check}>
-                    <div className={styles.checkname}>
-                      {filterSideData?.fabric?.map((item, index) => (
-                        <>
-                          <Checkbox
-                            onChange={(e) => onChange(e, item, "fabricType")}
-                            key={index}
-                            className={styles.list}
-                            checked={checkedItems.includes(item)}
-                          >
-                            {item}
-                          </Checkbox>
-                        </>
-                      ))}
-                    </div>
-                  </div>
-                  <p className={styles.color}>Rate wise</p>
-                  <div className={styles.check}>
-                    <div className={styles.checkname3}>
-                      {filterSideData?.rate?.map((item, index) => (
-                        <Radio
-                          onChange={(e) => onChange2(e, item, "rateWise")}
-                          key={index}
-                          className={styles.list}
-                          checked={item === selectedRate2}
-                        >
-                          {item}
-                        </Radio>
-                      ))}
-                    </div>
-                  </div>
-                  <p className={styles.color}>Occasion</p>
-                  <div className={styles.check}>
-                    <div className={styles.checkname3}>
-                      {filterSideData?.occasion?.map((item, index) => (
-                        <>
-                          <Checkbox
-                            onChange={(e) => onChange(e, item, "occasion")}
-                            key={index}
-                            className={styles.list}
-                            checked={checkedItems.includes(item)}
-                          >
-                            {item}
-                          </Checkbox>
-                        </>
-                      ))}
-                    </div>
-                  </div>
-                  <p className={styles.color}>Shipping</p>
-                  <div className={styles.check}>
-                    <div className={styles.checkname3}>
-                      {filterSideData?.shipping?.map((item, index) => (
-                        <>
-                          <Checkbox
-                            onChange={(e) => onChange(e, item, "shipping")}
-                            key={index}
-                            className={styles.list}
-                            checked={checkedItems.includes(item)}
-                          >
-                            {item}
-                          </Checkbox>
-                        </>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </Col>
-        </Row>
-      </Modal>
     </div>
   );
 }

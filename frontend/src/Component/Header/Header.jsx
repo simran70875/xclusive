@@ -18,7 +18,7 @@ import {
   ShoppingCartOutlined,
   UserOutlined,
 } from "@ant-design/icons";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import styles from "./index.module.scss";
 
@@ -63,15 +63,52 @@ function Header() {
   }, []);
 
   const catagoryItem = useSelector((state) => state.category?.categoryData);
+  const sortedCategories = useMemo(() => {
+    if (!Array.isArray(catagoryItem)) return [];
+
+    return [...catagoryItem].sort((a, b) => {
+      const aHasChildren = a?.children?.length ? 1 : 0;
+      const bHasChildren = b?.children?.length ? 1 : 0;
+
+      return bHasChildren - aHasChildren;
+    });
+  }, [catagoryItem]);
+
+  // 🔹 helper function (ADD THIS ABOVE megaMenu)
+  const sortByChildrenFirst = (list = []) => {
+    if (!Array.isArray(list)) return [];
+
+    return [...list].sort((a, b) => {
+      const aHasChildren = a?.children?.length ? 1 : 0;
+      const bHasChildren = b?.children?.length ? 1 : 0;
+      return bHasChildren - aHasChildren;
+    });
+  };
+
+  const productFeatureListing1 = useSelector(
+    (state) => state.product?.productList1
+  );
+  const bestSellingProducts = productFeatureListing1?.slice(0, 4);
 
   const Catagory = (item) => {
-    navigate(`/product/${item?.category_Name || item?.categoryName}`, {
+
+    if (item == "all") {
+      navigate(`/product/all`, {
+        state: {
+          item: item,
+          id: null,
+        },
+      });
+
+      return;
+    }
+
+    navigate(`/product/${item?.Category_Name}`, {
       state: {
-        item: item?.category_Name || item?.categoryName,
-        id: item?.category_id || item?.categoryId,
+        item: item?.Category_Name,
+        id: item?._id,
       },
     });
-    window.location.reload();
   };
 
   // useEffect(() => {
@@ -128,139 +165,77 @@ function Header() {
     dispatch(getSearchProductApi(e, userId ? userId : 0, onSuccessCallback));
   };
 
-  const dropDownMenu = (
-    <Menu
-      items={[
-        {
-          label: (
-            <>
-              {userId ? (
-                <>
-                  <p
-                    style={{ fontSize: "16px", fontWeight: "700", margin: "0" }}
-                  >
-                    Hello {profileData?.User_Name}
-                  </p>
-                  <p
-                    style={{
-                      fontSize: "16px",
-                      fontWeight: "500",
-                      margin: "0",
-                      marginBottom: "10px",
-                    }}
-                  >
-                    {profileData?.User_Mobile_No}
-                  </p>
-                  <p
-                    style={{
-                      fontSize: "16px",
-                      fontWeight: "500",
-                      margin: "0",
-                      marginBottom: "10px",
-                      background: "#DAA520",
-                      borderRadius: "10px",
-                      textAlign: "center",
-                      width: "50%",
-                    }}
-                  >
-                    {profileData?.User_Type === "1"
-                      ? "Gold"
-                      : profileData?.User_Type === "2"
-                      ? "Silver"
-                      : profileData?.User_Type === "3"
-                      ? "PPO"
-                      : ""}
-                  </p>
+  const dropDownMenu = {
+    items: [
+      {
+        key: "0",
+        label: (
+          <>
+            {userId ? (
+              <>
+                <p style={{ fontSize: 16, fontWeight: 700, margin: 0 }}>
+                  Hello {profileData?.User_Name}
+                </p>
 
-                  <div>
-                    <Button
-                      style={{
-                        border: "1px solid gainsboro",
-                        borderRadius: "0",
-                        color: "purple",
-                        width: "100%",
-                        height: "45px",
-                        fontWeight: "600",
-                        fontSize: "16px",
-                      }}
-                      onClick={() => {
-                        navigate(routes.signupUrl, {
-                          state: {
-                            update: true,
-                          },
-                        });
-                      }}
-                    >
-                      UPDATE PROFILE
-                    </Button>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <p style={{ fontSize: "18px", fontWeight: "700" }}>Welcome</p>
-                  <p
-                    style={{
-                      fontSize: "14px",
-                      fontWeight: "400",
-                      marginTop: "-20px",
-                    }}
-                  >
-                    To access account and manage orders
-                  </p>
-                  <div>
-                    <Button
-                      style={{
-                        border: "1px solid gainsboro",
-                        borderRadius: "0",
-                        color: "red",
-                        width: "70%",
-                        height: "40px",
-                        fontWeight: "600",
-                        fontSize: "16px",
-                      }}
-                      onClick={() => {
-                        navigate(routes.userUrl);
-                      }}
-                    >
-                      LOGIN / SIGNUP
-                    </Button>
-                  </div>
-                </>
-              )}
-              <div
-                style={{
-                  border: "1px solid gainsboro",
-                  marginTop: "20px",
-                  padding: "0",
-                }}
-              ></div>
-            </>
-          ),
-          key: "0",
-        },
+                <p style={{ fontSize: 16, marginBottom: 10 }}>
+                  {profileData?.User_Mobile_No}
+                </p>
 
-        {
-          label: (
-            <>
-              {userId ? (
-                <div
-                  onClick={() => {
-                    handleReset();
+                <p
+                  style={{
+                    background: "#DAA520",
+                    borderRadius: 10,
+                    textAlign: "center",
+                    width: "50%",
+                    marginBottom: 10,
                   }}
-                  style={{ fontWeight: "600", fontSize: "16px" }}
                 >
-                  Logout
-                </div>
-              ) : (
-                ""
-              )}
-            </>
-          ),
-          key: "3",
-        },
-      ]}
-    />
-  );
+                  {profileData?.User_Type === "1"
+                    ? "Gold"
+                    : profileData?.User_Type === "2"
+                    ? "Silver"
+                    : profileData?.User_Type === "3"
+                    ? "PPO"
+                    : ""}
+                </p>
+
+                <Button
+                  block
+                  style={{ height: 45, fontWeight: 600 }}
+                  onClick={() =>
+                    navigate(routes.signupUrl, { state: { update: true } })
+                  }
+                >
+                  UPDATE PROFILE
+                </Button>
+              </>
+            ) : (
+              <>
+                <p style={{ fontSize: 18, fontWeight: 700 }}>Welcome</p>
+                <p>To access account and manage orders</p>
+
+                <Button
+                  style={{ color: "red", width: "70%" }}
+                  onClick={() => navigate(routes.signupUrl)}
+                >
+                  LOGIN / SIGNUP
+                </Button>
+              </>
+            )}
+          </>
+        ),
+      },
+
+      userId && {
+        key: "3",
+        label: (
+          <div style={{ fontWeight: 600, fontSize: 16 }} onClick={handleReset}>
+            Logout
+          </div>
+        ),
+      },
+    ].filter(Boolean),
+  };
 
   const navigationMenu = [
     {
@@ -547,6 +522,72 @@ function Header() {
     />
   );
 
+  const megaMenu = (category) => ({
+    items: [
+      {
+        key: category._id,
+        label: (
+          <div className={styles.megaMenu}>
+            <Row gutter={40}>
+              {/* LEFT – Categories */}
+              <Col
+                span={16}
+                style={{
+                  padding: "20px 50px",
+                }}
+              >
+                <Row gutter={[30, 20]}>
+                  {sortByChildrenFirst(category.children)?.map((sub) => (
+                    <Col span={8} key={sub._id}>
+                      <h4
+                        onClick={() => Catagory(sub)}
+                        className={styles.megaTitle}
+                      >
+                        {sub.Category_Name}
+                      </h4>
+
+                      {sub.children?.map((child) => (
+                        <p
+                          key={child._id}
+                          className={styles.megaItem}
+                          onClick={() => Catagory(child)}
+                        >
+                          {child.Category_Name}
+                        </p>
+                      ))}
+                    </Col>
+                  ))}
+                </Row>
+              </Col>
+
+              {/* RIGHT – Best Selling */}
+              <Col
+                span={8}
+                style={{
+                  backgroundColor: "#e9e9e9",
+                }}
+              >
+                <h3 className={styles.bestTitle}>Best Selling</h3>
+
+                <Row gutter={[16, 16]}>
+                  {bestSellingProducts?.slice(0, 4).map((item) => (
+                    <Col span={12} key={item._id}>
+                      <div className={styles.bestCard}>
+                        <Image preview={false} src={item.Product_Image} />
+                        <p>{item.Product_Name}</p>
+                        <strong>₹{item.Product_Dis_Price}</strong>
+                      </div>
+                    </Col>
+                  ))}
+                </Row>
+              </Col>
+            </Row>
+          </div>
+        ),
+      },
+    ],
+  });
+
   return (
     <div className="">
       {/* <Marquee className={styles.offer}>{text}</Marquee> */}
@@ -623,16 +664,8 @@ function Header() {
 
         <Col xs={8} md={8} lg={8} xl={8} xxl={8} className={styles.headericon}>
           <Dropdown menu={dropDownMenu} trigger={["click"]}>
-            <div
-              className={styles.hrDropdown}
-              onClick={(e) => e.preventDefault()}
-            >
-              <UserOutlined
-                style={{
-                  color: "#000",
-                  fontSize: 20,
-                }}
-              />
+            <div className={styles.hrDropdown}>
+              <UserOutlined style={{ color: "#000", fontSize: 20 }} />
             </div>
           </Dropdown>
           <div
@@ -715,7 +748,12 @@ function Header() {
               count={cartlist?.Count > 0 ? cartlist?.Count : 0}
               className={styles.badge}
             >
-              <Image preview={false} src={cart} alt="shopping" onClick={handleCart} />
+              <Image
+                preview={false}
+                src={cart}
+                alt="shopping"
+                onClick={handleCart}
+              />
             </Badge>
           ) : (
             <Tooltip>
@@ -725,7 +763,12 @@ function Header() {
                 count={cartlist?.Count > 0 ? cartlist?.Count : 0}
                 className={styles.badge}
               >
-                <Image preview={false} src={cart} alt="shopping" onClick={handleCart} />
+                <Image
+                  preview={false}
+                  src={cart}
+                  alt="shopping"
+                  onClick={handleCart}
+                />
               </Badge>
             </Tooltip>
           )}
@@ -738,32 +781,40 @@ function Header() {
       >
         <Col xs={24} md={24} lg={24} xl={24} xxl={24}>
           <Row justify="center" align={"middle"} gutter={50}>
-            {catagoryItem?.map((item, index) => (
-              <Col
-                key={index}
-                style={{
-                  textAlign: "center",
-                }}
+            <Col>
+              <div
+                className={styles.navItem}
+                onClick={() => navigate(routes.homepageUrl)}
               >
-                <Image preview={false}
-                  style={{
-                    height: 50,
-                    width: 50,
-                    borderRadius: "50%",
-                  }}
-                  src={item.category_Image}
-                  alt={item.category_Name}
-                  onClick={() => Catagory(item)}
-                />
-                <div
-                  onClick={item.onClick}
-                  style={{ cursor: "pointer", color: "#555" }}
-                  className={styles.navItem}
+                Home
+              </div>
+            </Col>
+            <Col>
+              <div
+                className={styles.navItem}
+                onClick={() => navigate(routes.aboutUrl)}
+              >
+                About Us
+              </div>
+            </Col>
+            <Col>
+              {sortedCategories?.map((item) => (
+                <Dropdown
+                  key={item._id}
+                  menu={megaMenu(item)}
+                  trigger={["hover"]}
+                  overlayClassName={styles.megaDropdown}
                 >
-                  {item.category_Name}
-                </div>
-              </Col>
-            ))}
+                  {/* SINGLE CHILD – REQUIRED */}
+                  <span className={styles.navItem}>Categories</span>
+                </Dropdown>
+              ))}
+            </Col>
+            <Col>
+              <div className={styles.navItem} onClick={() => Catagory("all")}>
+                Shop
+              </div>
+            </Col>
           </Row>
         </Col>
       </Row>

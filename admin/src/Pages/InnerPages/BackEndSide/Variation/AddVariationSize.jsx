@@ -8,6 +8,7 @@ const AddVariationSize = ({ variationId, handleCloseModal, handleSizeAdd }) => {
   const [sizeName, setSizeName] = useState("");
   const [stock, setStock] = useState("");
   const [price, setPrice] = useState("");
+  const [purity, setpurity] = useState("");
 
   const handleAddSize = async (e) => {
     e.preventDefault();
@@ -20,6 +21,7 @@ const AddVariationSize = ({ variationId, handleCloseModal, handleSizeAdd }) => {
           Size_Name: sizeName,
           Size_Stock: stock,
           Size_Price: price,
+          Size_Purity: purity,
         },
         {
           headers: {
@@ -116,6 +118,26 @@ const AddVariationSize = ({ variationId, handleCloseModal, handleSizeAdd }) => {
                         />
                       </div>
                     </div>
+                    <div className="mb-3 row">
+                      <label
+                        htmlFor="stock"
+                        className="col-md-2 col-form-label"
+                      >
+                        Metal Purity:
+                      </label>
+                      <div className="col-md-4">
+                        <input
+                          required
+                          className="form-control"
+                          type="text"
+                          id="purity"
+                          placeholder="9K/18K"
+                          value={purity}
+                          onChange={(e) => setpurity(e.target.value)}
+                        />
+                      </div>
+                    </div>
+
                     <div className="col-md-2">
                       <button type="submit" className="btn btn-primary">
                         Add Size

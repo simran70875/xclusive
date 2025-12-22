@@ -9,7 +9,6 @@
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",
     "antd": "^5.9.2",
-    "antd-input-otp": "^1.1.1",
     "aos": "^2.3.4",
     "axios": "^1.5.0",
     "moment": "^2.29.4",

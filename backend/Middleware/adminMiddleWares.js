@@ -1,6 +1,5 @@
 const jwt = require('jsonwebtoken');
 const secretKey = process.env.JWT_TOKEN;
-const Admin = require('../Models/Admin/admin_model');
 
 const checkAdminRole = (req, res, next) => {
     const token = req.header('Authorization');

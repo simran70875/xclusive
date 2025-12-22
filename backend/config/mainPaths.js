@@ -16,10 +16,6 @@ const {
   WishList,
   OrderRoute,
   ResellerRoute,
-  MemberShipRoute,
-  MemberShipHistoryRoute,
-  WalletRoute,
-  CouponRoute,
   SettingsRoute,
   ReviewRoute,
   CoinsRoute,
@@ -46,10 +42,6 @@ const Paths = () => {
   app.use("/wishlist", WishList);
   app.use("/order", OrderRoute);
   app.use("/reseller", ResellerRoute);
-  app.use("/memberShip", MemberShipRoute);
-  app.use("/memberShip/history", MemberShipHistoryRoute);
-  app.use("/wallet/history", WalletRoute);
-  app.use("/coupon", CouponRoute);
   app.use("/app/settings", SettingsRoute);
   app.use("/review", ReviewRoute);
   app.use("/coins/history", CoinsRoute);
