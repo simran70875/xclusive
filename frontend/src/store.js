@@ -19,7 +19,6 @@ import addCart from "./Features/AddCart/AddCart";
 import address from "./Features/Address/Address";
 import category from "./Features/Category/Category";
 import wishList from "./Features/WishList/WishList";
-import walletCoins from "./Features/Wallet&Coins/WalletCoins";
 import popUp from "./Features/Banner/getPopUpBanner";
 import specification from "./Features/Specification/Specification";
 
@@ -34,14 +33,13 @@ const reducers = combineReducers({
   specification: specification,
   wishList: wishList,
   setting: setting,
-  walletCoins: walletCoins,
   popUp: popUp,
 });
 
 const persistConfig = {
   key: "root",
   storage,
-  whitelist: ["user","popUp"],
+  // whitelist: ["user", "popUp"],
 };
 
 const persistedReducer = persistReducer(persistConfig, reducers);

@@ -38,6 +38,8 @@ function Home() {
     (state) => state.product?.productList1
   );
 
+  console.log(productFeatureListing1)
+
   const productFeatureListing2 = useSelector(
     (state) => state.product?.productList2
   );
@@ -53,7 +55,7 @@ function Home() {
   const givewishlist = useSelector((state) => state.wishList?.wishlist);
 
   const catagoryItem = useSelector((state) => state.category?.categoryData);
-  
+
   const settingVideo = useSelector((state) => state.setting?.settingData);
   const profileData = useSelector((state) => state.user?.profileData);
 
@@ -133,7 +135,7 @@ function Home() {
     dots: true,
     infinite: true,
     speed: 2500,
-    slidesToShow: 5,
+    slidesToShow: 4,
     slidesToScroll: 1,
     autoplay: true,
     autoplaySpeed: 100,
@@ -142,7 +144,7 @@ function Home() {
       {
         breakpoint: 1440,
         settings: {
-          slidesToShow: 5,
+          slidesToShow: 4,
         },
       },
       {
@@ -294,7 +296,7 @@ function Home() {
         </Col>
 
         <Col
-          xs={24}
+        xs={22} md={22} lg={22} xl={22} xxl={22}
           className={styles.couraselMain}
           style={{ padding: "50px 0" }}
         >
@@ -368,10 +370,10 @@ function Home() {
                     />
                     <p>{item?.Product_Name}</p>
                     <div className={styles.prices}>
-                      <p>₹{item?.Product_Dis_Price || 0}</p>
-                      <span className={styles.secPrice}>
+                      <p>₹{item?.price || 0}</p>
+                      {/* <span className={styles.secPrice}>
                         ₹{item?.Product_Ori_Price || 0}
-                      </span>
+                      </span> */}
                     </div>
                   </div>
                 </Col>

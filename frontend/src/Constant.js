@@ -1,9 +1,9 @@
 export const BASE_URL = "http://localhost:5000";
 
 export const apiUrl = {
-  SEND_OTP: `${BASE_URL}/user/send-otp`,
-  VERIFY_OTP: `${BASE_URL}/user/verify-otp`,
+  SIGNUP: `${BASE_URL}/user/user`,
   GET_PROFILE: `${BASE_URL}/user/profile/get`,
+  
   UPDATE_PROFILE: `${BASE_URL}/user/profile/update`,
   FIRST_UPDATE_PROFILE: `${BASE_URL}user/profile/update/generate/coupon`,
   GET_MOB_CATEGORY: `${BASE_URL}/category/get`,

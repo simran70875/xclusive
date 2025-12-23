@@ -141,7 +141,7 @@ function AddCart() {
         // toast.success("Cartitem Added Successfully.")
         window.location.reload();
       } else {
-        navigate(routes.userUrl);
+        navigate(routes.loginUrl);
         window.location.reload();
       }
     };
@@ -235,7 +235,7 @@ function AddCart() {
   };
 
   const home = () => {
-    navigate(routes.userUrl);
+    navigate(routes.loginUrl);
   };
 
   const handleProductNotify = () => {

@@ -6,7 +6,6 @@ import {
   Checkbox,
   Col,
   Image,
-  Modal,
   Radio,
   Row,
   Select,

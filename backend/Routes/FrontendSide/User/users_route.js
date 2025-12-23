@@ -23,7 +23,7 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage });
 
 // SIGNUP API
-route.post("/signup", async (req, res) => {
+route.post("/user", async (req, res) => {
   try {
     const {
       name,
@@ -32,6 +32,8 @@ route.post("/signup", async (req, res) => {
       phoneNumber,
       companyName,
     } = req.body;
+
+    console.log(" Signup user ==> ", req.body);
 
     // 1️⃣ Validation
     if (!name || !email || !password || !phoneNumber || !companyName) {
@@ -292,9 +294,6 @@ route.get("/profile/get", authMiddleWare, async (req, res) => {
         User_Image: User_Image,
         User_Email: user?.User_Email || "",
         User_Mobile_No: user?.User_Mobile_No || "",
-        Wallet: user?.Wallet,
-        Coins: user?.Coins,
-        User_Type: user?.User_Type || "",
         Block: user?.Block,
       };
       res.status(200).json({
@@ -335,13 +334,12 @@ route.patch(
   async (req, res) => {
     const userId = req.user.userId;
     const { name, email, mobileNumber } = req.body;
-    console.log("image-files ==> ", req.file);
-    console.log("profile update body ==> ", req.body);
+
     const originalname = req.file?.originalname;
 
     try {
       const user = await User.findById(userId);
-      console.log("user ==> ", user);
+
       if (!user)
         return res
           .status(404)

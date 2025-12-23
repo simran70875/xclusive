@@ -46,11 +46,13 @@ function Header() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const [searchType, setSearchType] = useState();
+
   const userId = useSelector((state) => state.user?.userId);
   const cartCounter = useSelector((state) => state.user?.cartCount);
   const likeCounter = useSelector((state) => state.user?.likeCount);
   const profileData = useSelector((state) => state.user?.profileData);
   const userToken = useSelector((state) => state.user?.token);
+  console.log("userToken ==. ",userToken)
   const cartlist = useSelector((state) => state.addCart?.cartListData);
   const wishlist = useSelector((state) => state.wishList?.wishlist2);
 

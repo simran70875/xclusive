@@ -1,5 +1,5 @@
 import Aos from "aos";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   BrowserRouter as Router,
   Route,
@@ -10,7 +10,6 @@ import { routes } from "../Routes/Routes";
 
 import Like from "../Pages/Like/Like";
 import User from "../Pages/User/User";
-import OTP from "../Pages/User/OTP/OTP";
 import Home from "../Pages/HomePage/Home";
 import Summery from "../Pages/Summery/Summery";
 import AddCart from "../Pages/AddCart/AddCart";
@@ -29,15 +28,11 @@ import Faq from "../Pages/User/SettingPage/Faq";
 import About from "../Pages/User/SettingPage/About";
 import Refund from "../Pages/User/SettingPage/Refund";
 import Privacy from "../Pages/User/SettingPage/Privacy";
-import Wallet from "../Pages/Wallet/Wallet";
-import Coins from "../Pages/Wallet/Coins/Coins";
 import Contact from "../Pages/User/SettingPage/Contact/Contact";
-import Notification from "../Pages/Wallet/Notification/Notification";
 import ScrollToTop from "../Component/ScrollToTop/ScrollToTop";
 import ThankYouMobile from "../Pages/ThankYou/ThankYouMobile";
 import PaymentPending from "../Pages/ThankYou/PaymentPending";
 import PaymentError from "../Pages/ThankYou/PaymentError";
-import WalletThankYou from "../Pages/ThankYou/walletThankyou";
 import Error from "../Pages/ThankYou/error";
 
 const Layout = ({ children }) => {
@@ -84,8 +79,7 @@ const UserRouting = () => {
       <ScrollToTop handleOnScrollTop={handleOnScrollTop} scrolled={scrolled} />
       <Layout>
         <Routes>
-          <Route path={routes.otpUrl} element={<OTP />} />
-          <Route path={routes.userUrl} element={<User />} />
+          <Route path={routes.loginUrl} element={<User />} />
           <Route path={routes.likeUrl} element={<Like />} />
           <Route path={routes.signupUrl} element={<Signup />} />
           <Route path={routes.homepageUrl} element={<Home />} />
@@ -95,7 +89,6 @@ const UserRouting = () => {
           <Route path={routes.summeryUrl} element={<Summery />} />
           <Route path={routes.shoppingUrl} element={<Shopping />} />
           <Route path={routes.thankyouUrl} element={<ThankYou />} />
-          <Route path={routes.walletAdded} element={<WalletThankYou />} />
           <Route path={routes.thankyouMobileUrl} element={<ThankYouMobile />} />
           <Route path={routes.pendingPayment} element={<PaymentPending />} />
           <Route path={routes.paymentError} element={<PaymentError />} />
@@ -108,10 +101,7 @@ const UserRouting = () => {
           <Route path={routes.aboutUrl} element={<About />} />
           <Route path={routes.refundUrl} element={<Refund />} />
           <Route path={routes.privacyUrl} element={<Privacy />} />
-          <Route path={routes.walletUrl} element={<Wallet />} />
-          <Route path={routes.coinsUrl} element={<Coins />} />
           <Route path={routes.contactUrl} element={<Contact />} />
-          <Route path={routes.notificationUrl} element={<Notification />} />
         </Routes>
       </Layout>
     </Router>

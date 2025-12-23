@@ -4,8 +4,10 @@ import { createSlice } from "@reduxjs/toolkit";
 import { apiUrl } from "../../Constant";
 import { apiCall } from "../../Services/CommonService";
 
+const tokenFromStorage = localStorage.getItem("token");
+
 const initialState = {
-  token: "",
+  token: tokenFromStorage || "",
   userId: null,
   profileData: null,
   userName: null,
@@ -103,30 +105,3 @@ export const updateProfileApi =
     }
   };
 
-export const updateFirstTimeApi =
-  (value, token, successCallBack) => async (dispatch) => {
-    dispatch(setIsLoginLoading(true));
-    try {
-      const onSuccess = (response) => {
-        toast.success(response?.message);
-        successCallBack(response);
-        dispatch(getProfileApi(token));
-        dispatch(setIsLoginLoading(false));
-      };
-      const onFailure = (error) => {
-        console.log("error update profile ", error);
-        dispatch(setIsLoginLoading(false));
-      };
-
-      apiCall(
-        "PUT",
-        `${apiUrl.UPDATE_PROFILE}`,
-        value,
-        onSuccess,
-        onFailure,
-        token
-      );
-    } catch (error) {
-      dispatch(setIsLoginLoading(false));
-    }
-  };

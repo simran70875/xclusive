@@ -1,6 +1,6 @@
 export const routes = {
   otpUrl: "/otp",
-  userUrl: "/user",
+  loginUrl: "/signin",
   search: "/search",
   faqUrl: "/faq",
   aboutUrl: "/about",
@@ -11,7 +11,7 @@ export const routes = {
   coinsUrl: "/rewardHistory",
   likeUrl: "/wishlist",
   orderUrl: "/order",
-  signupUrl: "/signup",
+  signupUrl: "/user",
   settingUrl: "/setting",
   homepageUrl: "/",
   shoppingUrl: "/cart",
