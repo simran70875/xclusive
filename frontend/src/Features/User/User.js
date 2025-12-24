@@ -1,6 +1,5 @@
 import { toast } from "react-toastify";
 import { createSlice } from "@reduxjs/toolkit";
-
 import { apiUrl } from "../../Constant";
 import { apiCall } from "../../Services/CommonService";
 
@@ -21,7 +20,8 @@ export const userSlice = createSlice({
   initialState,
   reducers: {
     logout: () => {
-      localStorage.clear();
+      localStorage.removeItem("token");
+      localStorage.removeItem("userId");
       return initialState;
     },
     setUserID: (state, action) => {
@@ -47,6 +47,7 @@ export const userSlice = createSlice({
     },
   },
 });
+
 export const {
   setCartCount,
   setUserID,
@@ -77,31 +78,30 @@ export const getProfileApi = (token) => (dispatch) => {
   }
 };
 
-export const updateProfileApi =
-  (value, token, onSuccessCallback) => (dispatch) => {
-    dispatch(setIsLoginLoading(true));
-    try {
-      const onSuccess = (res) => {
-        // console.log("res",res);
-        toast.success(res?.message);
-        onSuccessCallback(res);
-        dispatch(getProfileApi(token));
-        dispatch(setIsLoginLoading(false));
-      };
-      const onFailure = (error) => {
-        dispatch(setIsLoginLoading(false));
-      };
-
-      apiCall(
-        "PATCH",
-        `${apiUrl.UPDATE_PROFILE}`,
-        value,
-        onSuccess,
-        onFailure,
-        token
-      );
-    } catch (error) {
+export const updateProfileApi = (value, token, onSuccessCallback) => (dispatch) => {
+  dispatch(setIsLoginLoading(true));
+  try {
+    const onSuccess = (res) => {
+      // console.log("res",res);
+      toast.success(res?.message);
+      onSuccessCallback(res);
+      dispatch(getProfileApi(token));
       dispatch(setIsLoginLoading(false));
-    }
-  };
+    };
+    const onFailure = (error) => {
+      dispatch(setIsLoginLoading(false));
+    };
+
+    apiCall(
+      "PATCH",
+      `${apiUrl.UPDATE_PROFILE}`,
+      value,
+      onSuccess,
+      onFailure,
+      token
+    );
+  } catch (error) {
+    dispatch(setIsLoginLoading(false));
+  }
+};
 

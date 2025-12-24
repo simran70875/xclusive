@@ -260,6 +260,7 @@ export const getProductListApi =
       const onFailure = (error) => {
         dispatch(setProductLoading(false));
       };
+      
       apiCall(
         "GET",
         `${apiUrl.GET_PRODUCT_FEATURE_LIST}/${catagoryId}?userId=${userId}&productId=${productId}`,

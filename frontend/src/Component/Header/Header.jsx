@@ -52,7 +52,6 @@ function Header() {
   const likeCounter = useSelector((state) => state.user?.likeCount);
   const profileData = useSelector((state) => state.user?.profileData);
   const userToken = useSelector((state) => state.user?.token);
-  console.log("userToken ==. ",userToken)
   const cartlist = useSelector((state) => state.addCart?.cartListData);
   const wishlist = useSelector((state) => state.wishList?.wishlist2);
 
@@ -93,7 +92,6 @@ function Header() {
   const bestSellingProducts = productFeatureListing1?.slice(0, 4);
 
   const Catagory = (item) => {
-
     if (item == "all") {
       navigate(`/product/all`, {
         state: {
@@ -216,12 +214,18 @@ function Header() {
                 <p style={{ fontSize: 18, fontWeight: 700 }}>Welcome</p>
                 <p>To access account and manage orders</p>
 
-                <Button
-                  style={{ color: "red", width: "70%" }}
-                  onClick={() => navigate(routes.signupUrl)}
-                >
-                  LOGIN / SIGNUP
-                </Button>
+                <div>
+                  <Button
+                    style={{ marginRight: 10 }}
+                    onClick={() => navigate(routes.loginUrl)}
+                  >
+                    LOGIN
+                  </Button>
+
+                  <Button onClick={() => navigate(routes.signupUrl)}>
+                    SIGNUP
+                  </Button>
+                </div>
               </>
             )}
           </>
@@ -254,21 +258,6 @@ function Header() {
       label: "My Address",
       key: "3",
       onClick: () => navigate(routes.addressUrl),
-    },
-    {
-      label: "Wallet History",
-      key: "4",
-      onClick: () => navigate(routes.walletUrl),
-    },
-    {
-      label: "Rewards History",
-      key: "5",
-      onClick: () => navigate(routes.coinsUrl),
-    },
-    {
-      label: "Notifications History",
-      key: "6",
-      onClick: () => navigate(routes.notificationUrl),
     },
     {
       label: "Logout",
@@ -594,37 +583,43 @@ function Header() {
     <div className="">
       {/* <Marquee className={styles.offer}>{text}</Marquee> */}
 
-      {userId && (
-        <Row
-          style={{ background: "#000", padding: 20 }}
-          justify="space-between"
-        >
-          <Col xs={6} md={6} lg={6} xl={6} xxl={6}>
-            <div
-              style={{ cursor: "pointer", color: "#fff" }}
-              className={styles.navItem}
-            >
-              Free Shipping world wide for all order above $99
-            </div>
-          </Col>
+      <Row style={{ background: "#000", padding: 20 }} justify="space-between">
+        <Col xs={6} md={6} lg={6} xl={6} xxl={6}>
+          <div
+            style={{ cursor: "pointer", color: "#fff" }}
+            className={styles.navItem}
+          >
+            Free Shipping world wide for all order above $99
+          </div>
+        </Col>
 
-          <Col xs={18} md={18} lg={18} xl={18} xxl={18}>
-            <Row justify="end" align={"middle"} gutter={30}>
-              {navigationMenu.map((item, index) => (
-                <Col key={index}>
-                  <div
-                    onClick={item.onClick}
-                    style={{ cursor: "pointer", color: "#fff" }}
-                    className={styles.navItem}
-                  >
-                    {item.label}
-                  </div>
-                </Col>
-              ))}
-            </Row>
-          </Col>
-        </Row>
-      )}
+        <Col xs={18} md={18} lg={18} xl={18} xxl={18}>
+          <Row justify="end" align={"middle"} gutter={30}>
+            <Col>
+              <div
+                onClick={() => {
+                  navigate(routes.refundUrl);
+                }}
+                style={{ cursor: "pointer", color: "#fff" }}
+                className={styles.navItem}
+              >
+                Terms & Conditions
+              </div>
+            </Col>
+            <Col>
+              <div
+                onClick={() => {
+                  navigate(routes.privacyUrl);
+                }}
+                style={{ cursor: "pointer", color: "#fff" }}
+                className={styles.navItem}
+              >
+                Privacy Policy
+              </div>
+            </Col>
+          </Row>
+        </Col>
+      </Row>
 
       <Row className={styles.headermain} justify="space-between">
         <Col
@@ -817,6 +812,15 @@ function Header() {
                 Shop
               </div>
             </Col>
+
+            {userId &&
+              navigationMenu.map((item, index) => (
+                <Col key={index}>
+                  <div onClick={item.onClick} className={styles.navItem}>
+                    {item.label}
+                  </div>
+                </Col>
+              ))}
           </Row>
         </Col>
       </Row>

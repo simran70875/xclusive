@@ -1,14 +1,14 @@
 export const BASE_URL = "http://localhost:5000";
 
 export const apiUrl = {
+  LOGIN: `${BASE_URL}/user/login`,
   SIGNUP: `${BASE_URL}/user/user`,
   GET_PROFILE: `${BASE_URL}/user/profile/get`,
-  
-  UPDATE_PROFILE: `${BASE_URL}/user/profile/update`,
   FIRST_UPDATE_PROFILE: `${BASE_URL}user/profile/update/generate/coupon`,
+  GET_MOB_FEATURE_CATEGORY: `${BASE_URL}/category/mob/featurelist/get`,
+  UPDATE_PROFILE: `${BASE_URL}/user/profile/update`,
   GET_MOB_CATEGORY: `${BASE_URL}/category/get`,
   GET_SPECIFICATION: `${BASE_URL}/data/get`,
-  GET_MOB_FEATURE_CATEGORY: `${BASE_URL}/category/mob/featurelist/get`,
   GET_BANNER: `${BASE_URL}/banner/mob/get`,
   GET_BANNER_PRODUCT: `${BASE_URL}/product/banner/mob/get`,
   GET_SEARCH_PRODUCT: `${BASE_URL}/search/get`,

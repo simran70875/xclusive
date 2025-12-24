@@ -66,23 +66,10 @@ route.get('/mob/get/productlist/:id', async (req, res) => {
                 _id: product._id,
                 Product_Name: product.Product_Name,
                 SKU_Code: product.SKU_Code,
-                Product_Image: `${process.env.IP_ADDRESS}/${product?.Product_Image?.path?.replace(/\\/g, '/')}`,
+                Product_Image: `${process.env.IP_ADDRESS}/${product?.Product_Images?.path?.replace(/\\/g, '/')}`,
                 Category: product.Category[0]?.Category_Name || "",
                 Brand_Name: product?.Brand_Name?.Data_Name,
                 Collections: product?.Collections?.Data_Name,
-
-
-                Product_Dis_Price: (user?.User_Type === '0' || userId === "0"
-                    ? (product.Product_Dis_Price)
-                    : (user?.User_Type === '1' ? product.Gold_Price :
-                        (user?.User_Type === '2' ? product.Silver_Price : product.PPO_Price))),
-
-                Product_Ori_Price: (user?.User_Type === '0' || userId === "0" ? (product.Product_Ori_Price) : (product.Product_Dis_Price)),
-
-                Max_Dis_Price: product.Max_Dis_Price,
-                Gold_Price: product.Gold_Price,
-                Silver_Price: product.Silver_Price,
-                PPO_Price: product.PPO_Price,
                 Description: product.Description,
                 Product_Label: product.Product_Label,
                 Popular_pick: product.Popular_pick,
@@ -96,7 +83,7 @@ route.get('/mob/get/productlist/:id', async (req, res) => {
                 _id: product._id,
                 Product_Name: product.Product_Name,
                 SKU_Code: product.SKU_Code,
-                Product_Image: `${process.env.IP_ADDRESS}/${product?.Product_Image?.path?.replace(/\\/g, '/')}`,
+                Product_Image: `${process.env.IP_ADDRESS}/${product?.Product_Images?.path?.replace(/\\/g, '/')}`,
                 Category: product.Category[0]?.Category_Name || "",
                 Brand_Name: product?.Brand_Name?.Data_Name,
                 Collections: product?.Collections?.Data_Name,

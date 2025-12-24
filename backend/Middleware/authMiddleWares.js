@@ -7,6 +7,8 @@ const secretKey = process.env.JWT_TOKEN;
 const authenticates = (req, res, next) => {
     const token = req.header('Authorization');
 
+    console.log(token)
+
     if (!token) {
         return res.status(200).json({ type: 'error', message: 'Access denied. No token provided.' });
     }

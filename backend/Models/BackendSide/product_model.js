@@ -104,15 +104,6 @@ const productSchema = mongoose.Schema(
         ref: "Variations",
       },
     ],
-    Product_Dis_Price: {
-      type: Number,
-    },
-    Product_Ori_Price: {
-      type: Number,
-    },
-    Max_Dis_Price: {
-      type: Number,
-    },
     Description: {
       type: String,
     },

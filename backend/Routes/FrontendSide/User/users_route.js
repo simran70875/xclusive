@@ -33,8 +33,6 @@ route.post("/user", async (req, res) => {
       companyName,
     } = req.body;
 
-    console.log(" Signup user ==> ", req.body);
-
     // 1️⃣ Validation
     if (!name || !email || !password || !phoneNumber || !companyName) {
       return res.status(400).json({
@@ -81,7 +79,7 @@ route.post("/user", async (req, res) => {
     // 6️⃣ (Optional) JWT Token
     const token = jwt.sign(
       { userId: newUser._id },
-      process.env.JWT_SECRET || "secretKey",
+      process.env.JWT_TOKEN,
       { expiresIn: "7d" }
     );
 
@@ -159,7 +157,7 @@ route.post("/login", async (req, res) => {
     // 5️⃣ Generate JWT
     const token = jwt.sign(
       { userId: user._id },
-      process.env.JWT_SECRET || "secretKey",
+      process.env.JWT_TOKEN,
       { expiresIn: "7d" }
     );
 

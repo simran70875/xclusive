@@ -23,6 +23,8 @@ function Signup() {
   const [loading, setLoading] = useState(false);
 
   const reduxToken = useSelector((state) => state.user.token);
+
+  console.log(reduxToken);
   const profileData = useSelector((state) => state.user.profileData);
   const token = reduxToken || localStorage.getItem("token");
 

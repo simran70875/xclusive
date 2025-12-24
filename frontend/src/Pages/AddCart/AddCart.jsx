@@ -1,13 +1,17 @@
-/* eslint-disable eqeqeq */
-/* eslint-disable no-unused-vars */
-/* eslint-disable react-hooks/exhaustive-deps */
 import Slider from "react-slick";
 import { toast } from "react-toastify";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Button, Col, Image, Rate, Row, Tabs } from "antd";
 import { useLocation, useNavigate } from "react-router-dom";
-import { HeartFilled, HeartOutlined } from "@ant-design/icons";
+import {
+  FacebookOutlined,
+  HeartFilled,
+  HeartOutlined,
+  InstagramOutlined,
+  LinkedinOutlined,
+  WhatsAppOutlined,
+} from "@ant-design/icons";
 
 import Review from "../Review/Review";
 import {
@@ -16,11 +20,6 @@ import {
   productNotifyApi,
 } from "../../Features/Product/Product";
 import { routes } from "../../Routes/Routes";
-import addlast from "../../Assets/PNG/addlast.png";
-import instagram from "../../Assets/PNG/instagram.png";
-import facebook from "../../Assets/PNG/facebook.png";
-import linkedin from "../../Assets/PNG/linkedin.png";
-import whatsapp from "../../Assets/PNG/whatsapp.png";
 import Description from "../Description/Description";
 import { addCartApi } from "../../Features/AddCart/AddCart";
 import { getProductReviewApi } from "../../Features/Setting/Setting";
@@ -34,27 +33,21 @@ function AddCart() {
   const { state } = useLocation();
   const [imgArr, setImgArr] = useState([]);
   const [firstData, setFirstData] = useState();
-  console.log("firstData ==>", firstData);
+
   const [variationName, setVariationName] = useState();
+
   const [firstData2, setFirstData2] = useState(0);
-  // console.log("firstData2", firstData2);
   const [isLiked, setIsLiked] = useState(false);
   const [singleImg, setSingleImg] = useState("");
   const [hightLight, setHighLight] = useState(0);
   const [sizeButton, setSizeButton] = useState();
-  // console.log("sizeButton", sizeButton);
   const [data, setData] = useState(1);
   const [stockCont, setStockCount] = useState();
-  // const [checkStock, setCheckStock] = useState(false);
-  // console.log("stockCont", stockCont);
   const [productId, setProductId] = useState(null);
   const [variationId, setVariationId] = useState("");
   const [variationSize, setVariationSize] = useState([]);
-  // console.log("variationSize", variationSize);
   const [variationSize2, setVariationSize2] = useState([]);
-  // console.log("variationSize2", variationSize2);
   const [variationSize3, setVariationSize3] = useState(null);
-  // console.log("variationSize3", variationSize3);
   const [originalPrice, setOriginalPrice] = useState(0);
   const [discountPrice, setDiscountPrice] = useState(0);
   const [colorName, setColorName] = useState();
@@ -73,8 +66,7 @@ function AddCart() {
   const likeCounter = useSelector((state) => state.user?.likeCount);
   const givewishlist = useSelector((state) => state.wishList?.wishlist);
   const productIdData = useSelector((state) => state.product?.productIdData);
-  console.log("productIdData variation ===> ", productIdData?.[0]?.variation);
-  console.log("productIdData variation_Sizes ===> ",productIdData?.[0]?.variation?.[0]?.variation_Sizes);
+
   const loader = useSelector((state) => state.addCart?.isAddCartLoad);
   const loaderFev = useSelector((state) => state.wishList?.wishListLoading);
 
@@ -95,8 +87,7 @@ function AddCart() {
 
   useEffect(() => {
     setFirstData(productIdData?.[0]?.variation?.[0]);
-    const firstDataStock =
-      productIdData?.[0]?.variation?.[0]?.variation_Sizes?.[0]?.stock;
+    const firstDataStock = productIdData?.[0]?.variation?.[0]?.variation_Sizes?.[0]?.stock;
     setFirstData2(firstDataStock);
     setStockCount(firstDataStock);
     dispatch(
@@ -137,17 +128,15 @@ function AddCart() {
 
     const onSuccessCallback = (res) => {
       if (res.type === "success") {
-        // dispatch(setCartCount(cartCounter + 1));
-        // toast.success("Cartitem Added Successfully.")
         window.location.reload();
       } else {
         navigate(routes.loginUrl);
         window.location.reload();
       }
     };
-    // if (sizeButton) {
+
     dispatch(addCartApi(cartobj, onSuccessCallback, userToken));
-    // }
+
   };
 
   const onChange = (key) => {
@@ -155,8 +144,7 @@ function AddCart() {
   };
 
   const handleSize = (sizeName, stock) => {
-    // console.log("/jlkbjhbhikjbn", sizeName, stock);
-    // setData(0);
+
     setIsSizeSelected(true);
     setStockCount(stock);
     setSizeButton(sizeName);
@@ -184,8 +172,7 @@ function AddCart() {
   ) => {
     setStockCount(variationSize?.[0]?.stock);
     setFirstData2(variationSize?.[0]?.stock);
-    // console.log("check", singleImage, imageArr, variationSize, variation, name);
-    // setData(0);
+
     setColorName(name);
     setVariationSize(variationSize);
     setVariationSize2(variationSize?.[0]?.stock);
@@ -204,16 +191,16 @@ function AddCart() {
       productId: value,
     };
     const onSuccessCallback = () => {
-      // dispatch(getWishListApi(userToken));
+
       if (isLiked === false || fev === false) {
         window.location.reload();
         dispatch(getWishListApi(userToken));
         setIsLiked(!isLiked);
-        // dispatch(setLikeCount(likeCounter + 1));
+
       } else {
         if (likeCounter > 0) {
           setIsLiked(!isLiked);
-          // dispatch(setLikeCount(likeCounter - 1));
+
           dispatch(getWishListApi(userToken));
         }
       }
@@ -243,11 +230,11 @@ function AddCart() {
       productId: state?.productId,
       variation: variationId || variationName,
       size: variationSize3 || firstData?.variation_Sizes?.[0]?.name,
-      // size: variationSize?.[0]?.name || firstData?.variation_Sizes?.[0]?.name,
+
     };
     if (isSizeSelected || variationSize3) {
       const onSuccessCallback = () => {
-        // toast.success("success");
+
       };
       dispatch(productNotifyApi(obj, onSuccessCallback, userToken));
     } else {
@@ -316,7 +303,8 @@ function AddCart() {
               xxl={22}
               className={styles.addcart}
             >
-              <Image preview={false}
+              <Image
+                preview={false}
                 key={index}
                 src={
                   singleImg
@@ -325,7 +313,6 @@ function AddCart() {
                         ?.variation_Image || value.Product_Image
                 }
                 alt="add image"
-                
                 className={styles.cartImg}
               />
               <div>
@@ -354,9 +341,9 @@ function AddCart() {
                                       handleSingleImage(data?.variation_Image)
                                     }
                                   >
-                                    <Image preview={false}
+                                    <Image
+                                      preview={false}
                                       src={data?.variation_Image}
-                                      
                                       alt="ellips"
                                     />
                                   </div>
@@ -376,9 +363,9 @@ function AddCart() {
                                         handleSingleImage(data?.variation_Image)
                                       }
                                     >
-                                      <Image preview={false}
+                                      <Image
+                                        preview={false}
                                         src={data?.variation_Image}
-                                        
                                         alt="ellips"
                                       />
                                     </div>
@@ -395,10 +382,7 @@ function AddCart() {
               <div className={styles.sider}>
                 <p className={styles.Foil}>{value?.Product_Name}</p>
                 <div className={styles.prices}>
-                  <p className={styles.price1}>₹{value?.Product_Dis_Price}</p>
-                  <span className={styles.price2}>
-                    ₹{value?.Product_Ori_Price}
-                  </span>
+                  <p className={styles.price1}>₹{value?.Price}</p>
 
                   {!firstData2 ||
                   // data >= stockCont ||
@@ -430,14 +414,16 @@ function AddCart() {
                             );
                           }}
                           className={
-                            hightLight === index ? styles.colorImg : styles.colorImg2
+                            hightLight === index
+                              ? styles.colorImg
+                              : styles.colorImg2
                           }
                         >
-                          <Image preview={false}
+                          <Image
+                            preview={false}
                             key={index}
                             src={item?.variation_Images[0]?.variation_Image}
                             alt="color1"
-                            
                             onClick={() => setHighLight(index)}
                           />
                         </div>
@@ -476,12 +462,13 @@ function AddCart() {
                               key={index}
                               onClick={() => handleSize(itm.name, itm?.stock)}
                               className={
-                                sizeButton ? sizeButton === itm.name
-                                ? styles.xs
-                                : styles.xs2
-                              : index === 0
-                              ? styles.xs
-                              : styles.xs2
+                                sizeButton
+                                  ? sizeButton === itm.name
+                                    ? styles.xs
+                                    : styles.xs2
+                                  : index === 0
+                                  ? styles.xs
+                                  : styles.xs2
                               }
                             >
                               {itm?.name}
@@ -519,7 +506,8 @@ function AddCart() {
                               key={index}
                               onClick={() => handleSize(itm.name, itm?.stock)}
                               className={
-                                sizeButton ? sizeButton === itm.name
+                                sizeButton
+                                  ? sizeButton === itm.name
                                     ? styles.xs
                                     : styles.xs2
                                   : index === 0
@@ -572,10 +560,7 @@ function AddCart() {
                               // disabled={data >= stockCont}
                               disabled={data >= stockCont}
                               onClick={() =>
-                                Incree(
-                                  value?.Product_Dis_Price,
-                                  value?.Product_Ori_Price
-                                )
+                                Incree(value?.Price, value?.Product_Ori_Price)
                               }
                               className={styles.incre2}
                             >
@@ -633,14 +618,6 @@ function AddCart() {
                     <p className={styles.brand}>Brand Name - </p>{" "}
                     <span className={styles.ganga}>{value?.Brand_Name}</span>
                   </div>
-                  <div>
-                    <p className={styles.brand}>Fabric Type - </p>{" "}
-                    <span className={styles.ganga}>{value?.Fabric_Type}</span>
-                  </div>
-                  <div>
-                    <p className={styles.brand}>Occasion - </p>{" "}
-                    <span className={styles.ganga}>{value?.Occasions}</span>
-                  </div>
                 </div>
                 <div className={styles.share}>
                   <p>Share On :</p>
@@ -648,27 +625,44 @@ function AddCart() {
                     <div
                       onClick={() => window.open("https://www.instagram.com/")}
                     >
-                      <Image preview={false} src={instagram} alt="instagram"  />
+                      <InstagramOutlined
+                        style={{
+                          fontSize: 30,
+                          cursor: "pointer",
+                        }}
+                      />
                     </div>
                     <div
                       onClick={() => window.open("https://www.facebook.com/")}
                     >
-                      <Image preview={false} src={facebook} alt="facebook"  />
+                      <FacebookOutlined
+                        style={{
+                          fontSize: 30,
+                          cursor: "pointer",
+                        }}
+                      />
                     </div>
                     <div
                       onClick={() => window.open("https://www.linkedin.com/")}
                     >
-                      <Image preview={false} src={linkedin} alt="linkedin"  />
+                      <LinkedinOutlined
+                        style={{
+                          fontSize: 30,
+                          cursor: "pointer",
+                        }}
+                      />
                     </div>
                     <div
                       onClick={() => window.open("https://www.whatsapp.com/")}
                     >
-                      <Image preview={false} src={whatsapp} alt="whatsapp"  />
+                      <WhatsAppOutlined
+                        style={{
+                          fontSize: 30,
+                          cursor: "pointer",
+                        }}
+                      />
                     </div>
                   </div>
-                </div>
-                <div className={styles.lastimg}>
-                  <Image preview={false}  src={addlast} alt="addlast" />
                 </div>
               </div>
             </Col>
@@ -692,9 +686,9 @@ function AddCart() {
                                   handleSingleImage(data?.variation_Image)
                                 }
                               >
-                                <Image preview={false}
+                                <Image
+                                  preview={false}
                                   src={data?.variation_Image}
-                                  
                                   alt="ellips"
                                 />
                               </div>
@@ -713,9 +707,9 @@ function AddCart() {
                                   handleSingleImage(data?.variation_Image)
                                 }
                               >
-                                <Image preview={false}
+                                <Image
+                                  preview={false}
                                   src={data?.variation_Image}
-                                  
                                   alt="ellips"
                                 />
                               </div>
@@ -774,9 +768,9 @@ function AddCart() {
                     ) : (
                       ""
                     )}
-                    <Image preview={false}
+                    <Image
+                      preview={false}
                       src={item?.Product_Image}
-                      
                       alt="Product_Image"
                       onClick={() =>
                         handleAddCart(item?._id, item?.Product_Name)
@@ -784,10 +778,7 @@ function AddCart() {
                     />
                     <p>{item?.Product_Name}</p>
                     <div className={styles.prices}>
-                      <p>₹{item?.Product_Dis_Price || 0}</p>
-                      <span className={styles.secPrice}>
-                        ₹{item?.Product_Ori_Price || 0}
-                      </span>
+                      <p>₹{item?.Price || 0}</p>
                     </div>
                   </div>
                 </Col>
@@ -829,9 +820,9 @@ function AddCart() {
                     ) : (
                       ""
                     )}
-                    <Image preview={false}
+                    <Image
+                      preview={false}
                       src={data?.Product_Image}
-                      
                       alt="Product_Image"
                       onClick={() =>
                         handleAddCart(data?._id, data?.Product_Name)
@@ -839,10 +830,7 @@ function AddCart() {
                     />
                     <p>{data?.Product_Name}</p>
                     <div className={styles.prices}>
-                      <p>₹{data?.Product_Dis_Price || 0}</p>
-                      <span className={styles.secPrice}>
-                        ₹{data?.Product_Ori_Price || 0}
-                      </span>
+                      <p>₹{data?.Price || 0}</p>
                     </div>
                   </div>
                 </Col>
@@ -879,9 +867,9 @@ function AddCart() {
                     ) : (
                       ""
                     )}
-                    <Image preview={false}
+                    <Image
+                      preview={false}
                       src={item?.Product_Image}
-                      
                       alt="Product_Image"
                       onClick={() =>
                         handleAddCart(item?._id, item?.Product_Name)
@@ -889,7 +877,7 @@ function AddCart() {
                     />
                     <p>{item?.Product_Name}</p>
                     <div className={styles.prices}>
-                      <p>₹{item?.Product_Dis_Price || 0}</p>
+                      <p>₹{item?.Price || 0}</p>
                       <span className={styles.secPrice}>
                         ₹{item?.Product_Ori_Price || 0}
                       </span>
@@ -934,9 +922,9 @@ function AddCart() {
                     ) : (
                       ""
                     )}
-                    <Image preview={false}
+                    <Image
+                      preview={false}
                       src={data?.Product_Image}
-                      
                       alt="Product_Image"
                       onClick={() =>
                         handleAddCart(data?._id, data?.Product_Name)
@@ -944,10 +932,7 @@ function AddCart() {
                     />
                     <p>{data?.Product_Name}</p>
                     <div className={styles.prices}>
-                      <p>₹{data?.Product_Dis_Price || 0}</p>
-                      <span className={styles.secPrice}>
-                        ₹{data?.Product_Ori_Price || 0}
-                      </span>
+                      <p>₹{data?.Price || 0}</p>
                     </div>
                   </div>
                 </Col>

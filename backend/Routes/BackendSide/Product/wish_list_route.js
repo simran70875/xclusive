@@ -86,17 +86,16 @@ route.get("/get", authMiddleWare, async (req, res) => {
         // _id: item?._id,
         _id: item?.product?._id,
         Product_Name: item?.product.Product_Name,
-        Product_Image: `${
-          process.env.IP_ADDRESS
-        }/${item?.product?.Product_Image?.path?.replace(/\\/g, "/")}`,
+        Product_Image: `${process.env.IP_ADDRESS
+          }/${item?.product?.Product_Image?.path?.replace(/\\/g, "/")}`,
         Product_Dis_Price:
           user?.User_Type === "0" || userId === "0"
             ? item?.product?.Product_Dis_Price
             : user?.User_Type === "1"
-            ? item?.product?.Gold_Price
-            : user?.User_Type === "2"
-            ? item?.product?.Silver_Price
-            : item?.product?.PPO_Price,
+              ? item?.product?.Gold_Price
+              : user?.User_Type === "2"
+                ? item?.product?.Silver_Price
+                : item?.product?.PPO_Price,
 
         Product_Ori_Price:
           user?.User_Type === "0" || userId === "0"

@@ -18,9 +18,6 @@ function Refund() {
       <Row justify="center">
         <Col xs={22} md={22} lg={22} xl={22} xxl={22}>
           <div style={{ textAlign: "start", marginBottom: "80px" }}>
-            <h1 style={{ textAlign: "center", marginBottom: "50px" }}>
-              Refund and Exchanges Policy
-            </h1>
             <p
               dangerouslySetInnerHTML={{
                 __html: setting?.app_return_refund_policy,

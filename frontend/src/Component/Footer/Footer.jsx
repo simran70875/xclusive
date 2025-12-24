@@ -3,7 +3,13 @@ import { useSelector } from "react-redux";
 import { Button, Col, Image, Row } from "antd";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { LoginOutlined } from "@ant-design/icons";
+import {
+  FacebookFilled,
+  FacebookOutlined,
+  LoginOutlined,
+  YoutubeFilled,
+  YoutubeOutlined,
+} from "@ant-design/icons";
 import { routes } from "../../Routes/Routes";
 import logo2 from "../../Assets/PNG/logo.png";
 import facebook from "../../Assets/PNG/facebook.png";
@@ -63,21 +69,35 @@ function Footer() {
               <div className={styles.logo}>
                 <img src={logo2} alt="logo" />
               </div>
-              <div className={styles.about}></div>
+              <div className={styles.about}>
+                As a UK-based house with a global presence, we are proud to
+                serve clients around the world, offering not only exceptional
+                jewellery but also a promise
+              </div>
               <div className={styles.icon}>
                 <div
                   onClick={() =>
                     window.open("https://www.youtube.com/@xclusivediamonds")
                   }
                 >
-                  <Image preview={false} src={youtube} alt="youtube" />
+                  <YoutubeFilled
+                    style={{
+                      fontSize: 40,
+                      cursor:"pointer"
+                    }}
+                  />
                 </div>
                 <div
                   onClick={() =>
                     window.open("https://www.facebook.com/xclusivediamonds")
                   }
                 >
-                  <Image preview={false} src={facebook} alt="facebook" />
+                  <FacebookFilled
+                    style={{
+                      fontSize: 30,
+                       cursor:"pointer"
+                    }}
+                  />
                 </div>
               </div>
             </div>
@@ -120,9 +140,6 @@ function Footer() {
                     Refund and Exchanges Policy
                   </div>
                 </div>
-                <div className={styles.Services_footer}>
-                  <div onClick={() => navigate(routes.faqUrl)}>FAQ’s</div>
-                </div>
               </div>
             </div>
           </Col>
@@ -141,37 +158,44 @@ function Footer() {
             </div>
             <div className={styles.Services_main}>
               <div className={styles.Services_head_one}>
-                {userToken ? (
-                  <>
-                    <div className={styles.Services_footer}>
-                      <div onClick={() => navigate(routes.addressUrl)}>
-                        My Address
-                      </div>
+                <>
+                  <div className={styles.Services_footer}>
+                    <div
+                      onClick={() =>
+                        navigate(
+                          userToken ? routes.addressUrl : routes.loginUrl
+                        )
+                      }
+                    >
+                      My Address
                     </div>
-                    <div className={styles.Services_footer}>
-                      <div onClick={() => navigate(routes.shoppingUrl)}>
-                        Shopping Cart
-                      </div>
+                  </div>
+                  <div className={styles.Services_footer}>
+                    <div
+                      onClick={() =>
+                        navigate(
+                          userToken ? routes.addressUrl : routes.loginUrl
+                        )
+                      }
+                    >
+                      Shopping Cart
                     </div>
-                    <div className={styles.Services_footer}>
-                      <div onClick={() => navigate(routes.likeUrl)}>
-                        Wishlist
-                      </div>
+                  </div>
+                  <div className={styles.Services_footer}>
+                    <div
+                      onClick={() =>
+                        navigate(
+                          userToken ? routes.addressUrl : routes.loginUrl
+                        )
+                      }
+                    >
+                      Wishlist
                     </div>
-                  </>
-                ) : (
-                  <>
-                    <div className={styles.Services_footer}>
-                      <div>My Address</div>
-                    </div>
-                    <div className={styles.Services_footer}>
-                      <div>Shopping Cart</div>
-                    </div>
-                    <div className={styles.Services_footer}>
-                      <div>Wishlist</div>
-                    </div>
-                  </>
-                )}
+                  </div>
+                  <div className={styles.Services_footer}>
+                    <div onClick={() => navigate(routes.faqUrl)}>FAQ’s</div>
+                  </div>
+                </>
               </div>
             </div>
           </Col>

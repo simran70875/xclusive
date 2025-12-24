@@ -38,7 +38,7 @@ function Home() {
     (state) => state.product?.productList1
   );
 
-  console.log(productFeatureListing1)
+  console.log(productFeatureListing1);
 
   const productFeatureListing2 = useSelector(
     (state) => state.product?.productList2
@@ -296,7 +296,11 @@ function Home() {
         </Col>
 
         <Col
-        xs={22} md={22} lg={22} xl={22} xxl={22}
+          xs={22}
+          md={22}
+          lg={22}
+          xl={22}
+          xxl={22}
           className={styles.couraselMain}
           style={{ padding: "50px 0" }}
         >
