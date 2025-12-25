@@ -214,7 +214,7 @@ const CreateNewOrder = () => {
                 <option>Add product</option>
                 {products.map((p) => (
                   <option key={p._id} value={p._id}>
-                    {p.Product_Name} — ₹{p.Product_Dis_Price}
+                    {p.Product_Name} — £{p.Product_Dis_Price}
                   </option>
                 ))}
               </select>
@@ -240,8 +240,8 @@ const CreateNewOrder = () => {
                           onChange={(e) => updateQty(i, Number(e.target.value))}
                         />
                       </td>
-                      <td>₹{p.Product_Dis_Price}</td>
-                      <td>₹{p.qty * p.Product_Dis_Price}</td>
+                      <td>£{p.Product_Dis_Price}</td>
+                      <td>£{p.qty * p.Product_Dis_Price}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -258,7 +258,7 @@ const CreateNewOrder = () => {
                 <tbody>
                   <tr>
                     <td>Subtotal</td>
-                    <td className="text-end">₹{subtotal}</td>
+                    <td className="text-end">£{subtotal}</td>
                   </tr>
                   <tr>
                     <td>Add discount</td>
@@ -284,7 +284,7 @@ const CreateNewOrder = () => {
                   </tr>
                   <tr className="fw-bold border-top">
                     <td>Total</td>
-                    <td className="text-end">₹{total}</td>
+                    <td className="text-end">£{total}</td>
                   </tr>
                 </tbody>
               </table>

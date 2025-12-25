@@ -9,6 +9,7 @@ import { apiUrl } from "../../../Constant";
 import { routes } from "../../../Routes/Routes";
 import {
   getProfileApi,
+  // logout,
   setToken,
   setUserID,
   setUserName,
@@ -47,6 +48,10 @@ function Signup() {
     }));
     form.setFieldsValue({ [name]: value });
   };
+
+  // useEffect(() => {
+  //   dispatch(logout());
+  // },[])
 
   // 🔹 Fetch profile if token exists
   useEffect(() => {

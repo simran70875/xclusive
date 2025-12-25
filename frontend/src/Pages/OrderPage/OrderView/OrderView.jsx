@@ -279,10 +279,10 @@ function OrderView() {
                             <div className={styles.seting}>
                               <div className={styles.prices}>
                                 <p className={styles.prices1}>
-                                  ₹{item2?.discountPrice}
+                                  £{item2?.discountPrice}
                                 </p>
                                 <p className={styles.prices2}>
-                                  ₹{item2?.originalPrice}
+                                  £{item2?.originalPrice}
                                 </p>
                               </div>
                               <div className={styles.incree}>
@@ -291,7 +291,7 @@ function OrderView() {
                                 </p>
                               </div>
                               <div className={styles.total}>
-                                <p>₹{item2?.discountPrice * item2?.Quantity}</p>
+                                <p>£{item2?.discountPrice * item2?.Quantity}</p>
                               </div>
                             </div>
                           </div>
@@ -316,18 +316,18 @@ function OrderView() {
 
                     <div className={styles.prices}>
                     <p className={styles.money}>
-                    ₹{state?.DiscountPrice || 0}
+                    £{state?.DiscountPrice || 0}
                     </p>
 
                     <span className={styles.secPrice}>
-                    ₹{state?.OriginalPrice || 0}
+                    £{state?.OriginalPrice || 0}
                     </span>
                     </div>
                     </div>
 
                     <div className={styles.total}>
                       <p className={styles.pricetotal}>Shipping Charges</p>
-                      <p className={styles.money}>₹{state?.Shipping_Charge}</p>
+                      <p className={styles.money}>£{state?.Shipping_Charge}</p>
                     </div>
 
                     {state?.cod_advance_amt > 0 && (
@@ -339,7 +339,7 @@ function OrderView() {
                           COD Advance Amount
                         </p>
                         <p style={{ color: "green" }} className={styles.money}>
-                          ₹{state?.cod_advance_amt}
+                          £{state?.cod_advance_amt}
                         </p>
                       </div>
                     )}
@@ -353,7 +353,7 @@ function OrderView() {
                           Pending Amount
                         </p>
                         <p style={{ color: state?.OrderType === "5" ? "green" : "red" }} className={styles.money}>
-                          ₹{state?.FinalPrice - state?.cod_advance_amt}
+                          £{state?.FinalPrice - state?.cod_advance_amt}
                         </p>
                       </div>
                     )}
@@ -361,14 +361,14 @@ function OrderView() {
                     {state?.walletAmount > 0 && (
                       <div className={styles.total}>
                         <p style={{color:'green'}} className={styles.pricetotal}>Used From Wallet</p>
-                        <p  style={{color:'green'}} className={styles.money}>₹{state?.walletAmount}</p>
+                        <p  style={{color:'green'}} className={styles.money}>£{state?.walletAmount}</p>
                       </div>
                     )}
 
                     {(state?.ActualPayment > 0 || state?.FinalAdavnceCodPrice)   && (
                       <div className={styles.total}>
                         <p className={styles.pricetotal}>Online Paid</p>
-                        <p className={styles.money}>₹{state?.ActualPayment || state?.FinalAdavnceCodPrice}</p>
+                        <p className={styles.money}>£{state?.ActualPayment || state?.FinalAdavnceCodPrice}</p>
                       </div>
                     )}
 
@@ -378,7 +378,7 @@ function OrderView() {
                         <p style={{color:'green'}} className={styles.pricetotal}>Coupon Discount  <span style={{ color: "black" }}>
                             ({orderData?.[0]?.Coupon})
                           </span></p>
-                        <p  style={{color:'green'}} className={styles.money}>₹{state?.CouponPrice}</p>
+                        <p  style={{color:'green'}} className={styles.money}>£{state?.CouponPrice}</p>
                       </div>
                     )}
 
@@ -399,7 +399,7 @@ function OrderView() {
                     <div className={styles.total1}>
                       <p className={styles.pricetotal1}>Total Amount</p>
                       <p className={styles.money1}>
-                        ₹{state?.FinalPrice + state?.CouponPrice}
+                        £{state?.FinalPrice + state?.CouponPrice}
                       </p>
                     </div>
                   </Col>

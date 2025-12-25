@@ -130,7 +130,7 @@ const ShowOrder = () => {
       renderCell: (params) => (
         <div>
           {params.row.Shipping_Charge
-            ? `₹${params.row.Shipping_Charge}`
+            ? `£${params.row.Shipping_Charge}`
             : "----"}
         </div>
       ),
@@ -144,7 +144,7 @@ const ShowOrder = () => {
       filterType: "multiselect",
       renderCell: (params) => (
         <div>
-          {params.row.DiscountPrice ? `₹${params.row.DiscountPrice}` : "----"}
+          {params.row.DiscountPrice ? `£${params.row.DiscountPrice}` : "----"}
         </div>
       ),
     },
@@ -158,7 +158,7 @@ const ShowOrder = () => {
       renderCell: (params) => (
         <div>
           {params.row.FinalPrice
-            ? `₹${params.row.FinalPrice + params.row.CouponPrice}`
+            ? `£${params.row.FinalPrice + params.row.CouponPrice}`
             : "----"}
         </div>
       ),
@@ -174,10 +174,10 @@ const ShowOrder = () => {
         <div>
           {params.row.PaymentType == "2"
             ? params.row.FinalAdavnceCodPrice
-              ? `₹${params.row.FinalAdavnceCodPrice}`
+              ? `£${params.row.FinalAdavnceCodPrice}`
               : `----`
             : params.row.ActualPayment
-            ? `₹${params.row.ActualPayment}`
+            ? `£${params.row.ActualPayment}`
             : `----`}
         </div>
       ),
@@ -190,7 +190,7 @@ const ShowOrder = () => {
       sortable: true,
       filterType: "multiselect",
       renderCell: (params) => (
-        <div>{params.row.Coupon ? `₹${params.row.CouponPrice}` : "----"}</div>
+        <div>{params.row.Coupon ? `£${params.row.CouponPrice}` : "----"}</div>
       ),
     },
 
@@ -203,7 +203,7 @@ const ShowOrder = () => {
       filterType: "multiselect",
       renderCell: (params) => (
         <div>
-          {params.row.walletAmount ? `₹${params.row.walletAmount}` : "----"}
+          {params.row.walletAmount ? `£${params.row.walletAmount}` : "----"}
         </div>
       ),
     },

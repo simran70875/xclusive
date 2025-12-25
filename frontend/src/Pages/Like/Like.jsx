@@ -95,9 +95,9 @@ function Like() {
                     />
                     <p>{item?.Product_Name}</p>
                     <div className={styles.prices}>
-                      <p>₹{item?.Product_Dis_Price || 0}</p>
+                      <p>£{item?.Product_Dis_Price || 0}</p>
                       <span className={styles.secPrice}>
-                        ₹{item?.Product_Ori_Price || 0}
+                        £{item?.Product_Ori_Price || 0}
                       </span>
                     </div>
                   </div>

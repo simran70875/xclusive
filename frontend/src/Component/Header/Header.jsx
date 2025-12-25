@@ -566,7 +566,7 @@ function Header() {
                       <div className={styles.bestCard}>
                         <Image preview={false} src={item.Product_Image} />
                         <p>{item.Product_Name}</p>
-                        <strong>₹{item.Product_Dis_Price}</strong>
+                        <strong>£{item.Product_Dis_Price}</strong>
                       </div>
                     </Col>
                   ))}

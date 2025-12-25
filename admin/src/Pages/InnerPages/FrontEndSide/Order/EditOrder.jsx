@@ -334,9 +334,9 @@ const ShowOrderDetails = () => {
                                     </td>
                                     <td>{product?.SizeName}</td>
                                     <td>{product?.Quantity}</td>
-                                    <td>₹ {product?.discountPrice}</td>
+                                    <td>£ {product?.discountPrice}</td>
                                     <td>
-                                      ₹{" "}
+                                      £{" "}
                                       {product?.Quantity *
                                         product?.discountPrice}
                                     </td>
@@ -378,14 +378,14 @@ const ShowOrderDetails = () => {
                             </tr>
                             <tr>
                               <td>
-                                <b>₹ {orderDetails?.DiscountPrice}/-</b>
+                                <b>£ {orderDetails?.DiscountPrice}/-</b>
                               </td>
                               <td>
-                                <b>₹ {orderDetails?.Shipping_Charge}/-</b>
+                                <b>£ {orderDetails?.Shipping_Charge}/-</b>
                               </td>
                               <td>
                                 <b>
-                                  ₹{" "}
+                                  £{" "}
                                   {orderDetails?.FinalPrice +
                                     orderDetails?.CouponPrice}
                                   /-
@@ -395,23 +395,23 @@ const ShowOrderDetails = () => {
                               {couponDetails?.couponCode && (
                                 <td>
                                   <>
-                                    {"#" + couponDetails?.couponCode} <br></br>₹
+                                    {"#" + couponDetails?.couponCode} <br></br>£
                                     {orderDetails?.CouponPrice}
                                   </>
                                 </td>
                               )}
 
                               {orderDetails?.cod_advance_amt > 0 && (
-                                <td>₹ {orderDetails?.cod_advance_amt}/-</td>
+                                <td>£ {orderDetails?.cod_advance_amt}/-</td>
                               )}
 
                               {orderDetails?.wallet == true && (
-                                <td>₹{orderDetails?.walletAmount}</td>
+                                <td>£{orderDetails?.walletAmount}</td>
                               )}
 
                               {orderDetails?.PaymentType != "Wallet" && (
                                 <th>
-                                  ₹
+                                  £
                                   {orderDetails?.PaymentType == "Online Payment"
                                     ? orderDetails?.ActualPayment
                                     : orderDetails?.FinalAdavnceCodPrice}
@@ -422,7 +422,7 @@ const ShowOrderDetails = () => {
                                 "Cash On Delivery" && (
                                 <td>
                                   <b>
-                                    ₹{" "}
+                                    £{" "}
                                     {orderDetails?.FinalPrice -
                                       orderDetails?.cod_advance_amt}
                                     /-

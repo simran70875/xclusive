@@ -4,7 +4,6 @@ import { memo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Col, Image, Row } from "antd";
 import { useDispatch, useSelector } from "react-redux";
-import { HeartFilled, HeartOutlined } from "@ant-design/icons";
 
 import {
   getBannerApi,
@@ -17,28 +16,25 @@ import {
   getProductFeatureListApi2,
   getProductFeatureListApi3,
 } from "../../Features/Product/Product";
-import logo2 from "../../Assets/PNG/logo.png";
 import { getSettingApi } from "../../Features/Setting/Setting";
 import { getProfileApi } from "../../Features/User/User";
 import { getCategoryFeatureApi } from "../../Features/Category/Category";
-import { addWishList, getWishListApi } from "../../Features/WishList/WishList";
+import { getWishListApi } from "../../Features/WishList/WishList";
 
 import styles from "./index.module.scss";
 import PopupModal from "./PopupModal";
 import { getSpecificationApi } from "../../Features/Specification/Specification";
+import { ProductCard } from "../../Component/productCard";
 
 function Home() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const [isLiked, setIsLiked] = useState(false);
 
   const { SpecificationData } = useSelector((state) => state.specification);
 
   const productFeatureListing1 = useSelector(
     (state) => state.product?.productList1
   );
-
-  console.log(productFeatureListing1);
 
   const productFeatureListing2 = useSelector(
     (state) => state.product?.productList2
@@ -50,14 +46,11 @@ function Home() {
   const userid = useSelector((state) => state.user?.userId);
   const userToken = useSelector((state) => state.user?.token);
   const banner = useSelector((state) => state.banner?.bannerData);
-  const likeCounter = useSelector((state) => state.user?.likeCount);
   const bannerPrpduct = useSelector((state) => state.banner?.bannerProductData);
-  const givewishlist = useSelector((state) => state.wishList?.wishlist);
 
-  const catagoryItem = useSelector((state) => state.category?.categoryData);
-
-  const settingVideo = useSelector((state) => state.setting?.settingData);
-  const profileData = useSelector((state) => state.user?.profileData);
+  const featureCats = useSelector(
+    (state) => state.category?.categoryFeatureData
+  );
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -108,28 +101,54 @@ function Home() {
     window.location.reload();
   };
 
-  const toggleLike = (value) => {
-    const obj = {
-      productId: value,
-    };
-    const onSuccessCallback = () => {
-      // dispatch(getWishListApi(userToken));
-      if (isLiked === false) {
-        dispatch(getWishListApi(userToken));
-        setIsLiked(!isLiked);
-        // dispatch(setLikeCount(likeCounter + 1));
-      } else {
-        if (likeCounter > 0) {
-          // dispatch(setLikeCount(likeCounter - 1));
-          dispatch(getWishListApi(userToken));
-        }
-      }
-    };
-    dispatch(addWishList(obj, onSuccessCallback, userToken));
-  };
 
-  const getProductIsLikedOrNot = (id) =>
-    Boolean(givewishlist?.find((e) => e._id == id));
+  let settingsCat = {
+    infinite: true,
+    speed: 2500,
+    slidesToShow: 7,
+    slidesToScroll: 1,
+    autoplay: true,
+    autoplaySpeed: 100,
+
+    responsive: [
+      {
+        breakpoint: 1440,
+        settings: {
+          slidesToShow: 7,
+        },
+      },
+      {
+        breakpoint: 1024,
+        settings: {
+          slidesToShow: 4,
+        },
+      },
+      {
+        breakpoint: 768,
+        settings: {
+          slidesToShow: 4,
+        },
+      },
+      {
+        breakpoint: 426,
+        settings: {
+          slidesToShow: 2,
+        },
+      },
+      {
+        breakpoint: 376,
+        settings: {
+          slidesToShow: 1.2,
+        },
+      },
+      {
+        breakpoint: 321,
+        settings: {
+          slidesToShow: 1.1,
+        },
+      },
+    ],
+  };
 
   let settings = {
     dots: true,
@@ -301,10 +320,45 @@ function Home() {
           lg={22}
           xl={22}
           xxl={22}
+          style={{ padding: "50px 0" }}
+        >
+          <h2 className={styles.sectionTitle}>Top Categories</h2>
+
+          <Slider {...settingsCat} className={styles.handlecourasel}>
+            {featureCats?.map((data, index) => (
+              <div key={index}>
+                <div onClick={() => Catagory(data)}>
+                  <div
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <img src={data.category_Image} alt={data.category_Name} />
+                    <p
+                      className={`${styles.specName} ${styles.capetalizeText}`}
+                    >
+                      {data.category_Name}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </Slider>
+        </Col>
+
+        <Col
+          xs={22}
+          md={22}
+          lg={22}
+          xl={22}
+          xxl={22}
           className={styles.couraselMain}
           style={{ padding: "50px 0" }}
         >
-          <h2 className={styles.sectionTitle}>TOP COLLECTIONS & BRANDS</h2>
+          <h2 className={styles.sectionTitle}>Top Collections & Brands</h2>
 
           <Slider {...settings} className={styles.handlecourasel}>
             {SpecificationData?.map((data, index) => (
@@ -332,54 +386,18 @@ function Home() {
 
         {productFeatureListing1?.length <= 4 ? (
           <Col xs={22} md={22} lg={22} xl={22} xxl={22} className={styles.wear}>
-            <h2 className={styles.sectionTitle}>TRENDY COLLACTION</h2>
+            <h2 className={styles.sectionTitle}>Trending Products</h2>
+
             <Row justify="start">
-              {productFeatureListing1?.map((item, index) => (
+              {productFeatureListing1.map((item, index) => (
                 <Col
+                  key={index}
                   lg={24}
                   xl={6}
                   xxl={6}
-                  key={index}
                   className={styles.setMain}
                 >
-                  <div className={styles.slider}>
-                    {userToken ? (
-                      <div className={styles.hearticon}>
-                        {getProductIsLikedOrNot(item?._id) ? (
-                          <HeartFilled
-                            className={styles.pink}
-                            onClick={() => {
-                              toggleLike(item?._id);
-                            }}
-                          />
-                        ) : (
-                          <HeartOutlined
-                            className={styles.normal}
-                            onClick={() => {
-                              toggleLike(item?._id);
-                            }}
-                          />
-                        )}
-                      </div>
-                    ) : (
-                      ""
-                    )}
-                    <Image
-                      preview={false}
-                      src={item?.Product_Image}
-                      alt="Product_Image"
-                      onClick={() =>
-                        handleAddCart(item?._id, item?.Product_Name)
-                      }
-                    />
-                    <p>{item?.Product_Name}</p>
-                    <div className={styles.prices}>
-                      <p>₹{item?.price || 0}</p>
-                      {/* <span className={styles.secPrice}>
-                        ₹{item?.Product_Ori_Price || 0}
-                      </span> */}
-                    </div>
-                  </div>
+                  <ProductCard item={item} />
                 </Col>
               ))}
             </Row>
@@ -393,48 +411,12 @@ function Home() {
             xxl={22}
             className={styles.wearSet}
           >
-            <h2 className={styles.sectionTitle}>TRENDY COLLECTIONS</h2>
+            <h2 className={styles.sectionTitle}>Trending Products</h2>
+
             <Slider {...settings3} className={styles.smain}>
-              {productFeatureListing1?.map((data, index) => (
-                <Col lg={24} xl={6} xxl={6} key={index}>
-                  <div className={styles.slider}>
-                    {userToken ? (
-                      <div className={styles.hearticon}>
-                        {getProductIsLikedOrNot(data?._id) ? (
-                          <HeartFilled
-                            className={styles.pink}
-                            onClick={() => {
-                              toggleLike(data?._id);
-                            }}
-                          />
-                        ) : (
-                          <HeartOutlined
-                            className={styles.normal}
-                            onClick={() => {
-                              toggleLike(data?._id);
-                            }}
-                          />
-                        )}
-                      </div>
-                    ) : (
-                      ""
-                    )}
-                    <Image
-                      preview={false}
-                      src={data?.Product_Image || logo2}
-                      alt="Product_Image"
-                      onClick={() =>
-                        handleAddCart(data?._id, data?.Product_Name)
-                      }
-                    />
-                    <p>{data?.Product_Name}</p>
-                    <div className={styles.prices}>
-                      <p>₹{data?.Product_Dis_Price || 0}</p>
-                      <span className={styles.secPrice}>
-                        ₹{data?.Product_Ori_Price || 0}
-                      </span>
-                    </div>
-                  </div>
+              {productFeatureListing1.map((item, index) => (
+                <Col key={index} lg={24} xl={6} xxl={6}>
+                  <ProductCard item={item} />
                 </Col>
               ))}
             </Slider>
@@ -443,48 +425,18 @@ function Home() {
 
         {productFeatureListing2?.length <= 4 ? (
           <Col xs={22} md={22} lg={22} xl={22} xxl={22} className={styles.wear}>
-            <h2 className={styles.sectionTitle}>BEST SELLING PRODUCTS</h2>
+            <h2 className={styles.sectionTitle}>Best Selling Products</h2>
+
             <Row justify="start">
-              {productFeatureListing2?.map((item, index) => (
-                <Col xl={6} xxl={6} className={styles.setMain}>
-                  <div className={styles.slider} key={index}>
-                    {userToken ? (
-                      <div className={styles.hearticon}>
-                        {getProductIsLikedOrNot(item?._id) ? (
-                          <HeartFilled
-                            className={styles.pink}
-                            onClick={() => {
-                              toggleLike(item?._id);
-                            }}
-                          />
-                        ) : (
-                          <HeartOutlined
-                            className={styles.normal}
-                            onClick={() => {
-                              toggleLike(item?._id);
-                            }}
-                          />
-                        )}
-                      </div>
-                    ) : (
-                      ""
-                    )}
-                    <Image
-                      preview={false}
-                      src={item?.Product_Image}
-                      alt="Product_Image"
-                      onClick={() =>
-                        handleAddCart(item?._id, item?.Product_Name)
-                      }
-                    />
-                    <p>{item?.Product_Name}</p>
-                    <div className={styles.prices}>
-                      <p>₹{item?.Product_Dis_Price || 0}</p>
-                      <span className={styles.secPrice}>
-                        ₹{item?.Product_Ori_Price || 0}
-                      </span>
-                    </div>
-                  </div>
+              {productFeatureListing2.map((item, index) => (
+                <Col
+                  key={index}
+                  lg={24}
+                  xl={6}
+                  xxl={6}
+                  className={styles.setMain}
+                >
+                  <ProductCard item={item} />
                 </Col>
               ))}
             </Row>
@@ -498,48 +450,12 @@ function Home() {
             xxl={22}
             className={styles.wearSet}
           >
-            <h2 className={styles.sectionTitle}>BEST SELLING PRODUCTS</h2>
+            <h2 className={styles.sectionTitle}>Best Selling Products</h2>
+
             <Slider {...settings3} className={styles.smain}>
-              {productFeatureListing2?.map((data, index) => (
-                <Col lg={24} xl={6} xxl={6} key={index}>
-                  <div className={styles.slider}>
-                    {userToken ? (
-                      <div className={styles.hearticon}>
-                        {getProductIsLikedOrNot(data?._id) ? (
-                          <HeartFilled
-                            className={styles.pink}
-                            onClick={() => {
-                              toggleLike(data?._id);
-                            }}
-                          />
-                        ) : (
-                          <HeartOutlined
-                            className={styles.normal}
-                            onClick={() => {
-                              toggleLike(data?._id);
-                            }}
-                          />
-                        )}
-                      </div>
-                    ) : (
-                      ""
-                    )}
-                    <Image
-                      preview={false}
-                      src={data?.Product_Image || logo2}
-                      alt="Product_Image"
-                      onClick={() =>
-                        handleAddCart(data?._id, data?.Product_Name)
-                      }
-                    />
-                    <p>{data?.Product_Name}</p>
-                    <div className={styles.prices}>
-                      <p>₹{data?.Product_Dis_Price || 0}</p>
-                      <span className={styles.secPrice}>
-                        ₹{data?.Product_Ori_Price || 0}
-                      </span>
-                    </div>
-                  </div>
+              {productFeatureListing2.map((item, index) => (
+                <Col key={index} lg={24} xl={6} xxl={6}>
+                  <ProductCard item={item} />
                 </Col>
               ))}
             </Slider>
@@ -565,49 +481,27 @@ function Home() {
         </Col>
 
         {productFeatureListing3?.length <= 4 ? (
-          <Col xs={22} md={22} lg={22} xl={22} xxl={22} className={styles.wear}>
-            <h2 className={styles.sectionTitle}>POPULAR PICKS</h2>
+          <Col
+            xs={22}
+            md={22}
+            lg={22}
+            xl={22}
+            xxl={22}
+            className={styles.wear}
+            style={{ padding: "50px 0" }}
+          >
+            <h2 className={styles.sectionTitle}>Popular Picks</h2>
+
             <Row justify="start">
-              {productFeatureListing3?.map((item, index) => (
-                <Col xl={6} xxl={6} className={styles.setMain} key={index}>
-                  <div className={styles.slider}>
-                    {userToken ? (
-                      <div className={styles.hearticon}>
-                        {getProductIsLikedOrNot(item?._id) ? (
-                          <HeartFilled
-                            className={styles.pink}
-                            onClick={() => {
-                              toggleLike(item?._id);
-                            }}
-                          />
-                        ) : (
-                          <HeartOutlined
-                            className={styles.normal}
-                            onClick={() => {
-                              toggleLike(item?._id);
-                            }}
-                          />
-                        )}
-                      </div>
-                    ) : (
-                      ""
-                    )}
-                    <Image
-                      preview={false}
-                      src={item?.Product_Image}
-                      alt="Product_Image"
-                      onClick={() =>
-                        handleAddCart(item?._id, item?.Product_Name)
-                      }
-                    />
-                    <p>{item?.Product_Name}</p>
-                    <div className={styles.prices}>
-                      <p>₹{item?.Product_Dis_Price || 0}</p>
-                      <span className={styles.secPrice}>
-                        ₹{item?.Product_Ori_Price || 0}
-                      </span>
-                    </div>
-                  </div>
+              {productFeatureListing3.map((item, index) => (
+                <Col
+                  key={index}
+                  lg={24}
+                  xl={6}
+                  xxl={6}
+                  className={styles.setMain}
+                >
+                  <ProductCard item={item} />
                 </Col>
               ))}
             </Row>
@@ -620,49 +514,14 @@ function Home() {
             xl={22}
             xxl={22}
             className={styles.wearSet}
+            style={{ padding: "50px 0" }}
           >
-            <h2 className={styles.sectionTitle}>POPULAR PICKS</h2>
+            <h2 className={styles.sectionTitle}>Popular Picks</h2>
+
             <Slider {...settings3} className={styles.smain}>
-              {productFeatureListing3?.map((data, index) => (
-                <Col lg={24} xl={6} xxl={6} key={index}>
-                  <div className={styles.slider}>
-                    {userToken ? (
-                      <div className={styles.hearticon}>
-                        {getProductIsLikedOrNot(data?._id) ? (
-                          <HeartFilled
-                            className={styles.pink}
-                            onClick={() => {
-                              toggleLike(data?._id);
-                            }}
-                          />
-                        ) : (
-                          <HeartOutlined
-                            className={styles.normal}
-                            onClick={() => {
-                              toggleLike(data?._id);
-                            }}
-                          />
-                        )}
-                      </div>
-                    ) : (
-                      ""
-                    )}
-                    <Image
-                      preview={false}
-                      src={data?.Product_Image || logo2}
-                      alt="Product_Image"
-                      onClick={() =>
-                        handleAddCart(data?._id, data?.Product_Name)
-                      }
-                    />
-                    <p>{data?.Product_Name}</p>
-                    <div className={styles.prices}>
-                      <p>₹{data?.Product_Dis_Price || 0}</p>
-                      <span className={styles.secPrice}>
-                        ₹{data?.Product_Ori_Price || 0}
-                      </span>
-                    </div>
-                  </div>
+              {productFeatureListing3.map((item, index) => (
+                <Col key={index} lg={24} xl={6} xxl={6}>
+                  <ProductCard item={item} />
                 </Col>
               ))}
             </Slider>

@@ -6,12 +6,12 @@
     width: 100% !important;
   }
   :global(.handlecourasel .slick-slide) {
-  padding: 0 12px;
-}
+    padding: 0 12px;
+  }
 
-:global(.handlecourasel .slick-list) {
-  margin: 0 -12px;
-}
+  :global(.handlecourasel .slick-list) {
+    margin: 0 -12px;
+  }
 
   .couraselMain {
     margin-bottom: 50px;
@@ -554,78 +554,191 @@
     }
   }
 
- .sectionTitle {
-  text-align: center;
-  padding-bottom: 50px;
-  font-size: 28px;
-  font-weight: 600;
-  letter-spacing: 1px;
+  .sectionTitle {
+    text-align: center;
+    padding-bottom: 50px;
+    font-size: 28px;
+    font-weight: 600;
+    letter-spacing: 1px;
+  }
+
+  /* Card */
+  .specBox {
+    min-height: 220px;
+    border-radius: 18px;
+    padding: 28px 22px;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: start;
+
+    border: 1px solid rgba(0, 0, 0, 0.05);
+
+    transition: all 0.35s ease;
+    cursor: pointer;
+
+    margin: 0px 10px;
+  }
+
+  .specBox:hover {
+    transform: translateY(-6px);
+    border-color: rgba(212, 175, 55, 0.4);
+  }
+
+  /* Collection Name */
+  .specName {
+    font-size: 20px;
+    font-weight: 500;
+    margin-bottom: 8px;
+    color: #000;
+  }
+
+  /* Product Count */
+  .productCount {
+    font-size: 14px;
+    color: #777;
+    margin-bottom: 20px;
+  }
+
+  /* Explore Button */
+  .exploreBtn {
+    background: transparent;
+    border: 1px solid #c9a24d; /* gold */
+    color: #c9a24d;
+
+    padding: 8px 22px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: 0.4px;
+
+    transition: all 0.3s ease;
+  }
+
+  .exploreBtn:hover {
+    background: #c9a24d;
+    color: #fff;
+  }
+
+  /* Luxury Backgrounds */
+  .bg0 {
+    background: #fbf9f6;
+  }
+  .bg1 {
+    background: #f6f1ee;
+  }
+  .bg2 {
+    background: #f2f2f2;
+  }
+  .bg3 {
+    background: #f5efe6;
+  }
+  .bg4 {
+    background: #eef2f5;
+  }
 }
 
-/* Card */
-.specBox {
-  min-height: 220px;
-  border-radius: 18px;
-  padding: 28px 22px;
-
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  align-items: start;
-
-  border: 1px solid rgba(0, 0, 0, 0.05);
-
-  transition: all 0.35s ease;
-  cursor: pointer;
-
-  margin:0px 10px;
+.capetalizeText {
+  text-transform: capitalize !important;
 }
 
-.specBox:hover {
-  transform: translateY(-6px);
-  border-color: rgba(212, 175, 55, 0.4);
+.secPrice {
+  text-decoration: line-through;
+  color: #998a85;
 }
 
-/* Collection Name */
-.specName {
-  font-size: 20px;
-  font-weight: 500;
-  margin-bottom: 8px;
-  color: #000;
-}
-
-/* Product Count */
-.productCount {
-  font-size: 14px;
-  color: #777;
-  margin-bottom: 20px;
-}
-
-/* Explore Button */
-.exploreBtn {
-  background: transparent;
-  border: 1px solid #c9a24d; /* gold */
-  color: #c9a24d;
-
-  padding: 8px 22px;
-  border-radius: 20px;
-  font-size: 14px;
-  font-weight: 500;
-  letter-spacing: 0.4px;
-
-  transition: all 0.3s ease;
-}
-
-.exploreBtn:hover {
-  background: #c9a24d;
-  color: #fff;
-}
-
-/* Luxury Backgrounds */
-.bg0 { background: #fbf9f6; }
-.bg1 { background: #f6f1ee; }
-.bg2 { background: #f2f2f2; }
-.bg3 { background: #f5efe6; }
-.bg4 { background: #eef2f5; }
-
+.slider {
+  position: relative;
+  .hearticon {
+    cursor: pointer;
+    > span {
+      font-size: 20px;
+      position: absolute;
+      margin-top: 10px;
+      color: $black;
+      border: 1px solid $white;
+      background: $white;
+      padding: 6px;
+      border-radius: 20px;
+      right: 33px;
+      @media (max-width: 426px) {
+        right: 18px !important;
+      }
+    }
+    .pink {
+      font-size: 20px;
+      position: absolute;
+      margin-top: 10px;
+      color: #ff0000;
+      background: $white;
+      padding: 6px;
+      border-radius: 20px;
+      right: 33px;
+      @media (max-width: 426px) {
+        right: 18px !important;
+      }
+    }
+    .normal {
+      font-size: 20px;
+      position: absolute;
+      margin-top: 10px;
+      color: $black;
+      border: 1px solid $white;
+      background: $white;
+      padding: 6px;
+      border-radius: 20px;
+      right: 33px;
+      @media (max-width: 426px) {
+        right: 18px !important;
+      }
+    }
+  }
+  > div {
+    position: static;
+    cursor: pointer;
+    width: 95%;
+    @media (max-width: 426px) {
+      width: 80%;
+    }
+    > img {
+      width: 100%;
+      height: auto;
+      @media (max-width: 426px) {
+        width: 192px;
+        height: auto;
+      }
+      @media (max-width: 321px) {
+        width: 190px !important;
+      }
+    }
+  }
+  > p {
+    text-align: start;
+    font-size: 18px;
+    font-weight: 400;
+    padding-left: 12px;
+    @media (max-width: 426px) {
+      padding-left: 28px;
+    }
+  }
+  .prices {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    margin-top: -30px;
+    padding-left: 12px;
+    @media (max-width: 426px) {
+      padding-left: 28px;
+    }
+    > p {
+      text-align: start;
+      font-size: 18px;
+      font-weight: 400;
+    }
+    .secPrice {
+      text-decoration: line-through;
+      color: #998a85;
+    }
+  }
 }

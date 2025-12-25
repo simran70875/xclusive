@@ -627,7 +627,7 @@ function Summery() {
                             className={styles.wallet}
                           />
                           <p className={styles.thousand}>
-                            Wallet - ₹{profileData?.Wallet}
+                            Wallet - £{profileData?.Wallet}
                           </p>
                         </div>
                       ) : null}
@@ -703,10 +703,10 @@ function Summery() {
                         </div>
                         <div className={styles.prices}>
                           <p className={styles.price1}>
-                            ₹{item?.discountPrice}
+                            £{item?.discountPrice}
                           </p>
                           <span className={styles.price2}>
-                            ₹{item?.originalPrice}
+                            £{item?.originalPrice}
                           </span>
                         </div>
                       </div>
@@ -780,9 +780,9 @@ function Summery() {
                   <div>
                     <p>Total MRP</p>
                     <div className={styles.pro}>
-                      <p className={styles.pro1}>₹{cartlist?.totalDiscount}</p>
+                      <p className={styles.pro1}>£{cartlist?.totalDiscount}</p>
                       <span className={styles.pro2}>
-                        ₹{cartlist?.totalOriginalAmount}
+                        £{cartlist?.totalOriginalAmount}
                       </span>
                     </div>
                   </div>
@@ -791,7 +791,7 @@ function Summery() {
                       Shipping Charge
                     </p>
                     <p className={styles.coupon2} style={{ color: "black" }}>
-                      ₹{cartlist?.ShippingCharge ? cartlist?.ShippingCharge : 0}
+                      £{cartlist?.ShippingCharge ? cartlist?.ShippingCharge : 0}
                     </p>
                   </div>
                   {ordertype === "cash" ? (
@@ -802,7 +802,7 @@ function Summery() {
                         <>
                           <p className={styles.coupon1}>Coupon Discount</p>
                           <p className={styles.coupon2}>
-                            ₹
+                            £
                             {applyCoupon?.[0]?.discountAmount
                               ? applyCoupon?.[0]?.discountAmount * quienty
                               : 0}
@@ -812,7 +812,7 @@ function Summery() {
                         <>
                           <p className={styles.coupon1}>Coupon Discount</p>
                           <p className={styles.coupon2}>
-                            ₹
+                            £
                             {couponPrice
                               ? couponPrice * quienty
                               : couponName === ""
@@ -836,7 +836,7 @@ function Summery() {
                         />
 
                         <p className={styles.thousand}>
-                          Use money from wallet ₹{profileData?.Wallet}
+                          Use money from wallet £{profileData?.Wallet}
                         </p>
                         {/* <br></br> */}
                         {/* <p> */}
@@ -849,7 +849,7 @@ function Summery() {
                   <div style={{ margin: 0 }} className={styles.amount}>
                     <p className={styles.amount1}>Total Amount</p>
                     <p className={styles.amount2}>
-                      ₹ {TotalAmount()}
+                      £ {TotalAmount()}
                       {/* {applyCoupon?.[0]?.discountAmount && Number(cartlist?.totalAmount) - Number(applyCoupon?.[0]?.discountAmount) * Number(quienty)} */}
                     </p>
                   </div>
@@ -861,7 +861,7 @@ function Summery() {
                           {useWallet === true ? quienty * 100 - profileData?.Wallet <= 0
                               ? 0
                               : `${quienty * 100 - profileData?.Wallet}`
-                            : `₹${quienty * 100}`}
+                            : `£${quienty * 100}`}
                         </p>
                       </div>
                     </>
@@ -907,7 +907,7 @@ function Summery() {
                       </div>
                       <div className={styles.blanking}></div>
                       <p className={styles.discou}>
-                        Discount ₹{item?.discountAmount}
+                        Discount £{item?.discountAmount}
                       </p>
                     </div>
                   </>

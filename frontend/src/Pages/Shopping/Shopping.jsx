@@ -187,10 +187,10 @@ function Shopping() {
                           <div className={styles.seting}>
                             <div className={styles.prices}>
                               <p className={styles.prices1}>
-                                ₹{item?.discountPrice_product}
+                                £{item?.discountPrice_product}
                               </p>
                               <p className={styles.prices2}>
-                                ₹{item?.originalPrice_product}
+                                £{item?.originalPrice_product}
                               </p>
                             </div>
                             <div className={styles.incree}>
@@ -213,7 +213,7 @@ function Shopping() {
                               </Button>
                             </div>
                             <div className={styles.total}>
-                              <p>₹{item?.discountPrice}</p>
+                              <p>£{item?.discountPrice}</p>
                             </div>
                           </div>
                         </div>
@@ -246,10 +246,10 @@ function Shopping() {
                       <p>Total MRP</p>
                       <div className={styles.prices}>
                         <p className={styles.price1}>
-                          ₹{cartlist?.totalDiscount}
+                          £{cartlist?.totalDiscount}
                         </p>
                         <span className={styles.price2}>
-                          ₹{cartlist?.totalOriginalAmount}
+                          £{cartlist?.totalOriginalAmount}
                         </span>
                       </div>
                     </div>
@@ -257,14 +257,14 @@ function Shopping() {
                       <p>Shipping Charge</p>
                       <div className={styles.prices}>
                         <p className={styles.price1}>
-                          ₹{cartlist?.ShippingCharge}
+                          £{cartlist?.ShippingCharge}
                         </p>
                       </div>
                     </div>
                     <div className={styles.blank3}></div>
                     <div className={styles.amount}>
                       <p className={styles.amount1}>Total Amount</p>
-                      <p className={styles.amount2}>₹{cartlist?.totalAmount}</p>
+                      <p className={styles.amount2}>£{cartlist?.totalAmount}</p>
                     </div>
                     <Button
                       className={styles.proced}

@@ -94,7 +94,7 @@ function ThankYou() {
           <div className={styles.detailRow}>
             <span>Total Amount:</span>
             <span>
-              ₹ {orderDetails?.FinalPrice + orderDetails?.CouponPrice}{" "}
+              £ {orderDetails?.FinalPrice + orderDetails?.CouponPrice}{" "}
             </span>
           </div>
 
@@ -102,21 +102,21 @@ function ThankYou() {
           {orderDetails?.cod_advance_amt > 0 && (
             <div className={styles.detailRow}>
               <span>COD advance amount:</span>
-              <span>₹ {orderDetails?.cod_advance_amt}</span>
+              <span>£ {orderDetails?.cod_advance_amt}</span>
             </div>
           )}
 
           {orderDetails?.CouponPrice > 0 && (
             <div className={styles.detailRow}>
               <span>Coupon Amount:</span>
-              <span>₹ {orderDetails?.CouponPrice}</span>
+              <span>£ {orderDetails?.CouponPrice}</span>
             </div>
           )}
 
           {orderDetails?.walletAmount > 0 && (
             <div className={styles.detailRow}>
               <span>Wallet Amount:</span>
-              <span>₹ {orderDetails?.walletAmount}</span>
+              <span>£ {orderDetails?.walletAmount}</span>
             </div>
           )}
 
@@ -128,7 +128,7 @@ function ThankYou() {
               <div className={styles.detailRow}>
                 <span>Online Paid:</span>
                 <span>
-                  ₹{" "}
+                  £{" "}
                   {orderDetails?.cod_advance_amt
                     ? orderDetails?.FinalAdavnceCodPrice
                     : orderDetails?.ActualPayment}

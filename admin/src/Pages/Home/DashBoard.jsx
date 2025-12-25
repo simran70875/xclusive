@@ -63,7 +63,7 @@ const DashBoard = () => {
                             </div>
                             <div>
                               <h4 className="mb-1 mt-1">
-                                ₹
+                                £
                                 <span data-plugin="counterup">
                                   {orderData?.totalOrderAmount}
                                 </span>
@@ -89,7 +89,7 @@ const DashBoard = () => {
                             </div>
                             <div>
                               <h4 className="mb-1 mt-1">
-                                ₹
+                                £
                                 <span data-plugin="counterup">
                                   {orderData?.totalDeliveredAmount}
                                 </span>

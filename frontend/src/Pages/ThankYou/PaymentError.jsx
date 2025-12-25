@@ -70,15 +70,15 @@ function PaymentError() {
 
           <div className={styles.detailRow}>
             <span>Total Amount:</span>
-            <span>₹ {orderDetails?.ActualPayment}</span>
+            <span>£ {orderDetails?.ActualPayment}</span>
           </div>
           <div className={styles.detailRow}>
             <span>Discount Price:</span>
-            <span>₹ {orderDetails?.DiscountPrice || 0}</span>
+            <span>£ {orderDetails?.DiscountPrice || 0}</span>
           </div>
           <div className={styles.detailRow}>
             <span>Shipping Charges:</span>
-            <span>₹ {orderDetails?.Shipping_Charge || 0}</span>
+            <span>£ {orderDetails?.Shipping_Charge || 0}</span>
           </div>
           <div className={styles.detailRow}>
             <span>Payment Status:</span>

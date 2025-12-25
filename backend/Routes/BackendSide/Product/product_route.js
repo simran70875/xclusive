@@ -91,157 +91,6 @@ async function copyLocalImage(imagePath, uploadFolder) {
   return null;
 }
 
-// // 🚀 IMPORT PRODUCT CSV
-// route.post(
-//   "/upload-csv",
-//   checkAdminOrRole2,
-//   uploadcsv.single("csvFile"),
-//   async (req, res) => {
-//     if (!req.file) {
-//       return res.status(400).json({ type: "error", message: "CSV not uploaded" });
-//     }
-
-//     const rows = [];
-//     const uploadFolder = "./imageUploads/backend/product";
-
-//     fs.createReadStream(req.file.path)
-//       .pipe(csv())
-//       .on("data", (row) => rows.push(row))
-//       .on("end", async () => {
-//         try {
-//           fs.unlinkSync(req.file.path);
-
-//           // 1️⃣ GROUP BY PRODUCT NAME
-//           const productGroups = rows.reduce((acc, row) => {
-//             const key = row.Product_Name?.trim();
-//             if (!key) return acc;
-
-//             if (!acc[key]) acc[key] = [];
-//             acc[key].push(row);
-
-//             return acc;
-//           }, {});
-
-//           let inserted = 0;
-
-//           // 2️⃣ PROCESS EACH PRODUCT
-//           for (const productName in productGroups) {
-//             const productRows = productGroups[productName];
-//             const firstRow = productRows[0];
-
-//             // 3️⃣ CATEGORY
-//             const categoryDoc = await Category.findOne({
-//               Category_Name: firstRow.Category?.trim(),
-//             });
-
-//             // 4️⃣ COLLECTION
-//             let collectionDoc = null;
-//             if (firstRow.Collection_Name) {
-//               collectionDoc = await Data.findOne({
-//                 Data_Type: "Collection",
-//                 Data_Name: firstRow.Collection_Name.trim(),
-//               });
-
-//               if (!collectionDoc) {
-//                 collectionDoc = await Data.create({
-//                   Data_Type: "Collection",
-//                   Data_Name: firstRow.Collection_Name.trim(),
-//                   Data_Label: firstRow.Collection_Name.trim(),
-//                 });
-//               }
-//             }
-
-//             // 5️⃣ PRODUCT IMAGES (ONCE)
-//             let productImages = [];
-//             if (firstRow.Product_Images) {
-//               productImages = firstRow.Product_Images
-//                 .split("|")
-//                 .map((img) => copyLocalImage(img, uploadFolder))
-//                 .filter(Boolean);
-//             }
-
-//             // 6️⃣ CREATE PRODUCT
-//             const product = await Product.create({
-//               Product_Name: firstRow.Product_Name,
-//               Description: firstRow.Description,
-//               Category: categoryDoc ? [categoryDoc._id] : [],
-//               Collections: collectionDoc ? collectionDoc._id : null,
-//               Product_Images: productImages,
-//               Product_Status: firstRow.Status !== "false",
-//             });
-
-//             // 7️⃣ GROUP BY COLOR (VARIATION)
-//             const variationGroups = productRows.reduce((acc, row) => {
-//               const color = row["Color Value"]?.trim();
-//               if (!color) return acc;
-
-//               if (!acc[color]) acc[color] = [];
-//               acc[color].push(row);
-
-//               return acc;
-//             }, {});
-
-//             const variationIds = [];
-
-//             // 8️⃣ CREATE VARIATIONS
-//             for (const color in variationGroups) {
-//               const variationRows = variationGroups[color];
-//               const vFirst = variationRows[0];
-
-//               // Variation Images
-//               let variationImages = [];
-//               if (vFirst.Variation_Images) {
-//                 variationImages = vFirst.Variation_Images
-//                   .split("|")
-//                   .map((img) => copyLocalImage(img, uploadFolder))
-//                   .filter(Boolean);
-//               }
-
-//               // 9️⃣ BUILD SIZE ARRAY
-//               const sizeArray = variationRows.map((r) => ({
-//                 Size_Name: r["Size Value"],
-//                 Size_purity: r["Purity  Value"],
-//                 Size_Stock: Number(r["Variant Inventory Qty"] || 0),
-//                 Size_Price: Number(r["Product_Dis_Price"] || 0),
-//                 Size_Status: true,
-//               }));
-
-//               // 🔟 CREATE VARIATION
-//               const variation = await Variation.create({
-//                 SKU_Code: vFirst.SKU_Code, // ✅ SKU AT VARIATION LEVEL
-//                 Variation_Name: color,
-//                 Variation_Label: vFirst["Color Name"],
-//                 Variation_Images: variationImages,
-//                 Variation_Size: sizeArray,
-//                 Variation_Status: true,
-//               });
-
-//               variationIds.push(variation._id);
-//             }
-
-//             // 1️⃣1️⃣ LINK VARIATIONS TO PRODUCT
-//             product.Variation = variationIds;
-//             await product.save();
-
-//             inserted++;
-//           }
-
-//           return res.status(200).json({
-//             type: "success",
-//             message: "CSV imported successfully",
-//             inserted,
-//           });
-//         } catch (err) {
-//           console.error(err);
-//           return res.status(500).json({
-//             type: "error",
-//             message: "CSV processing failed",
-//           });
-//         }
-//       });
-//   }
-// );
-
 // 🚀 IMPORT PRODUCT CSV
 route.post(
   "/upload-csv",
@@ -975,86 +824,95 @@ route.get("/mob/get/productlist/:id", async (req, res) => {
 
 // get all product features product (mobile)
 route.get("/mob/get/features/productlist", async (req, res) => {
-  const HomeFeatures = req?.query?.HomeFeatures;
-  const userId = req?.query?.userId;
-
-  let user;
-  if (userId !== "0") {
-    user = await User.findById(userId);
-  }
-
-  let products = [];
-
   try {
-    if (HomeFeatures === "1") {
-      products = await Product.find({Product_Status: true, Popular_pick: true})
-        .sort({ createdAt: -1 })
-        .populate("Category", "Category_Name")
-        .populate({
-          path: "Variation",
-          select: "-__v",
-        })
-        .populate("Brand_Name", "Data_Name")
-        .populate("Collections", "Data_Name");
-    } else if (HomeFeatures === "2") {
-      products = await Product.find({
-        Product_Status: true,
-        Trendy_collection: true,
-      })
-        .sort({ createdAt: -1 })
-        .populate("Category", "Category_Name")
-        .populate({
-          path: "Variation",
-          select: "-__v",
-        })
-        .populate("Brand_Name", "Data_Name")
-        .populate("Collections", "Data_Name");
-    } else if (HomeFeatures === "3") {
-      products = await Product.find({ Product_Status: true, HomePage: true })
-        .sort({ createdAt: -1 })
-        .populate("Category", "Category_Name")
-        .populate({
-          path: "Variation",
-          select: "-__v",
-        })
-        .populate("Brand_Name", "Data_Name")
-        .populate("Collections", "Data_Name");
+    const { HomeFeatures, userId } = req.query;
+
+    let user = null;
+    if (userId && userId !== "0") {
+      user = await User.findById(userId);
     }
 
-    let result = [];
-    const userWishlist = await getWishList(userId);
+    let filter = { Product_Status: true };
 
-    if (products.length === 0) {
-      res.status(200).json({ type: "warning", message: "No products found!", products: [] });
-    } else {
-      result = products.map((product) => ({
+    if (HomeFeatures === "1") filter.Popular_pick = true;
+    else if (HomeFeatures === "2") filter.Trendy_collection = true;
+    else if (HomeFeatures === "3") filter.HomePage = true;
+
+    const products = await Product.find(filter)
+      .populate("Category", "Category_Name")
+      .populate("Brand_Name", "Data_Name")
+      .populate("Collections", "Data_Name")
+      .populate({
+        path: "Variation",
+        select: "-__v",
+      })
+      .sort({ createdAt: -1 });
+
+    const userWishlist = userId ? await getWishList(userId) : [];
+
+    const result = products.map((product) => {
+      const firstVariation = product.Variation?.[0];
+      const firstSize = firstVariation?.Variation_Size?.[0];
+
+      return {
         _id: product._id,
         Product_Name: product.Product_Name,
-        SKU_Code: product.SKU_Code,
-        Product_Image: `${process.env.IP_ADDRESS}/${product?.Product_Images[0].path?.replace(/\\/g, "/")}`,
-        Category: product.Category[0]?.Category_Name,
-        categoryId: product.Category[0]?._id,
-        Brand_Name: product?.Brand_Name?.Data_Name,
-        Collections: product?.Collections?.Data_Name,
         Description: product.Description,
-        Product_Label: product.Product_Label,
-        Popular_pick: product.Popular_pick,
-        HomePage: product.HomePage,
-        Trendy_collection: product.Trendy_collection,
-        isFavorite: userWishlist.includes(product._id?.toString()),
-      }));
 
-      res.status(200).json({
-        type: "success",
-        message: "Products found successfully!",
-        products: result || [],
-      });
-    }
+        Category: product.Category?.[0]?.Category_Name || null,
+        categoryId: product.Category?.[0]?._id || null,
+
+        Brand_Name: product.Brand_Name?.Data_Name || null,
+        Collections: product.Collections?.Data_Name || null,
+
+        // ✅ MAIN PRODUCT IMAGE (from variation)
+        Product_Image: firstVariation?.Variation_Images?.[0]?.path
+          ? `${
+              process.env.IP_ADDRESS
+            }/${firstVariation.Variation_Images[0].path.replace(/\\/g, "/")}`
+          : null,
+
+        // ✅ PRICE DETAILS
+        price: firstSize?.Size_Price || 0,
+        purity: firstSize?.Size_Purity || null,
+        size: firstSize?.Size_Name || null,
+
+        // ✅ Full variation (for product detail page)
+        Variations: product.Variation.map((v) => ({
+          _id: v._id,
+          Variation_Name: v.Variation_Name,
+          Variation_Label: v.Variation_Label,
+          Variation_Status: v.Variation_Status,
+
+          Variation_Images: v.Variation_Images.map((img) => ({
+            url: `${process.env.IP_ADDRESS}/${img.path.replace(/\\/g, "/")}`,
+          })),
+
+          Sizes: v.Variation_Size.map((s) => ({
+            Size_Name: s.Size_Name,
+            Size_Price: s.Size_Price,
+            Size_Stock: s.Size_Stock,
+            Size_Purity: s.Size_purity,
+            Size_Status: s.Size_Status,
+          })),
+        })),
+
+        isFavorite: userWishlist.includes(product._id.toString()),
+      };
+    });
+
+    return res.status(200).json({
+      type: "success",
+      message: "Products fetched successfully",
+      products: result,
+    });
   } catch (error) {
-    console.log(error);
-    res
-      .status(200)
-      .json({ type: "error", message: "Server Error!", errorMessage: error });
+    console.error(error);
+    return res.status(500).json({
+      type: "error",
+      message: "Server Error",
+      error: error.message,
+    });
   }
 });
 
@@ -1117,32 +975,12 @@ route.get("/mob/get/single/:id", async (req, res) => {
         _id: product._id,
         Product_Name: product.Product_Name,
         SKU_Code: product.SKU_Code,
-        Product_Image: `${
-          process.env.IP_ADDRESS
-        }/${product?.Product_Image?.path?.replace(/\\/g, "/")}`,
+        Product_Image: `${process.env.IP_ADDRESS}/${product?.Product_Image?.path?.replace(/\\/g, "/")}`,
         Category: product.Category[0]?.Category_Name,
         CategoryId: product.Category[0]?._id,
         Brand_Name: product?.Brand_Name?.Data_Name,
         Collections: product?.Collections?.Data_Name,
 
-        Product_Dis_Price:
-          user?.User_Type === "0" || userId === "0"
-            ? product.Product_Dis_Price
-            : user?.User_Type === "1"
-            ? product.Gold_Price
-            : user?.User_Type === "2"
-            ? product.Silver_Price
-            : product.PPO_Price,
-
-        Product_Ori_Price:
-          user?.User_Type === "0" || userId === "0"
-            ? product.Product_Ori_Price
-            : product.Product_Dis_Price,
-
-        Max_Dis_Price: product.Max_Dis_Price,
-        Gold_Price: product.Gold_Price,
-        Silver_Price: product.Silver_Price,
-        PPO_Price: product.PPO_Price,
         Description: product.Description,
         Product_Label: product.Product_Label,
         Variation_Count: product.Variation.length,
@@ -1160,6 +998,8 @@ route.get("/mob/get/single/:id", async (req, res) => {
                   id: variation?._id,
                   name: variation?.Size_Name,
                   stock: variation?.Size_Stock,
+                  price: variation?.Size_Price,
+                  purity: variation?.Size_purity,
                 })),
                 variation_Images: variation?.Variation_Images?.map(
                   (variation) => ({
@@ -1177,8 +1017,6 @@ route.get("/mob/get/single/:id", async (req, res) => {
         ),
         Popular_pick: product.Popular_pick,
         HomePage: product.HomePage,
-        // Shipping: product?.Shipping,
-        Shipping: shipping,
         Trendy_collection: product.Trendy_collection,
         isFavorite: userWishlist.includes(product._id?.toString()),
         ratings: ratings,
@@ -1487,69 +1325,6 @@ route.patch(
     }
   }
 );
-
-// get all product wich variation size have less stock
-// route.get('/lowstockproducts/get', async (req, res) => {
-//     try {
-//         const products = await Product.find()
-//             .populate({
-//                 path: 'Category',
-//                 select: 'Category_Name',
-//             })
-//             .populate({
-//                 path: 'Variation',
-//                 select: '-__v',
-//             });
-
-//         if (products) {
-//             const lowStockProducts = products
-//                 .map(product => {
-//                     const lowStockVariations = product.Variation.filter(variation =>
-//                         variation.Variation_Size.some(size => size.Size_Stock > 0 && size.Size_Stock < 100)
-//                     );
-
-//                     if (lowStockVariations.length > 0) {
-//                         const flattenedVariations = lowStockVariations.map(variation => ({
-//                             variation_Name: variation.Variation_Name,
-//                             variation_Sizes: variation.Variation_Size.filter(size =>
-//                                 size.Size_Stock > 0 && size.Size_Stock < 100
-//                             ).map(size => ({
-//                                 name: size.Size_Name,
-//                                 stock: size.Size_Stock,
-//                             })),
-//                         }));
-
-//                         return {
-//                             _id: product._id,
-//                             Product_Name: product.Product_Name,
-//                             SKU_Code: product.SKU_Code,
-//                             Category: product.Category?.Category_Name || '',
-//                             Product_Image: `${process.env.IP_ADDRESS}/${product?.Product_Image?.path?.replace(/\\/g, '/')}` || "",
-//                             Variation: flattenedVariations,
-//                         };
-//                     }
-//                 })
-//                 .filter(Boolean); // Remove undefined entries
-
-//             // Flatten the individual variation sizes
-//             const individualVariationSizes = lowStockProducts
-//                 .map(product => product.Variation.map(variation => variation.variation_Sizes))
-//                 .flat();
-
-//             res.json({
-//                 type: "success",
-//                 message: "Products with low stock found successfully!",
-//                 low_stock_products: lowStockProducts || [],
-//                 individual_variation_sizes: individualVariationSizes || [],
-//             });
-//         } else {
-//             res.status(404).json({ type: "warning", message: "Products not found!" });
-//         }
-//     } catch (error) {
-//         console.error(error);
-//         res.status(500).json({ type: "error", message: "Failed to fetch products" });
-//     }
-// });
 
 route.get("/lowstockproducts/get", checkAdminOrRole2, async (req, res) => {
   try {
