@@ -129,9 +129,9 @@ route.get('/get/filterList', async (req, res) => {
     };
 
     allData.forEach(item => {
-      const { Data_Name, Data_Status } = item;
+      const { _id, Data_Name, Data_Status } = item;
       if (Data_Status === true) {
-        groupedData.brand.push(Data_Name.toUpperCase())
+        groupedData.brand.push({ _id, Data_Name, Data_Status })
       }
     });
 
@@ -157,46 +157,47 @@ route.get('/filter/get/products', async (req, res) => {
       rate,
       page = 1,
       limit = 20,
-      sortBy
+      sortBy,
+      userId
     } = req.query;
 
     const filters = { Product_Status: true };
+    let variationFilter = {};
+
+    const isValid = (val) => val && val !== 'null' && val !== '';
 
 
-    console.log(categoryId)
-
-
-    /* ================= CATEGORY (ARRAY) ================= */
-    if (categoryId) {
-      filters.Category = { $in: [categoryId] };
+    /* ================= CATEGORY ================= */
+    if (isValid(categoryId)) {
+      const categoryArr = categoryId.split(','); // ✅ MULTIPLE
+      filters.Category = { $in: categoryArr };
     }
 
     /* ================= BRAND ================= */
-    if (brands) {
-      const brandArr = brands.split(',');
-      const brandIds = await Data.find({
-        Data_Name: { $elemMatch: { $in: brandArr } }
-      }).distinct('_id');
+    if (isValid(brands)) {
+      const ids = brands.split(','); // can be brand IDs OR collection IDs
 
-      filters.Brand_Name = { $in: brandIds };
+      filters.$or = [
+        { Brand_Name: { $in: ids } },
+        { Collections: { $in: ids } }
+      ];
     }
 
-    /* ================= COLOR (VARIATION NAME) ================= */
-    let variationFilter = {};
-
-    if (color) {
+    /* ================= COLOR ================= */
+    if (isValid(color)) {
       const colorArr = color.split(',');
+
       const variationIds = await Variation.find({
         Variation_Name: { $in: colorArr },
         Variation_Status: true
       }).distinct('_id');
 
-      variationFilter._id = { $in: variationIds };
       filters.Variation = { $in: variationIds };
+      variationFilter._id = { $in: variationIds };
     }
 
-    /* ================= PRICE (VARIATION SIZE PRICE) ================= */
-    if (rate) {
+    /* ================= PRICE ================= */
+    if (isValid(rate)) {
       const rateRanges = {
         'below 999': { $lte: 999 },
         '1000-1500': { $gte: 1000, $lte: 1500 },
@@ -204,7 +205,7 @@ route.get('/filter/get/products', async (req, res) => {
         '2500 onwards': { $gte: 2500 }
       };
 
-      variationFilter['Variation_Size'] = {
+      variationFilter.Variation_Size = {
         $elemMatch: {
           Size_Price: rateRanges[rate],
           Size_Status: true
@@ -214,15 +215,19 @@ route.get('/filter/get/products', async (req, res) => {
 
     /* ================= SORT ================= */
     const sortMap = {
-      'price-low-to-high': { 'Variation_Size.Size_Price': 1 },
-      'price-high-to-low': { 'Variation_Size.Size_Price': -1 },
       'new-arrival': { createdAt: -1 }
     };
 
     const sortingCriteria = sortMap[sortBy] || { createdAt: -1 };
 
+    /* ================= USER WISHLIST ================= */
+    const userWishlist = userId
+      ? await Wishlist.find({ User: userId }).distinct('Product')
+      : [];
+
     /* ================= QUERY ================= */
     const products = await Product.find(filters)
+      .populate('Category')
       .populate('Brand_Name')
       .populate('Collections')
       .populate({
@@ -235,52 +240,56 @@ route.get('/filter/get/products', async (req, res) => {
       .limit(Number(limit))
       .lean();
 
-    /* ================= REMOVE PRODUCTS WITH NO MATCHING VARIATION ================= */
-    const filteredProducts = products.filter(
-      (p) => p.Variation && p.Variation.length > 0
-    );
 
-    const totalProducts = filteredProducts.length;
-
-    if (!filteredProducts.length) {
-      return res.status(200).json({
-        type: 'success',
-        products: [],
-        totalPages: 0
-      });
-    }
 
     /* ================= RESPONSE ================= */
-    const result = filteredProducts.map(product => {
-      const firstVariation = product.Variation[0];
-      const firstSize = firstVariation?.Variation_Size?.[0];
+    const result = products.map(product => {
+      const firstVariation = product?.Variation?.[0];
+      const firstSize = firstVariation?.Variation_Size?.find(
+        size => size.Size_Stock > 0
+      );
 
       return {
         _id: product._id,
         Product_Name: product.Product_Name,
         SKU_Code: product.SKU_Code,
 
-        Product_Image: product.Product_Images?.[0]
-          ? `${process.env.IP_ADDRESS}/${product.Product_Images[0].path.replace(/\\/g, '/')}`
-          : null,
+        Product_Image: firstVariation?.Variation_Images?.[0]
+          ? `${process.env.IP_ADDRESS}/${firstVariation.Variation_Images[0].path.replace(/\\/g, '/')}`
+          : product?.Product_Images?.[0]
+            ? `${process.env.IP_ADDRESS}/${product.Product_Images[0].path.replace(/\\/g, '/')}`
+            : null,
 
-        Brand_Name: product.Brand_Name?.Data_Name?.[0],
-        Collections: product.Collections?.Data_Name?.[0],
+        Category: product.Category?.[0]?.Category_Name,
+        CategoryId: product.Category?.[0]?._id,
 
-        Price: firstSize?.Size_Price || 0,
-        Description: product.Description,
-        Product_Label: product.Product_Label,
+        Brand_Name: product?.Brand_Name?.Data_Name,
+        Collections: product?.Collections?.Data_Name,
+
+        // ✅ DIRECT PRICE (used by ProductCard)
+        price: firstSize?.Size_Price || 0,
+        stock: firstSize?.Size_Stock || 0,
+        purity: firstSize?.Size_purity || null,
+
+        // ✅ Optional (quick product detail navigation)
+        variationId: firstVariation?._id,
+        sizeId: firstSize?._id,
+
         Popular_pick: product.Popular_pick,
+        HomePage: product.HomePage,
         Trendy_collection: product.Trendy_collection,
-        Shipping: product.Shipping
+
+        isFavorite: userWishlist.includes(product._id.toString()),
+        ratings: 0
       };
     });
+
 
     res.status(200).json({
       type: 'success',
       products: result,
       currentPage: Number(page),
-      totalPages: Math.ceil(totalProducts / limit)
+      totalPages: Math.ceil(result.length / limit)
     });
 
   } catch (error) {
@@ -292,7 +301,6 @@ route.get('/filter/get/products', async (req, res) => {
     });
   }
 });
-
 
 
 module.exports = route

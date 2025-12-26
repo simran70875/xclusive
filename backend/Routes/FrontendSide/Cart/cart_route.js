@@ -46,7 +46,7 @@ route.post("/add", authMiddleware, async (req, res) => {
     }
 
     let discountPrice = Products.Product_Dis_Price;
-     
+
 
     let originalPrice =
       user?.User_Type === "0"
@@ -138,7 +138,6 @@ route.get("/cartItems/get", authMiddleware, async (req, res) => {
     }));
 
     const Charges = await getShippingCharges();
-    console.log("Charges ==> ", Charges);
 
     let ShippingCharge;
     if (user?.User_Type === "0") {
@@ -187,7 +186,6 @@ route.get("/cartItems/get", authMiddleware, async (req, res) => {
         "DISPATCH STARTS WITHIN 3-7 DAYS (If Shipped Together)";
     }
 
-    console.log("result CartItem ==> ", result);
 
     return res.status(200).json({
       type: "success",

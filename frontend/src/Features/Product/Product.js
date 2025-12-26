@@ -142,7 +142,8 @@ export const getProductIdApi = (id, userId) => (dispatch) => {
   dispatch(setProductLoading(true));
   try {
     const onSuccess = (response) => {
-      dispatch(getProductIdData(response?.products));
+      console.log("response ==> ",response)
+      dispatch(getProductIdData(response?.product));
       dispatch(setProductLoading(false));
     };
     const onFailure = (error) => {
@@ -260,7 +261,7 @@ export const getProductListApi =
       const onFailure = (error) => {
         dispatch(setProductLoading(false));
       };
-      
+
       apiCall(
         "GET",
         `${apiUrl.GET_PRODUCT_FEATURE_LIST}/${catagoryId}?userId=${userId}&productId=${productId}`,
@@ -275,37 +276,41 @@ export const getProductListApi =
 
 export const getFilterProductApi =
   (
-    categoryId,
-    brandname,
-    colorsData,
-    rateWiseData,
+    categoryIds = [],
+    brandname = [],
+    colorsData = [],
+    rateWiseData = [],
     userid,
     sortData,
     currentPage
   ) =>
     (dispatch) => {
       dispatch(setProductLoading(true));
-      try {
-        const onSuccess = (response) => {
-          console.log("filter products ==> ", response)
-          dispatch(getFilterProductData(response?.products));
-          dispatch(getFilterProductData2(response));
+
+
+      const query = new URLSearchParams({
+        categoryId: categoryIds?.join(','), // ✅ MULTIPLE
+        brands: brandname?.join(','), // ✅ MULTIPLE
+        color: colorsData?.join(','),
+        rate: rateWiseData?.join(','),
+        userId: userid,
+        sortBy: sortData,
+        page: currentPage
+      }).toString();
+
+      apiCall(
+        "GET",
+        `${apiUrl.GET_FILTER_PRODUCT}?${query}`,
+        "",
+        (res) => {
+          dispatch(getFilterProductData(res.products));
+          dispatch(getFilterProductData2(res));
           dispatch(setProductLoading(false));
-        };
-        const onFailure = (error) => {
-          dispatch(setProductLoading(false));
-        };
-        apiCall(
-          "GET",
-          `${apiUrl.GET_FILTER_PRODUCT}?categoryId=${categoryId}&brands=${brandname}&color=${colorsData}&rate=${rateWiseData}&userId=${userid}&sortBy=${sortData}&page=${currentPage}`,
-          "",
-          onSuccess,
-          onFailure
-        );
-      } catch (error) {
-        dispatch(setProductLoading(false));
-      }
+        },
+        () => dispatch(setProductLoading(false))
+      );
     };
+
 
 export const getFilterListApi = () => (dispatch) => {
   dispatch(setProductLoading(true));
@@ -329,27 +334,26 @@ export const getFilterListApi = () => (dispatch) => {
   }
 };
 
-export const getSearchProductApi =
-  (query, userId, onSuccessCallback) => (dispatch) => {
-    dispatch(setProductLoading(true));
-    try {
-      const onSuccess = (response) => {
-        dispatch(getFilterListData(response?.products));
-        dispatch(setProductLoading(false));
-        onSuccessCallback(response);
-      };
-      const onFailure = (error) => {
-        dispatch(setProductLoading(false));
-      };
-      apiCall(
-        "GET",
-        `${apiUrl.GET_SEARCH_PRODUCT
-        }?query=${query}&userId=${userId}&limit=${100}`,
-        "",
-        onSuccess,
-        onFailure
-      );
-    } catch (error) {
+export const getSearchProductApi = (query, userId, onSuccessCallback) => (dispatch) => {
+  dispatch(setProductLoading(true));
+  try {
+    const onSuccess = (response) => {
+      dispatch(getFilterListData(response?.products));
       dispatch(setProductLoading(false));
-    }
-  };
+      onSuccessCallback(response);
+    };
+    const onFailure = (error) => {
+      dispatch(setProductLoading(false));
+    };
+    apiCall(
+      "GET",
+      `${apiUrl.GET_SEARCH_PRODUCT
+      }?query=${query}&userId=${userId}&limit=${100}`,
+      "",
+      onSuccess,
+      onFailure
+    );
+  } catch (error) {
+    dispatch(setProductLoading(false));
+  }
+};

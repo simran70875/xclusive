@@ -1,7 +1,6 @@
 const express = require("express");
 const route = express.Router();
 const Wishlist = require("../../../Models/FrontendSide/wish_list_model");
-const User = require("../../../Models/FrontendSide/user_model");
 const authMiddleWare = require("../../../Middleware/authMiddleWares");
 const adminMiddleWares = require("../../../Middleware/adminMiddleWares");
 
@@ -65,11 +64,21 @@ route.get("/get", authMiddleWare, async (req, res) => {
   const userId = req.user?.userId;
 
   try {
-    const user = await User.findOne({ _id: userId });
-
     const wishlistItems = await Wishlist.find({ user: userId })
-      .populate("product")
-      .sort({ createdAt: -1 });
+      .populate({
+        path: "product",
+        populate: [
+          { path: "Category" },
+          { path: "Brand_Name" },
+          { path: "Collections" },
+          {
+            path: "Variation",
+            select: "Variation_Name Variation_Size Variation_Images"
+          }
+        ]
+      })
+      .sort({ createdAt: -1 })
+      .lean();
 
     if (wishlistItems.length <= 0) {
       return res.status(200).json({
@@ -80,29 +89,41 @@ route.get("/get", authMiddleWare, async (req, res) => {
     }
 
     // Extract the product details from the wishlist items
-    let wishlistProducts = wishlistItems
-      .filter((item) => item?.product)
-      .map((item) => ({
-        // _id: item?._id,
-        _id: item?.product?._id,
-        Product_Name: item?.product.Product_Name,
-        Product_Image: `${process.env.IP_ADDRESS
-          }/${item?.product?.Product_Image?.path?.replace(/\\/g, "/")}`,
-        Product_Dis_Price:
-          user?.User_Type === "0" || userId === "0"
-            ? item?.product?.Product_Dis_Price
-            : user?.User_Type === "1"
-              ? item?.product?.Gold_Price
-              : user?.User_Type === "2"
-                ? item?.product?.Silver_Price
-                : item?.product?.PPO_Price,
+    const wishlistProducts = wishlistItems
+      .filter(item => item?.product)
+      .map(item => {
 
-        Product_Ori_Price:
-          user?.User_Type === "0" || userId === "0"
-            ? item?.product?.Product_Ori_Price
-            : item?.product?.Product_Dis_Price,
-        isFavorite: true,
-      }));
+        const product = item.product; // ✅ FIXED
+
+        const firstVariation = product?.Variation?.[0];
+        const firstSize = firstVariation?.Variation_Size?.find(
+          size => size.Size_Stock > 0
+        );
+
+        return {
+          _id: product._id,
+          Product_Name: product.Product_Name,
+
+          Product_Image: firstVariation?.Variation_Images?.[0]
+            ? `${process.env.IP_ADDRESS}/${firstVariation.Variation_Images[0].path.replace(/\\/g, "/")}`
+            : product?.Product_Images?.[0]
+              ? `${process.env.IP_ADDRESS}/${product.Product_Images[0].path.replace(/\\/g, "/")}`
+              : null,
+
+          Category: product.Category?.[0]?.Category_Name,
+          CategoryId: product.Category?.[0]?._id,
+
+          price: firstSize?.Size_Price || 0,
+          stock: firstSize?.Size_Stock || 0,
+          purity: firstSize?.Size_purity || null,
+
+          variationId: firstVariation?._id,
+          sizeId: firstSize?._id,
+
+          isFavorite: true,
+          ratings: 0
+        };
+      });
 
     // console.log(wishlistProducts,"pro")
 

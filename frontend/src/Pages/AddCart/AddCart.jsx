@@ -50,20 +50,17 @@ function AddCart() {
   const [discountPrice, setDiscountPrice] = useState(0);
   const [colorName, setColorName] = useState();
   const [isSizeSelected, setIsSizeSelected] = useState(false);
+
   const productReview = useSelector(
     (state) => state.setting?.productReviewData
   );
-  const similarProductList = useSelector(
-    (state) => state.product?.productFeatureList
-  );
-
   const likeProductList = useSelector(
     (state) => state.product?.productFeatureListLike
   );
   const userID = useSelector((state) => state.user?.userId);
   const userToken = useSelector((state) => state.user?.token);
   const likeCounter = useSelector((state) => state.user?.likeCount);
-  const givewishlist = useSelector((state) => state.wishList?.wishlist);
+  
   const productIdData = useSelector((state) => state.product?.productIdData);
 
   console.log("product data ==> ", productIdData);
@@ -284,411 +281,336 @@ function AddCart() {
           paddingTop: 50,
         }}
       >
-        {productIdData?.map((value, index) => (
-          <Row justify="center">
-            <Col
-              xs={12}
-              md={12}
-              lg={12}
-              xl={12}
-              xxl={12}
-              className={styles.addcart}
-            >
-              <div>
-                <Image
-                  preview={false}
-                  key={index}
-                  src={
-                    singleImg
-                      ? singleImg
-                      : value?.variation?.[0]?.variation_Images?.[0]
-                          ?.variation_Image || value.Product_Image
-                  }
-                  alt="add image"
-                  className={styles.cartImg}
-                />
-                <Col lg={22} xl={22} xxl={22}>
-                  <Slider className={styles.couraselMain}>
-                    <Row
-                      className={
-                        userToken ? styles.fixcourasel : styles.fixcourasel2
-                      }
+        <Row justify="center">
+          <Col
+            xs={12}
+            md={12}
+            lg={12}
+            xl={12}
+            xxl={12}
+            className={styles.addcart}
+          >
+            <div>
+              <Image
+                preview={false}
+                key={index}
+                src={
+                  singleImg
+                    ? singleImg
+                    : productIdData?.variation?.[0]?.variation_Images?.[0]
+                        ?.variation_Image || value.Product_Image
+                }
+                alt="add image"
+                className={styles.cartImg}
+              />
+              <Col lg={22} xl={22} xxl={22}>
+                <Slider className={styles.couraselMain}>
+                  <Row
+                    className={
+                      userToken ? styles.fixcourasel : styles.fixcourasel2
+                    }
+                  >
+                    <Col
+                      lg={2}
+                      xl={4}
+                      xxl={4}
+                      className={styles.handlecourasel}
                     >
-                      <Col
-                        lg={2}
-                        xl={4}
-                        xxl={4}
-                        className={styles.handlecourasel}
+                      {imgArr?.length > 0 ? (
+                        <>
+                          {imgArr &&
+                            imgArr?.map((data, index) => (
+                              <>
+                                <div
+                                  className={styles.slider}
+                                  key={index}
+                                  onClick={() =>
+                                    handleSingleImage(data?.variation_Image)
+                                  }
+                                >
+                                  <Image
+                                    preview={false}
+                                    src={data?.variation_Image}
+                                    alt="ellips"
+                                  />
+                                </div>
+                              </>
+                            ))}
+                        </>
+                      ) : (
+                        <>
+                          {firstData?.variation_Images &&
+                            firstData?.variation_Images?.map((data, index) => (
+                              <>
+                                <div
+                                  className={styles.slider}
+                                  key={index}
+                                  onClick={() =>
+                                    handleSingleImage(data?.variation_Image)
+                                  }
+                                >
+                                  <Image
+                                    preview={false}
+                                    src={data?.variation_Image}
+                                    alt="ellips"
+                                  />
+                                </div>
+                              </>
+                            ))}
+                        </>
+                      )}
+                    </Col>
+                  </Row>
+                </Slider>
+              </Col>
+            </div>
+          </Col>
+          <Col
+            xs={12}
+            md={12}
+            lg={12}
+            xl={12}
+            xxl={12}
+            className={styles.addcart}
+            style={{
+              padding: "0 30px",
+            }}
+          >
+            <div className={styles.sider}>
+              <p
+                className={styles.Foil}
+                style={{
+                  textTransform: "capitalize",
+                }}
+              >
+                {value?.Product_Name}
+              </p>
+              <div className={styles.prices}>
+                <p className={styles.price1}>£{value?.Price}</p>
+
+                {!firstData2 ||
+                // data >= stockCont ||
+                variationSize2 <= 0 ||
+                firstData2 <= 0 ? (
+                  <span className={styles.price30}>Out Of-stock</span>
+                ) : (
+                  <span className={styles.price3}>In-stock</span>
+                )}
+              </div>
+              <div className={styles.rating}>
+                <Rate allowHalf disabled defaultValue={value?.ratings} />
+                <p>{value?.ratings} | Reviews</p>
+              </div>
+              <div className={styles.setcolor}>
+                {value?.variation.length > 0 && <p>Color:</p>}
+                <div>
+                  {value?.variation?.map((item, index) => (
+                    <div style={{ paddingBottom: 20 }} key={index}>
+                      <div
+                        onClick={() => {
+                          setHighLight(index);
+                          handleImage(
+                            item?.variation_Images[0]?.variation_Image,
+                            item?.variation_Images,
+                            item?.variation_Sizes,
+                            value?.variation?.[index]?.variation_Id,
+                            item?.variation_Name
+                          );
+                        }}
+                        className={
+                          hightLight === index
+                            ? styles.colorImg
+                            : styles.colorImg2
+                        }
                       >
-                        {imgArr?.length > 0 ? (
-                          <>
-                            {imgArr &&
-                              imgArr?.map((data, index) => (
-                                <>
-                                  <div
-                                    className={styles.slider}
-                                    key={index}
-                                    onClick={() =>
-                                      handleSingleImage(data?.variation_Image)
-                                    }
-                                  >
-                                    <Image
-                                      preview={false}
-                                      src={data?.variation_Image}
-                                      alt="ellips"
-                                    />
-                                  </div>
-                                </>
-                              ))}
-                          </>
-                        ) : (
-                          <>
-                            {firstData?.variation_Images &&
-                              firstData?.variation_Images?.map(
-                                (data, index) => (
-                                  <>
-                                    <div
-                                      className={styles.slider}
-                                      key={index}
-                                      onClick={() =>
-                                        handleSingleImage(data?.variation_Image)
-                                      }
-                                    >
-                                      <Image
-                                        preview={false}
-                                        src={data?.variation_Image}
-                                        alt="ellips"
-                                      />
-                                    </div>
-                                  </>
-                                )
-                              )}
-                          </>
-                        )}
-                      </Col>
-                    </Row>
-                  </Slider>
-                </Col>
+                        <Image
+                          preview={false}
+                          key={index}
+                          src={item?.variation_Images[0]?.variation_Image}
+                          alt="color1"
+                          onClick={() => setHighLight(index)}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
 
-              {/* <div>
-                <Col lg={22} xl={22} xxl={22}>
-                  <Slider className={styles.couraselMain3}>
-                    <Row
-                      className={
-                        userToken ? styles.fixcourasel : styles.fixcourasel2
-                      }
-                    >
-                      <Col
-                        lg={2}
-                        xl={4}
-                        xxl={4}
-                        className={styles.handlecourasel}
-                      >
-                        {imgArr?.length > 0 ? (
-                          <>
-                            {imgArr &&
-                              imgArr?.map((data, index) => (
-                                <>
-                                  <div
-                                    className={styles.slider}
-                                    key={index}
-                                    onClick={() =>
-                                      handleSingleImage(data?.variation_Image)
-                                    }
-                                  >
-                                    <Image
-                                      preview={false}
-                                      src={data?.variation_Image}
-                                      alt="ellips"
-                                    />
-                                  </div>
-                                </>
-                              ))}
-                          </>
-                        ) : (
-                          <>
-                            {firstData?.variation_Images &&
-                              firstData?.variation_Images?.map(
-                                (data, index) => (
-                                  <>
-                                    <div
-                                      className={styles.slider}
-                                      key={index}
-                                      onClick={() =>
-                                        handleSingleImage(data?.variation_Image)
-                                      }
-                                    >
-                                      <Image
-                                        preview={false}
-                                        src={data?.variation_Image}
-                                        alt="ellips"
-                                      />
-                                    </div>
-                                  </>
-                                )
-                              )}
-                          </>
-                        )}
-                      </Col>
-                    </Row>
-                  </Slider>
-                </Col>
-              </div> */}
-            </Col>
-            <Col
-              xs={12}
-              md={12}
-              lg={12}
-              xl={12}
-              xxl={12}
-              className={styles.addcart}
-              style={{
-                padding: "0 30px",
-              }}
-            >
-              <div className={styles.sider}>
-                <p
-                  className={styles.Foil}
-                  style={{
-                    textTransform: "capitalize",
-                  }}
-                >
-                  {value?.Product_Name}
-                </p>
-                <div className={styles.prices}>
-                  <p className={styles.price1}>£{value?.Price}</p>
+              {variationSize?.length > 0 ? (
+                <div className={styles.setbtn}>
+                  <p>Size:</p>
 
-                  {!firstData2 ||
-                  // data >= stockCont ||
-                  variationSize2 <= 0 ||
-                  firstData2 <= 0 ? (
-                    <span className={styles.price30}>Out Of-stock</span>
-                  ) : (
-                    <span className={styles.price3}>In-stock</span>
-                  )}
-                </div>
-                <div className={styles.rating}>
-                  <Rate allowHalf disabled defaultValue={value?.ratings} />
-                  <p>{value?.ratings} | Reviews</p>
-                </div>
-                <div className={styles.setcolor}>
-                  {value?.variation.length > 0 && <p>Color:</p>}
                   <div>
-                    {value?.variation?.map((item, index) => (
-                      <div style={{ paddingBottom: 20 }} key={index}>
-                        <div
-                          onClick={() => {
-                            setHighLight(index);
-                            handleImage(
-                              item?.variation_Images[0]?.variation_Image,
-                              item?.variation_Images,
-                              item?.variation_Sizes,
-                              value?.variation?.[index]?.variation_Id,
-                              item?.variation_Name
-                            );
-                          }}
-                          className={
-                            hightLight === index
-                              ? styles.colorImg
-                              : styles.colorImg2
-                          }
-                        >
-                          <Image
-                            preview={false}
-                            key={index}
-                            src={item?.variation_Images[0]?.variation_Image}
-                            alt="color1"
-                            onClick={() => setHighLight(index)}
-                          />
-                        </div>
-                      </div>
+                    {variationSize?.map((itm, index) => (
+                      <Button
+                        key={index}
+                        onClick={() => handleSize(itm.name, itm?.stock)}
+                        className={
+                          sizeButton
+                            ? sizeButton === itm.name
+                              ? styles.xs
+                              : styles.xs2
+                            : index === 0
+                            ? styles.xss
+                            : styles.xs2
+                        }
+                      >
+                        {itm?.name} ({itm.purity})
+                      </Button>
                     ))}
                   </div>
                 </div>
-
-                {variationSize?.length > 0 ? (
-                  <div className={styles.setbtn}>
-                    <p>Size:</p>
-
-                    <div>
-                      {variationSize?.map((itm, index) => (
-                        <Button
-                          key={index}
-                          onClick={() => handleSize(itm.name, itm?.stock)}
-                          className={
-                            sizeButton
-                              ? sizeButton === itm.name
-                                ? styles.xs
-                                : styles.xs2
-                              : index === 0
-                              ? styles.xss
-                              : styles.xs2
-                          }
-                        >
-                          {itm?.name}  ({itm.purity})
-                        </Button>
-                      ))}
-                    </div>
-                  </div>
-                ) : (
-                  <div className={styles.setbtn}>
-                    {firstData?.variation_Sizes.length > 0 && <p>Size:</p>}
-                    <div>
-                      {firstData?.variation_Sizes?.map((itm, index) => (
-                        <Button
-                          key={index}
-                          onClick={() => handleSize(itm.name, itm?.stock)}
-                          className={
-                            sizeButton
-                              ? sizeButton === itm.name
-                                ? styles.xs
-                                : styles.xs2
-                              : index === 0
+              ) : (
+                <div className={styles.setbtn}>
+                  {firstData?.variation_Sizes.length > 0 && <p>Size:</p>}
+                  <div>
+                    {firstData?.variation_Sizes?.map((itm, index) => (
+                      <Button
+                        key={index}
+                        onClick={() => handleSize(itm.name, itm?.stock)}
+                        className={
+                          sizeButton
+                            ? sizeButton === itm.name
                               ? styles.xs
                               : styles.xs2
-                          }
-                        >
-                          {itm?.name}
-                        </Button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {userToken ? (
-                  <>
-                    {variationSize2 <= 0 || firstData2 <= 0 ? (
-                      <>
-                        <div className={styles.add1}>
-                          <Button
-                            className={styles.userbtn}
-                            onClick={() => handleProductNotify()}
-                          >
-                            Notify Me
-                          </Button>
-                        </div>
-                      </>
-                    ) : (
-                      <>
-                        {firstData2 > 0 && (
-                          <div className={styles.incree}>
-                            <Button onClick={Decree} className={styles.decree}>
-                              -
-                            </Button>
-                            <p className={styles.showdata}>{data}</p>
-                            <Button
-                              // disabled={data >= stockCont}
-                              disabled={data >= stockCont}
-                              onClick={() =>
-                                Incree(value?.Price, value?.Product_Ori_Price)
-                              }
-                              className={styles.incre2}
-                            >
-                              +
-                            </Button>
-                          </div>
-                        )}
-
-                        <div className={styles.add}>
-                          <Button
-                            className={styles.cart}
-                            // {!firstData2 ||
-                            //   // data >= stockCont ||
-                            //   variationSize2 <= 0 ||
-                            //   firstData2 <= 0 ? (
-                            onClick={() => addCart()}
-                            disabled={
-                              firstData?.variation_Sizes.length === 0 ||
-                              data === 0
-                            }
-                            loading={loader}
-                          >
-                            ADD TO CART
-                          </Button>
-                          <Button
-                            className={styles.favourite}
-                            onClick={() =>
-                              toggleLike(state?.productId, value?.isFavorite)
-                            }
-                            loading={loaderFev}
-                          >
-                            {isLiked || value?.isFavorite
-                              ? "REMOVE FROM FAVOURITE"
-                              : "ADD TO FAVOURITE"}
-                          </Button>
-                        </div>
-                      </>
-                    )}
-                  </>
-                ) : (
-                  <>
-                    <div className={styles.add1}>
-                      <Button className={styles.userbtn} onClick={home}>
-                        Login | Register
+                            : index === 0
+                            ? styles.xs
+                            : styles.xs2
+                        }
+                      >
+                        {itm?.name}
                       </Button>
-                    </div>
-                  </>
-                )}
-                <div className={styles.names}>
-                  <div>
-                    <p className={styles.brand}>SKU Code: - </p>{" "}
-                    <span className={styles.ganga}>{value?.SKU_Code}</span>
-                  </div>
-                  <div>
-                    <p className={styles.brand}>Brand Name - </p>{" "}
-                    <span className={styles.ganga}>{value?.Brand_Name}</span>
+                    ))}
                   </div>
                 </div>
-                <div className={styles.share}>
-                  <p>Share On :</p>
-                  <div className={styles.setround}>
-                    <div
-                      onClick={() => window.open("https://www.instagram.com/")}
-                    >
-                      <InstagramOutlined
-                        style={{
-                          fontSize: 30,
-                          cursor: "pointer",
-                        }}
-                      />
-                    </div>
-                    <div
-                      onClick={() => window.open("https://www.facebook.com/")}
-                    >
-                      <FacebookOutlined
-                        style={{
-                          fontSize: 30,
-                          cursor: "pointer",
-                        }}
-                      />
-                    </div>
-                    <div
-                      onClick={() => window.open("https://www.linkedin.com/")}
-                    >
-                      <LinkedinOutlined
-                        style={{
-                          fontSize: 30,
-                          cursor: "pointer",
-                        }}
-                      />
-                    </div>
-                    <div
-                      onClick={() => window.open("https://www.whatsapp.com/")}
-                    >
-                      <WhatsAppOutlined
-                        style={{
-                          fontSize: 30,
-                          cursor: "pointer",
-                        }}
-                      />
-                    </div>
+              )}
+
+              {userToken ? (
+                <>
+                  {variationSize2 <= 0 || firstData2 <= 0 ? (
+                    <>
+                      <div className={styles.add1}>
+                        <Button
+                          className={styles.userbtn}
+                          onClick={() => handleProductNotify()}
+                        >
+                          Notify Me
+                        </Button>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      {firstData2 > 0 && (
+                        <div className={styles.incree}>
+                          <Button onClick={Decree} className={styles.decree}>
+                            -
+                          </Button>
+                          <p className={styles.showdata}>{data}</p>
+                          <Button
+                            // disabled={data >= stockCont}
+                            disabled={data >= stockCont}
+                            onClick={() =>
+                              Incree(value?.Price, value?.Product_Ori_Price)
+                            }
+                            className={styles.incre2}
+                          >
+                            +
+                          </Button>
+                        </div>
+                      )}
+
+                      <div className={styles.add}>
+                        <Button
+                          className={styles.cart}
+                          // {!firstData2 ||
+                          //   // data >= stockCont ||
+                          //   variationSize2 <= 0 ||
+                          //   firstData2 <= 0 ? (
+                          onClick={() => addCart()}
+                          disabled={
+                            firstData?.variation_Sizes.length === 0 ||
+                            data === 0
+                          }
+                          loading={loader}
+                        >
+                          ADD TO CART
+                        </Button>
+                        <Button
+                          className={styles.favourite}
+                          onClick={() =>
+                            toggleLike(state?.productId, value?.isFavorite)
+                          }
+                          loading={loaderFev}
+                        >
+                          {isLiked || value?.isFavorite
+                            ? "REMOVE FROM FAVOURITE"
+                            : "ADD TO FAVOURITE"}
+                        </Button>
+                      </div>
+                    </>
+                  )}
+                </>
+              ) : (
+                <>
+                  <div className={styles.add1}>
+                    <Button className={styles.userbtn} onClick={home}>
+                      Login | Register
+                    </Button>
+                  </div>
+                </>
+              )}
+              <div className={styles.names}>
+                <div>
+                  <p className={styles.brand}>SKU Code: - </p>{" "}
+                  <span className={styles.ganga}>{value?.SKU_Code}</span>
+                </div>
+                <div>
+                  <p className={styles.brand}>Brand Name - </p>{" "}
+                  <span className={styles.ganga}>{value?.Brand_Name}</span>
+                </div>
+              </div>
+              <div className={styles.share}>
+                <p>Share On :</p>
+                <div className={styles.setround}>
+                  <div
+                    onClick={() => window.open("https://www.instagram.com/")}
+                  >
+                    <InstagramOutlined
+                      style={{
+                        fontSize: 30,
+                        cursor: "pointer",
+                      }}
+                    />
+                  </div>
+                  <div onClick={() => window.open("https://www.facebook.com/")}>
+                    <FacebookOutlined
+                      style={{
+                        fontSize: 30,
+                        cursor: "pointer",
+                      }}
+                    />
+                  </div>
+                  <div onClick={() => window.open("https://www.linkedin.com/")}>
+                    <LinkedinOutlined
+                      style={{
+                        fontSize: 30,
+                        cursor: "pointer",
+                      }}
+                    />
+                  </div>
+                  <div onClick={() => window.open("https://www.whatsapp.com/")}>
+                    <WhatsAppOutlined
+                      style={{
+                        fontSize: 30,
+                        cursor: "pointer",
+                      }}
+                    />
                   </div>
                 </div>
               </div>
-            </Col>
-          </Row>
-        ))}
+            </div>
+          </Col>
+        </Row>
       </Col>
 
       <Col
@@ -707,39 +629,6 @@ function AddCart() {
           className={styles.tabs}
         />
       </Col>
-
-      {similarProductList?.length === 4 ? (
-        <Col xs={22} md={22} lg={22} xl={22} xxl={22} className={styles.wear}>
-          <h2>SIMILAR PRODUCTS</h2>
-          <Row justify="start">
-            {similarProductList?.map((item, index) => (
-              <Col xl={6} xxl={6} className={styles.setMain} key={index}>
-                <ProductCard item={item} />
-              </Col>
-            ))}
-          </Row>
-        </Col>
-      ) : (
-        similarProductList.length > 0 && (
-          <Col
-            xs={22}
-            md={22}
-            lg={22}
-            xl={22}
-            xxl={22}
-            className={styles.wearSet}
-          >
-            <h2>SIMILAR PRODUCTS</h2>
-            <Slider {...settings3} className={styles.smain}>
-              {similarProductList?.map((item, index) => (
-                <Col lg={24} xl={6} xxl={6} key={index}>
-                  <ProductCard item={item} />
-                </Col>
-              ))}
-            </Slider>
-          </Col>
-        )
-      )}
 
       {likeProductList?.length <= 4 ? (
         <Col xs={22} md={22} lg={22} xl={22} xxl={22} className={styles.wear}>

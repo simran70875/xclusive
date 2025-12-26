@@ -1,38 +1,34 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import {
   Button,
   Checkbox,
   Col,
-  Image,
   Radio,
   Row,
   Select,
   Spin,
   Collapse,
 } from "antd";
-import { HeartFilled, HeartOutlined } from "@ant-design/icons";
 import ResponsivePagination from "react-responsive-pagination";
 
 import {
   getFilterListApi,
   getFilterProductApi,
 } from "../../Features/Product/Product";
-import { addWishList, getWishListApi } from "../../Features/WishList/WishList";
 
 import styles from "./index.module.scss";
+import { ProductCard } from "../../Component/productCard";
 
 function Catagory() {
   const { Panel } = Collapse;
   const dispatch = useDispatch();
-  const navigate = useNavigate();
   const { state } = useLocation();
   const [data, setData] = useState();
   const [sortData, setSortData] = useState([]);
   const [checkedItems, setCheckedItems] = useState([]);
   const [selectedRate, setSelectedRate] = useState(null);
-  const [isLiked, setIsLiked] = useState(false);
 
   const [brandName, setBrandName] = useState([]);
   const [colorsData, setColorsData] = useState([]);
@@ -41,28 +37,14 @@ function Catagory() {
 
   const [currentPage, setCurrentPage] = useState(1);
   const userid = useSelector((state) => state.user?.userId);
-  const userToken = useSelector((state) => state.user.token);
-  const likeCounter = useSelector((state) => state.user?.likeCount);
   const loader = useSelector((state) => state.product.productLoading);
 
   const filterSideData = useSelector((state) => state.product?.filterList);
   const filterProducct = useSelector((state) => state.product?.filterProduct);
   const paginationData = useSelector((state) => state.product?.filterProduct2);
-  const givewishlist = useSelector((state) => state.wishList?.wishlist);
 
   useEffect(() => {
     setData(state);
-    dispatch(
-      getFilterProductApi(
-        state?.id,
-        brandName,
-        colorsData,
-        rateWiseData,
-        userid !== null ? userid : 0,
-        sortData,
-        currentPage
-      )
-    );
     dispatch(getFilterListApi());
     window.scrollTo(0, 0);
   }, [state]);
@@ -71,8 +53,31 @@ function Catagory() {
     dispatch(getFilterListApi());
   }, []);
 
+  useEffect(() => {
+    dispatch(
+      getFilterProductApi(
+        categoryData,
+        brandName,
+        colorsData,
+        rateWiseData,
+        userid ?? 0,
+        sortData,
+        currentPage
+      )
+    );
+  }, [
+    categoryData,
+    brandName,
+    colorsData,
+    rateWiseData,
+    sortData,
+    currentPage,
+  ]);
+
   const onChange = (e, item, filterType) => {
+    console.log("item ==> ", item);
     const isChecked = e.target.checked;
+
     if (isChecked) {
       setCheckedItems((prevCheckedItems) => [...prevCheckedItems, item]);
     } else {
@@ -80,26 +85,23 @@ function Catagory() {
         prevCheckedItems.filter((checkedItem) => checkedItem !== item)
       );
     }
+
     if (filterType === "color") {
-      if (e.target.checked === true) {
-        colorsData.push(item);
-      } else {
-        const index = colorsData.indexOf(item);
-        if (index > -1) {
-          colorsData.splice(index, 1);
+      setColorsData((prev) => {
+        if (e.target.checked) {
+          return [...prev, item];
+        } else {
+          return prev.filter((color) => color !== item);
         }
-      }
-      setColorsData(colorsData);
+      });
     } else if (filterType === "brands") {
-      if (e.target.checked === true) {
-        brandName.push(item);
-      } else {
-        const index = brandName.indexOf(item);
-        if (index > -1) {
-          brandName.splice(index, 1);
+      setBrandName((prev) => {
+        if (e.target.checked) {
+          return [...prev, item._id];
+        } else {
+          return prev.filter((id) => id !== item._id);
         }
-      }
-      setBrandName(brandName);
+      });
     } else if (filterType === "rateWise") {
       if (e.target.checked === true) {
         rateWiseData.push(item);
@@ -111,27 +113,14 @@ function Catagory() {
       }
       setRateWiseData(rateWiseData);
     } else if (filterType === "category") {
-      if (e.target.checked === true) {
-        categoryData.push(item);
-      } else {
-        const index = categoryData.indexOf(item);
-        if (index > -1) {
-          categoryData.splice(index, 1);
+      setcategoryData((prev) => {
+        if (e.target.checked) {
+          return [...prev, item._id];
+        } else {
+          return prev.filter((id) => id !== item._id);
         }
-      }
-      setcategoryData(categoryData);
+      });
     }
-    dispatch(
-      getFilterProductApi(
-        state?.id,
-        brandName,
-        colorsData,
-        rateWiseData,
-        userid !== null ? userid : 0,
-        sortData,
-        currentPage
-      )
-    );
   };
 
   const onChange2 = (e, item, filterType) => {
@@ -169,15 +158,6 @@ function Catagory() {
     );
   };
 
-  const handleAddCart = (id, name) => {
-    navigate(`/product-detail/${name}`, {
-      state: {
-        productId: id,
-      },
-    });
-    window.location.reload();
-  };
-
   const filterDropdown = (arr) => {
     const dropdownArray = [];
     for (let i = 0; i < arr?.length; i++) {
@@ -188,26 +168,6 @@ function Catagory() {
       });
     }
     return dropdownArray;
-  };
-
-  const toggleLike = (value) => {
-    const obj = {
-      productId: value,
-    };
-    const onSuccessCallback = () => {
-      // dispatch(getWishListApi(userToken));
-      if (isLiked === false) {
-        dispatch(getWishListApi(userToken));
-        setIsLiked(!isLiked);
-        // dispatch(setLikeCount(likeCounter + 1));
-      } else {
-        if (likeCounter > 0) {
-          // dispatch(setLikeCount(likeCounter - 1));
-          dispatch(getWishListApi(userToken));
-        }
-      }
-    };
-    dispatch(addWishList(obj, onSuccessCallback, userToken));
   };
 
   const handleClear = () => {
@@ -225,9 +185,6 @@ function Catagory() {
     );
     window.location.reload();
   };
-
-  const getProductIsLikedOrNot = (id) =>
-    Boolean(givewishlist?.find((e) => e._id == id));
 
   const onShowSizeChange = (current, pageSize) => {
     // console.log(current, pageSize);
@@ -286,7 +243,7 @@ function Catagory() {
 
                 <Panel
                   header="Brands & Collections"
-                  key="1"
+                  key="2"
                   style={{ padding: 0 }}
                 >
                   <div className={styles.check}>
@@ -298,14 +255,14 @@ function Catagory() {
                           className={styles.list}
                           checked={checkedItems.includes(item)}
                         >
-                          {item}
+                          {item.Data_Name}
                         </Checkbox>
                       ))}
                     </div>
                   </div>
                 </Panel>
 
-                <Panel header="Colors" key="2" style={{ padding: 0 }}>
+                <Panel header="Colors" key="3" style={{ padding: 0 }}>
                   <div className={styles.check}>
                     <div className={styles.checkname6}>
                       {filterSideData?.colors?.map((item, index) => (
@@ -375,7 +332,12 @@ function Catagory() {
               />
             ) : filterProducct?.length > 0 ? (
               <>
-                <Row justify="start">
+                <Row
+                  justify="start"
+                  style={{
+                    marginBottom: 60,
+                  }}
+                >
                   {filterProducct?.map((item, index) => (
                     <Col
                       xs={12}
@@ -384,46 +346,9 @@ function Catagory() {
                       xl={8}
                       xxl={8}
                       className={styles.setMain}
+                      key={index}
                     >
-                      <div className={styles.slider} key={index}>
-                        {userToken ? (
-                          <div className={styles.hearticon}>
-                            {getProductIsLikedOrNot(item?._id) ? (
-                              <HeartFilled
-                                className={styles.pink}
-                                onClick={() => {
-                                  toggleLike(item?._id);
-                                }}
-                              />
-                            ) : (
-                              <HeartOutlined
-                                className={styles.normal}
-                                onClick={() => {
-                                  toggleLike(item?._id);
-                                }}
-                              />
-                            )}
-                          </div>
-                        ) : (
-                          ""
-                        )}
-                        <Image
-                          preview={false}
-                          // style={{height:'500px',width:'100%'}}
-                          src={item?.Product_Image}
-                          alt="Product_Image"
-                          onClick={() =>
-                            handleAddCart(item?._id, item?.Product_Name)
-                          }
-                        />
-                        <p>{item?.Product_Name}</p>
-                        <div className={styles.prices}>
-                          <p>£{item?.Product_Dis_Price || 0}</p>
-                          <span className={styles.secPrice}>
-                            £{item?.Product_Ori_Price || 0}
-                          </span>
-                        </div>
-                      </div>
+                      <ProductCard item={item} />
                     </Col>
                   ))}
                 </Row>
@@ -448,7 +373,8 @@ function Catagory() {
             current={currentPage}
             total={paginationData?.totalPages}
             onPageChange={onShowSizeChange}
-            className={styles.pagination}
+            pageLinkClassName={styles.paginationPage}
+            activeItemClassName={styles.activePage}
           />
         </Col>
       </Row>

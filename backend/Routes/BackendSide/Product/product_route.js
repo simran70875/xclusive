@@ -461,9 +461,7 @@ route.get("/get", async (req, res) => {
         _id: p.Collections?._id,
         Collections: p.Collections?.Data_Name,
       },
-      // Product_Dis_Price: p.Product_Dis_Price,
-      // Product_Ori_Price: p.Product_Ori_Price,
-      // Max_Dis_Price: p.Max_Dis_Price,
+
       Variation_Count: p.Variation.length,
       Popular_pick: p.Popular_pick,
       Trendy_collection: p.Trendy_collection,
@@ -553,9 +551,8 @@ route.get("/list/getAll", async (req, res) => {
         _id: product._id,
         Product_Name: product.Product_Name,
         SKU_Code: product.SKU_Code,
-        Product_Image: `http://${
-          process.env.IP_ADDRESS
-        }/${product?.Product_Image?.path?.replace(/\\/g, "/")}`,
+        Product_Image: `http://${process.env.IP_ADDRESS
+          }/${product?.Product_Image?.path?.replace(/\\/g, "/")}`,
         Brand: {
           _id: product?.Brand_Name?._id,
           Brand_Name: product.Brand_Name?.Data_Name,
@@ -564,12 +561,6 @@ route.get("/list/getAll", async (req, res) => {
           _id: product?.Collections?._id,
           Collections: product.Collections?.Data_Name,
         },
-        Product_Dis_Price: product.Product_Dis_Price,
-        Product_Ori_Price: product.Product_Ori_Price,
-        Max_Dis_Price: product.Max_Dis_Price,
-        Gold_Price: product.Gold_Price,
-        Silver_Price: product.Silver_Price,
-        PPO_Price: product.PPO_Price,
         Variation_Count: product.Variation.length,
         Popular_pick: product.Popular_pick,
         Trendy_collection: product.Trendy_collection,
@@ -612,9 +603,8 @@ route.get("/mob/demo/get", async (req, res) => {
       const adminProducts = products.map((product) => ({
         _id: product._id,
         Product_Name: product.Product_Name,
-        Product_Image: `${
-          process.env.IP_ADDRESS
-        }/${product?.Product_Image?.path?.replace(/\\/g, "/")}`,
+        Product_Image: `${process.env.IP_ADDRESS
+          }/${product?.Product_Image?.path?.replace(/\\/g, "/")}`,
         Category_Name: product.Category[0]?.Category_Name,
         CategoryId: product?.Category[0]?._id,
       }));
@@ -678,9 +668,7 @@ route.get("/get/:id", checkAdminOrRole2, async (req, res) => {
           _id: products?.Collections?._id,
           Collections: products.Collections?.Data_Name,
         },
-        // Product_Dis_Price: products.Product_Dis_Price,
-        // Product_Ori_Price: products.Product_Ori_Price,
-        // Max_Dis_Price: products.Max_Dis_Price,
+
         Description: products.Description,
         Product_Label: products.Product_Label,
         Variation_Count: products.Variation.length,
@@ -693,11 +681,12 @@ route.get("/get/:id", checkAdminOrRole2, async (req, res) => {
             _id: variation?._id,
             name: variation?.Size_Name,
             stock: variation?.Size_Stock,
+            price: variation?.Size_Price,
+            purity: variation?.Size_purity,
           })),
           variation_Images: variation?.Variation_Images?.map((variation) => ({
-            variation_Image: `${
-              process.env.IP_ADDRESS
-            }/${variation?.path?.replace(/\\/g, "/")}`,
+            variation_Image: `${process.env.IP_ADDRESS
+              }/${variation?.path?.replace(/\\/g, "/")}`,
           })),
           variation_Status: variation?.Variation_Status,
         })),
@@ -776,31 +765,11 @@ route.get("/mob/get/productlist/:id", async (req, res) => {
         _id: product._id,
         Product_Name: product.Product_Name,
         SKU_Code: product.SKU_Code,
-        Product_Image: `${
-          process.env.IP_ADDRESS
-        }/${product?.Product_Image?.path?.replace(/\\/g, "/")}`,
+        Product_Image: `${process.env.IP_ADDRESS
+          }/${product?.Product_Image?.path?.replace(/\\/g, "/")}`,
         Category: product.Category[0]?.Category_Name,
         Brand_Name: product?.Brand_Name?.Data_Name,
         Collections: product?.Collections?.Data_Name,
-
-        Product_Dis_Price:
-          user?.User_Type === "0" || userId === "0"
-            ? product.Product_Dis_Price
-            : user?.User_Type === "1"
-            ? product.Gold_Price
-            : user?.User_Type === "2"
-            ? product.Silver_Price
-            : product.PPO_Price,
-
-        Product_Ori_Price:
-          user?.User_Type === "0" || userId === "0"
-            ? product.Product_Ori_Price
-            : product.Product_Dis_Price,
-
-        Max_Dis_Price: product.Max_Dis_Price,
-        Gold_Price: product.Gold_Price,
-        Silver_Price: product.Silver_Price,
-        PPO_Price: product.PPO_Price,
         Description: product.Description,
         Product_Label: product.Product_Label,
         Popular_pick: product.Popular_pick,
@@ -867,9 +836,8 @@ route.get("/mob/get/features/productlist", async (req, res) => {
 
         // ✅ MAIN PRODUCT IMAGE (from variation)
         Product_Image: firstVariation?.Variation_Images?.[0]?.path
-          ? `${
-              process.env.IP_ADDRESS
-            }/${firstVariation.Variation_Images[0].path.replace(/\\/g, "/")}`
+          ? `${process.env.IP_ADDRESS
+          }/${firstVariation.Variation_Images[0].path.replace(/\\/g, "/")}`
           : null,
 
         // ✅ PRICE DETAILS
@@ -930,6 +898,7 @@ async function getRatings(productId) {
     (sum, review) => sum + parseFloat(review.rating),
     0
   );
+
   let rating = totalRating / reviewsForProduct.length;
   rating = rating.toFixed(1);
   return rating;
@@ -940,13 +909,7 @@ route.get("/mob/get/single/:id", async (req, res) => {
   const userId = req?.query?.userId;
   const productId = req.params.id;
 
-  let user;
-  if (userId !== "0") {
-    user = await User.findById(userId);
-  }
-
   const userWishlist = await getWishList(userId);
-
   const ratings = await getRatings(productId);
 
   try {
@@ -959,18 +922,10 @@ route.get("/mob/get/single/:id", async (req, res) => {
       })
       .populate("Brand_Name", "Data_Name")
       .populate("Collections", "Data_Name");
-    if (!product) {
-      return res
-        .status(200)
-        .json({ type: "warning", message: "No products found!", products: [] });
-    } else {
-      let shipping;
-      if (product?.Shipping === "PRE LAUNCH") {
-        shipping = "1";
-      } else {
-        shipping = "0";
-      }
 
+    if (!product) {
+      return res.status(200).json({ type: "warning", message: "No products found!", products: [] });
+    } else {
       const result = {
         _id: product._id,
         Product_Name: product.Product_Name,
@@ -1003,9 +958,8 @@ route.get("/mob/get/single/:id", async (req, res) => {
                 })),
                 variation_Images: variation?.Variation_Images?.map(
                   (variation) => ({
-                    variation_Image: `${
-                      process.env.IP_ADDRESS
-                    }/${variation?.path?.replace(/\\/g, "/")}`,
+                    variation_Image: `${process.env.IP_ADDRESS
+                      }/${variation?.path?.replace(/\\/g, "/")}`,
                   })
                 ),
               });
@@ -1022,16 +976,12 @@ route.get("/mob/get/single/:id", async (req, res) => {
         ratings: ratings,
       };
 
-      res.status(200).json({
-        type: "success",
-        message: "Products found successfully!",
-        products: [result] || [],
-      });
+      console.log("result ==> ", result);
+
+      res.status(200).json({type: "success", message: "Products found successfully!", product: result});
     }
   } catch (error) {
-    res
-      .status(200)
-      .json({ type: "error", message: "Server Error!", errorMessage: error });
+    res.status(200).json({ type: "error", message: "Server Error!", errorMessage: error });
   }
 });
 
@@ -1248,7 +1198,7 @@ route.patch(
       // Check if the product name is being changed and if there is another product with the same name and category
       if (
         Product_Name.toLowerCase() !==
-          existingProduct.Product_Name.toLowerCase() ||
+        existingProduct.Product_Name.toLowerCase() ||
         Category !== existingProduct.Category
       ) {
         const duplicateProduct = null;
@@ -1354,9 +1304,8 @@ route.get("/lowstockproducts/get", checkAdminOrRole2, async (req, res) => {
 
         if (lowStockSizes.length > 0) {
           // const imagePath = constructImagePath(process.env.IP_ADDRESS, process.env.PORT, variation.Variation_Image?.path);
-          const imagePath = `${
-            process.env.IP_ADDRESS
-          }/${variation?.Variation_Images[0]?.path?.replace(/\\/g, "/")}`;
+          const imagePath = `${process.env.IP_ADDRESS
+            }/${variation?.Variation_Images[0]?.path?.replace(/\\/g, "/")}`;
 
           lowStockVariationSizes.push(
             ...lowStockSizes.map((size) => ({
