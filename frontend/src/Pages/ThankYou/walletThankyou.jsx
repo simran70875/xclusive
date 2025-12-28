@@ -57,7 +57,7 @@ function WalletThankYou() {
 
   const handleSubmit = () => {
     navigate(routes.walletUrl);
-    window.location.reload();
+    
   };
   return (
     <div className={styles.container}>

@@ -1,5 +1,3 @@
-/* eslint-disable no-unused-vars */
-/* eslint-disable react-hooks/exhaustive-deps */
 import { useEffect } from "react";
 import React, { useState } from "react";
 import { Button, Col, Image, Row } from "antd";
@@ -23,7 +21,7 @@ function Shopping() {
   const dispatch = useDispatch();
   const [data, setData] = useState();
   const [stoke, setStoke] = useState();
-  const [quentity, setQuentity] = useState();
+  const [quantity, setQuantity] = useState();
   const [stockCont, setStockCount] = useState();
   const userToken = useSelector((state) => state.user?.token);
   const cartCounter = useSelector((state) => state.user?.cartCount);
@@ -32,7 +30,7 @@ function Shopping() {
 
   const isContinueButtonDisabled = cartlist?.cartItems?.some(
     (item) =>
-      item?.Quantity > item?.Stock || item?.Quantity <= 0 || item?.outOfStock
+      item?.quantity > item?.Stock || item?.quantity <= 0 || item?.outOfStock
   );
 
   useEffect(() => {
@@ -42,20 +40,14 @@ function Shopping() {
   useEffect(() => {
     dispatch(geCartListApi(userToken));
     setStockCount(stockCont);
-    setData(quentity);
-    // let qty = 0;
-    // cartlist?.cartItems.forEach((x) => {
-    //   qty += 1;
-    // });
-    // setTotalProduct(qty);
-    // dispatch(setCartCount(qty ? qty : cartCounter));
+    setData(quantity);
   }, []);
 
   const Incree = (item) => {
-    // console.log("item", item?.Stock);
-    setQuentity(item?.Quantity);
+    setQuantity(item?.quantity);
     setStoke(item?.Stock);
-    const updatedQuantity = item?.Quantity + 1;
+
+    const updatedQuantity = item?.quantity + 1;
     const obj = {
       Quantity: updatedQuantity,
     };
@@ -67,9 +59,8 @@ function Shopping() {
   };
 
   const Decree = (item) => {
-    // console.log(item?.Stock);
     setStoke(item?.Stock);
-    const updatedQuantity = item?.Quantity - 1;
+    const updatedQuantity = item?.quantity - 1;
     const obj = {
       Quantity: updatedQuantity,
     };
@@ -78,7 +69,6 @@ function Shopping() {
       setData(updatedQuantity);
       if (updatedQuantity === 0) {
         dispatch(deleteCartListApi(item?._id, userToken));
-        // dispatch(setCartCount(cartCounter - 1));
       }
     };
     setData(data - 1);
@@ -132,10 +122,10 @@ function Shopping() {
                   <p>Product</p>
                   <div>
                     <p>Price</p>
-                    <p>Quantity</p>
+                    <p>quantity</p>
                     <p>Total</p>
                     <p className={styles.mobileSize}>
-                      Price & Quantity & Total
+                      Price & quantity & Total
                     </p>
                   </div>
                 </div>
@@ -145,8 +135,8 @@ function Shopping() {
                   return (
                     <>
                       <div className={styles.showItem} key={index}>
-                        <Image preview={false}
-                          
+                        <Image
+                          preview={false}
                           src={close}
                           alt="close"
                           className={styles.close}
@@ -154,20 +144,20 @@ function Shopping() {
                         />
                         <div className={styles.foil}>
                           <div>
-                            <Image preview={false}
-                              
-                              src={item?.Variation?.variation_Image}
+                            <Image
+                              preview={false}
+                              src={item.image}
                               alt="wear1"
                               className={styles.wear}
                             />
                             <div>
                               <p className={styles.boota}>
-                                {item?.Product?.product_Name}
+                                {item?.productName}
                               </p>
                               <p className={styles.size}>
-                                Size - {item?.SizeName}
+                               {item?.variationName} {item?.purity} {item?.size}
                               </p>
-                              {item?.Quantity > item?.Stock ? (
+                              {item?.quantity > item?.Stock ? (
                                 <p
                                   className={styles.size}
                                   style={{
@@ -186,11 +176,11 @@ function Shopping() {
                           </div>
                           <div className={styles.seting}>
                             <div className={styles.prices}>
-                              <p className={styles.prices1}>
+                              {/* <p className={styles.prices1}>
                                 £{item?.discountPrice_product}
-                              </p>
-                              <p className={styles.prices2}>
-                                £{item?.originalPrice_product}
+                              </p> */}
+                              <p className={styles.prices1}>
+                                £{item?.price}
                               </p>
                             </div>
                             <div className={styles.incree}>
@@ -201,19 +191,18 @@ function Shopping() {
                                 -
                               </Button>
                               <p className={styles.showdata}>
-                                {item?.Quantity}
+                                {item?.quantity}
                               </p>
                               <Button
                                 onClick={() => Incree(item)}
                                 className={styles.incre2}
-                                // disabled={data >= stock1}
-                                disabled={item?.Quantity >= item?.Stock}
+                                disabled={item?.quantity >= item?.Stock}
                               >
                                 +
                               </Button>
                             </div>
                             <div className={styles.total}>
-                              <p>£{item?.discountPrice}</p>
+                              <p>£{item?.price}</p>
                             </div>
                           </div>
                         </div>
@@ -246,7 +235,7 @@ function Shopping() {
                       <p>Total MRP</p>
                       <div className={styles.prices}>
                         <p className={styles.price1}>
-                          £{cartlist?.totalDiscount}
+                          £{cartlist?.totalDiscount | 0}
                         </p>
                         <span className={styles.price2}>
                           £{cartlist?.totalOriginalAmount}
@@ -270,7 +259,7 @@ function Shopping() {
                       className={styles.proced}
                       onClick={handleSubmit}
                       loading={loader}
-                      // disabled={item?.Quantity > item?.Stock}
+                      // disabled={item?.quantity > item?.Stock}
                       disabled={isContinueButtonDisabled}
                     >
                       CONTINUE

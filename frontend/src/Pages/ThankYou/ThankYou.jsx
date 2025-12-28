@@ -55,7 +55,7 @@ function ThankYou() {
 
   const handleSubmit = () => {
     navigate(routes.homepageUrl);
-    window.location.reload();
+    
   };
 
   return (

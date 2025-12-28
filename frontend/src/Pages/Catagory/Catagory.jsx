@@ -183,7 +183,7 @@ function Catagory() {
         currentPage
       )
     );
-    window.location.reload();
+    
   };
 
   const onShowSizeChange = (current, pageSize) => {

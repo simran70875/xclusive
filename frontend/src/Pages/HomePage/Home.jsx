@@ -78,7 +78,7 @@ function Home() {
         productId: id,
       },
     });
-    window.location.reload();
+    
   };
 
   const Catagory = (item) => {
@@ -88,7 +88,7 @@ function Home() {
         id: item?.category_id || item?.categoryId,
       },
     });
-    window.location.reload();
+    
   };
 
   const Colloection = (item) => {
@@ -98,7 +98,7 @@ function Home() {
         id: item?._id,
       },
     });
-    window.location.reload();
+    
   };
 
 

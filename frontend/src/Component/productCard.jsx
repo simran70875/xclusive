@@ -40,7 +40,7 @@ export const ProductCard = ({ item }) => {
         productId: id,
       },
     });
-    window.location.reload();
+    
   };
 
   return (

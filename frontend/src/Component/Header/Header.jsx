@@ -127,7 +127,6 @@ function Header() {
 
   const handlesubmit = () => {
     navigate(routes.homepageUrl);
-    window.location.reload();
   };
 
   const handleCart = () => {
@@ -135,7 +134,7 @@ function Header() {
     if (userToken) {
       navigate(routes.shoppingUrl);
     }
-    // window.location.reload();
+    //
     // }
   };
 
@@ -152,7 +151,6 @@ function Header() {
     navigate(routes.userUrl);
     dispatch(setLikeCount(0));
     dispatch(setCartCount(0));
-    window.location.reload();
   };
 
   const handleInputChange = (e) => {

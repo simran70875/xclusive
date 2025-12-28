@@ -4,17 +4,10 @@ import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Button, Col, Image, Rate, Row, Tabs } from "antd";
 import { useLocation, useNavigate } from "react-router-dom";
-import {
-  FacebookOutlined,
-  InstagramOutlined,
-  LinkedinOutlined,
-  WhatsAppOutlined,
-} from "@ant-design/icons";
 
 import Review from "../Review/Review";
 import {
   getProductIdApi,
-  getProductListApi,
   productNotifyApi,
 } from "../../Features/Product/Product";
 import { routes } from "../../Routes/Routes";
@@ -30,154 +23,145 @@ function AddCart() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { state } = useLocation();
-  const [imgArr, setImgArr] = useState([]);
-  const [firstData, setFirstData] = useState();
 
-  const [variationName, setVariationName] = useState();
-
-  const [firstData2, setFirstData2] = useState(0);
-  const [isLiked, setIsLiked] = useState(false);
-  const [singleImg, setSingleImg] = useState("");
-  const [hightLight, setHighLight] = useState(0);
-  const [sizeButton, setSizeButton] = useState();
-  const [data, setData] = useState(1);
-  const [stockCont, setStockCount] = useState();
-  const [variationId, setVariationId] = useState("");
-  const [variationSize, setVariationSize] = useState([]);
-  const [variationSize2, setVariationSize2] = useState([]);
-  const [variationSize3, setVariationSize3] = useState(null);
-  const [originalPrice, setOriginalPrice] = useState(0);
-  const [discountPrice, setDiscountPrice] = useState(0);
-  const [colorName, setColorName] = useState();
-  const [isSizeSelected, setIsSizeSelected] = useState(false);
-
+  const userID = useSelector((state) => state.user?.userId);
+  const userToken = useSelector((state) => state.user?.token);
+  const likeCounter = useSelector((state) => state.user?.likeCount);
+  const productIdData = useSelector((state) => state.product?.productIdData);
+  const loader = useSelector((state) => state.addCart?.isAddCartLoad);
+  const loaderFev = useSelector((state) => state.wishList?.wishListLoading);
   const productReview = useSelector(
     (state) => state.setting?.productReviewData
   );
   const likeProductList = useSelector(
     (state) => state.product?.productFeatureListLike
   );
-  const userID = useSelector((state) => state.user?.userId);
-  const userToken = useSelector((state) => state.user?.token);
-  const likeCounter = useSelector((state) => state.user?.likeCount);
-  
-  const productIdData = useSelector((state) => state.product?.productIdData);
 
-  console.log("product data ==> ", productIdData);
+  const [variationData, setVariationData] = useState();
+  const [variationSizes, setVariationSizes] = useState([]);
 
-  const loader = useSelector((state) => state.addCart?.isAddCartLoad);
-  const loaderFev = useSelector((state) => state.wishList?.wishListLoading);
+  const [isLiked, setIsLiked] = useState(false);
+  const [hightLight, setHighLight] = useState(0);
+
+  const [imgArr, setImgArr] = useState([]);
+  const [singleImg, setSingleImg] = useState("");
+
+  const [variationId, setVariationId] = useState("");
+  const [variationName, setVariationName] = useState();
+
+  const [sizeName, setSizeName] = useState();
+  const [qty, setQty] = useState(1);
+  const [stockCount, setStockCount] = useState();
+  const [originalPrice, setOriginalPrice] = useState(0);
+  const [discountPrice, setDiscountPrice] = useState(0);
+  const [purity, setPurity] = useState("");
+
+  const [isSizeSelected, setIsSizeSelected] = useState(false);
 
   useEffect(() => {
     dispatch(getProductIdApi(state?.productId, userID ? userID : 0));
-
+    dispatch(getProductReviewApi(state?.productId, userToken));
     window.scrollTo(0, 0);
   }, [dispatch, state?.productId, userID]);
 
   useEffect(() => {
     if (
-      productIdData?.[0]?.variation?.length === 0 ||
-      productIdData?.[0]?.variation?.[0]?.variation_Sizes?.length === 0
+      productIdData?.variation?.length === 0 ||
+      productIdData?.variation?.[0]?.variation_Sizes?.length === 0
     )
-      setData(0);
+      setQty(0);
     window.scrollTo(0, 0);
   }, [productIdData]);
 
-  useEffect(() => {
-    setFirstData(productIdData?.[0]?.variation?.[0]);
-    const firstDataStock =
-      productIdData?.[0]?.variation?.[0]?.variation_Sizes?.[0]?.stock;
-    setFirstData2(firstDataStock);
-    setStockCount(firstDataStock);
-    dispatch(
-      getProductListApi(
-        productIdData?.[0]?.CategoryId,
-        userID ? userID : 0,
-        state?.productId
-      )
-    );
-    dispatch(getWishListApi(userToken));
-    dispatch(getProductReviewApi(state?.productId, userToken));
-    setVariationSize2(firstData?.variation_Sizes?.[0]?.stock);
-    setVariationName(firstData?.variation_Id);
-    window.scrollTo(0, 0);
-  }, [productIdData]);
-
-  const Incree = (prices, price2) => {
-    setData(data + 1);
-    setDiscountPrice(prices);
-    setOriginalPrice(price2);
+  const Incree = () => {
+    setQty(qty + 1);
   };
 
   const Decree = () => {
-    if (data > 0) {
-      setData(data - 1);
+    if (qty > 0) {
+      setQty(qty - 1);
     }
   };
 
   const addCart = () => {
     const cartobj = {
-      SizeName: sizeButton ? sizeButton : firstData?.variation_Sizes?.[0]?.name,
-      variation: variationId ? variationId : firstData?.variation_Id,
-      Quantity: data,
       product: state?.productId,
-      originalPrice: originalPrice,
-      discountPrice: discountPrice,
+      variation: variationId,
+      SizeName: sizeName,
+      purity: purity,
+      Quantity: qty,
     };
 
     const onSuccessCallback = (res) => {
       if (res.type === "success") {
-        window.location.reload();
       } else {
         navigate(routes.loginUrl);
-        window.location.reload();
       }
     };
 
     dispatch(addCartApi(cartobj, onSuccessCallback, userToken));
   };
 
-  const onChange = (key) => {
-    // console.log(key);
+  const handleSize = (size) => {
+    setIsSizeSelected(true);
+    setSizeName(size.name);
+    setStockCount(size.stock);
+    setOriginalPrice(size.price);
+    setDiscountPrice(size.discountPrice);
+    setPurity(size.purity);
   };
 
-  const handleSize = (sizeName, stock) => {
-    setIsSizeSelected(true);
-    setStockCount(stock);
-    setSizeButton(sizeName);
-    setVariationSize3(sizeName);
-  };
   const items = [
     {
       key: "1",
       label: "Description",
-      children: <Description descriptions={productIdData?.[0]?.Description} />,
+      children: <Description descriptions={productIdData?.Description} />,
     },
-    {
-      key: "2",
-      label: "Reviews",
-      children: <Review productReview={productReview} />,
-    },
+    // {
+    //   key: "2",
+    //   label: "Reviews",
+    //   children: <Review productReview={productReview} />,
+    // },
   ];
 
-  const handleImage = (
+  const handleOnClickVariation = (
+    variationData,
     singleImage,
     imageArr,
-    variationSize,
-    variation,
-    name
+    variationSizes,
+    variationId,
+    variationName
   ) => {
-    setStockCount(variationSize?.[0]?.stock);
-    setFirstData2(variationSize?.[0]?.stock);
-
-    setColorName(name);
-    setVariationSize(variationSize);
-    setVariationSize2(variationSize?.[0]?.stock);
+    setVariationData(variationData);
+    setVariationName(variationName);
+    setVariationSizes(variationSizes);
     setSingleImg(singleImage);
     setImgArr(imageArr);
-    setVariationId(variation);
-    setSizeButton(null);
+    setVariationId(variationId);
+    handleSize(variationSizes[0]);
   };
+
+  useEffect(() => {
+    if (!productIdData?.variation?.length) return;
+
+    const variationData = productIdData.variation[0];
+    const singleImage = variationData?.variation_Images[0]?.variation_Image;
+    const imageArr = variationData?.variation_Images;
+    const variationSizes = variationData?.variation_Sizes;
+    const variationId = variationData?.variation_Id;
+    const variationName = variationData?.variation_Name;
+    const variationSize = variationData?.variation_Sizes[0];
+
+    setVariationData(variationData);
+    setStockCount(variationSizes?.[0]?.stock);
+    setVariationName(variationName);
+    setVariationSizes(variationSizes);
+    setSingleImg(singleImage);
+    setImgArr(imageArr);
+    setVariationId(variationId);
+    setSizeName(variationSize?.name);
+    setOriginalPrice(variationSize?.price);
+  }, [productIdData]);
 
   const handleSingleImage = (singleImg) => {
     setSingleImg(singleImg);
@@ -189,7 +173,6 @@ function AddCart() {
     };
     const onSuccessCallback = () => {
       if (isLiked === false || fev === false) {
-        window.location.reload();
         dispatch(getWishListApi(userToken));
         setIsLiked(!isLiked);
       } else {
@@ -210,10 +193,10 @@ function AddCart() {
   const handleProductNotify = () => {
     const obj = {
       productId: state?.productId,
-      variation: variationId || variationName,
-      size: variationSize3 || firstData?.variation_Sizes?.[0]?.name,
+      variation: variationId,
+      size: sizeName,
     };
-    if (isSizeSelected || variationSize3) {
+    if (isSizeSelected) {
       const onSuccessCallback = () => {};
       dispatch(productNotifyApi(obj, onSuccessCallback, userToken));
     } else {
@@ -293,12 +276,11 @@ function AddCart() {
             <div>
               <Image
                 preview={false}
-                key={index}
                 src={
                   singleImg
                     ? singleImg
                     : productIdData?.variation?.[0]?.variation_Images?.[0]
-                        ?.variation_Image || value.Product_Image
+                        ?.variation_Image || productIdData.Product_Image
                 }
                 alt="add image"
                 className={styles.cartImg}
@@ -319,18 +301,18 @@ function AddCart() {
                       {imgArr?.length > 0 ? (
                         <>
                           {imgArr &&
-                            imgArr?.map((data, index) => (
+                            imgArr?.map((qty, index) => (
                               <>
                                 <div
                                   className={styles.slider}
                                   key={index}
                                   onClick={() =>
-                                    handleSingleImage(data?.variation_Image)
+                                    handleSingleImage(qty?.variation_Image)
                                   }
                                 >
                                   <Image
                                     preview={false}
-                                    src={data?.variation_Image}
+                                    src={qty?.variation_Image}
                                     alt="ellips"
                                   />
                                 </div>
@@ -339,24 +321,26 @@ function AddCart() {
                         </>
                       ) : (
                         <>
-                          {firstData?.variation_Images &&
-                            firstData?.variation_Images?.map((data, index) => (
-                              <>
-                                <div
-                                  className={styles.slider}
-                                  key={index}
-                                  onClick={() =>
-                                    handleSingleImage(data?.variation_Image)
-                                  }
-                                >
-                                  <Image
-                                    preview={false}
-                                    src={data?.variation_Image}
-                                    alt="ellips"
-                                  />
-                                </div>
-                              </>
-                            ))}
+                          {variationData?.variation_Images &&
+                            variationData?.variation_Images?.map(
+                              (qty, index) => (
+                                <>
+                                  <div
+                                    className={styles.slider}
+                                    key={index}
+                                    onClick={() =>
+                                      handleSingleImage(qty?.variation_Image)
+                                    }
+                                  >
+                                    <Image
+                                      preview={false}
+                                      src={qty?.variation_Image}
+                                      alt="ellips"
+                                    />
+                                  </div>
+                                </>
+                              )
+                            )}
                         </>
                       )}
                     </Col>
@@ -377,43 +361,56 @@ function AddCart() {
             }}
           >
             <div className={styles.sider}>
+              <div className={styles.rating}>
+                <Rate allowHalf disabled defaultValue={5} />
+                <p>5 | Reviews</p>
+              </div>
               <p
                 className={styles.Foil}
                 style={{
                   textTransform: "capitalize",
                 }}
               >
-                {value?.Product_Name}
+                {productIdData?.Product_Name}
               </p>
               <div className={styles.prices}>
-                <p className={styles.price1}>£{value?.Price}</p>
+                <p className={styles.price1}>£{originalPrice}</p>
 
-                {!firstData2 ||
-                // data >= stockCont ||
-                variationSize2 <= 0 ||
-                firstData2 <= 0 ? (
+                {!variationData || stockCount <= 0 || variationData <= 0 ? (
                   <span className={styles.price30}>Out Of-stock</span>
                 ) : (
                   <span className={styles.price3}>In-stock</span>
                 )}
               </div>
-              <div className={styles.rating}>
-                <Rate allowHalf disabled defaultValue={value?.ratings} />
-                <p>{value?.ratings} | Reviews</p>
-              </div>
-              <div className={styles.setcolor}>
-                {value?.variation.length > 0 && <p>Color:</p>}
+              <div className={styles.names}>
                 <div>
-                  {value?.variation?.map((item, index) => (
+                  <p className={styles.brand}>SKU Code: - </p>{" "}
+                  <span className={styles.ganga}>
+                    {productIdData?.SKU_Code}
+                  </span>
+                </div>
+                <div>
+                  <p className={styles.brand}>Collection - </p>{" "}
+                  <span className={styles.ganga}>
+                    {productIdData?.Brand_Name} {productIdData?.Collections}
+                  </span>
+                </div>
+              </div>
+
+              <div className={styles.setcolor}>
+                {productIdData?.variation?.length > 0 && <p>Color:</p>}
+                <div>
+                  {productIdData?.variation?.map((item, index) => (
                     <div style={{ paddingBottom: 20 }} key={index}>
                       <div
                         onClick={() => {
                           setHighLight(index);
-                          handleImage(
+                          handleOnClickVariation(
+                            item,
                             item?.variation_Images[0]?.variation_Image,
                             item?.variation_Images,
                             item?.variation_Sizes,
-                            value?.variation?.[index]?.variation_Id,
+                            item?.variation_Id,
                             item?.variation_Name
                           );
                         }}
@@ -431,23 +428,48 @@ function AddCart() {
                           onClick={() => setHighLight(index)}
                         />
                       </div>
+                      <p
+                        style={{
+                          textAlign: "center",
+                          fontSize: 12,
+                          fontWeight: "normal",
+                        }}
+                        className={styles.ganga}
+                      >
+                        {item?.variation_Name}
+                      </p>
                     </div>
                   ))}
                 </div>
               </div>
 
-              {variationSize?.length > 0 ? (
+              {variationSizes?.length > 0 && (
                 <div className={styles.setbtn}>
-                  <p>Size:</p>
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                    }}
+                  >
+                    <p>Size:</p>
+                    <p
+                      style={{
+                        textDecorationLine: "underline",
+                      }}
+                    >
+                      Size Guide
+                    </p>
+                  </div>
 
                   <div>
-                    {variationSize?.map((itm, index) => (
+                    {variationSizes?.map((itm, index) => (
                       <Button
                         key={index}
-                        onClick={() => handleSize(itm.name, itm?.stock)}
+                        onClick={() => handleSize(itm)}
                         className={
-                          sizeButton
-                            ? sizeButton === itm.name
+                          sizeName
+                            ? sizeName === itm.name
                               ? styles.xs
                               : styles.xs2
                             : index === 0
@@ -455,30 +477,7 @@ function AddCart() {
                             : styles.xs2
                         }
                       >
-                        {itm?.name} ({itm.purity})
-                      </Button>
-                    ))}
-                  </div>
-                </div>
-              ) : (
-                <div className={styles.setbtn}>
-                  {firstData?.variation_Sizes.length > 0 && <p>Size:</p>}
-                  <div>
-                    {firstData?.variation_Sizes?.map((itm, index) => (
-                      <Button
-                        key={index}
-                        onClick={() => handleSize(itm.name, itm?.stock)}
-                        className={
-                          sizeButton
-                            ? sizeButton === itm.name
-                              ? styles.xs
-                              : styles.xs2
-                            : index === 0
-                            ? styles.xs
-                            : styles.xs2
-                        }
-                      >
-                        {itm?.name}
+                        {itm.name} ({itm.purity})
                       </Button>
                     ))}
                   </div>
@@ -487,7 +486,7 @@ function AddCart() {
 
               {userToken ? (
                 <>
-                  {variationSize2 <= 0 || firstData2 <= 0 ? (
+                  {stockCount <= 0 ? (
                     <>
                       <div className={styles.add1}>
                         <Button
@@ -500,36 +499,28 @@ function AddCart() {
                     </>
                   ) : (
                     <>
-                      {firstData2 > 0 && (
-                        <div className={styles.incree}>
-                          <Button onClick={Decree} className={styles.decree}>
-                            -
-                          </Button>
-                          <p className={styles.showdata}>{data}</p>
-                          <Button
-                            // disabled={data >= stockCont}
-                            disabled={data >= stockCont}
-                            onClick={() =>
-                              Incree(value?.Price, value?.Product_Ori_Price)
-                            }
-                            className={styles.incre2}
-                          >
-                            +
-                          </Button>
-                        </div>
-                      )}
+                      <p>Select Quantity</p>
+                      <div className={styles.incree}>
+                        <Button onClick={Decree} className={styles.decree}>
+                          -
+                        </Button>
+                        <p className={styles.showdata}>{qty}</p>
+                        <Button
+                          disabled={qty >= stockCount}
+                          onClick={() => Incree()}
+                          className={styles.incre2}
+                        >
+                          +
+                        </Button>
+                      </div>
 
                       <div className={styles.add}>
                         <Button
                           className={styles.cart}
-                          // {!firstData2 ||
-                          //   // data >= stockCont ||
-                          //   variationSize2 <= 0 ||
-                          //   firstData2 <= 0 ? (
                           onClick={() => addCart()}
                           disabled={
-                            firstData?.variation_Sizes.length === 0 ||
-                            data === 0
+                            variationData?.variation_Sizes?.length === 0 ||
+                            qty === 0
                           }
                           loading={loader}
                         >
@@ -538,11 +529,14 @@ function AddCart() {
                         <Button
                           className={styles.favourite}
                           onClick={() =>
-                            toggleLike(state?.productId, value?.isFavorite)
+                            toggleLike(
+                              state?.productId,
+                              productIdData?.isFavorite
+                            )
                           }
                           loading={loaderFev}
                         >
-                          {isLiked || value?.isFavorite
+                          {isLiked || productIdData?.isFavorite
                             ? "REMOVE FROM FAVOURITE"
                             : "ADD TO FAVOURITE"}
                         </Button>
@@ -559,17 +553,8 @@ function AddCart() {
                   </div>
                 </>
               )}
-              <div className={styles.names}>
-                <div>
-                  <p className={styles.brand}>SKU Code: - </p>{" "}
-                  <span className={styles.ganga}>{value?.SKU_Code}</span>
-                </div>
-                <div>
-                  <p className={styles.brand}>Brand Name - </p>{" "}
-                  <span className={styles.ganga}>{value?.Brand_Name}</span>
-                </div>
-              </div>
-              <div className={styles.share}>
+
+              {/* <div className={styles.share}>
                 <p>Share On :</p>
                 <div className={styles.setround}>
                   <div
@@ -607,11 +592,17 @@ function AddCart() {
                     />
                   </div>
                 </div>
-              </div>
+              </div> */}
             </div>
           </Col>
         </Row>
       </Col>
+
+      <div
+        style={{
+          padding: "50px 0",
+        }}
+      ></div>
 
       <Col
         xs={22}
@@ -624,8 +615,7 @@ function AddCart() {
         <Tabs
           defaultActiveKey="1"
           items={items}
-          onChange={onChange}
-          indicatorSize={(origin) => origin - 16}
+          // indicatorSize={(origin) => origin - 16}
           className={styles.tabs}
         />
       </Col>

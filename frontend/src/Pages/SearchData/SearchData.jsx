@@ -39,7 +39,7 @@ function SearchData() {
         productId: id,
       },
     });
-    window.location.reload();
+    
   };
 
   const toggleLike = (value) => {

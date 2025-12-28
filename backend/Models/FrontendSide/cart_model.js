@@ -17,11 +17,17 @@ const CartSchema = mongoose.Schema({
     discountPrice: {
         type: Number
     },
-    originalPrice: {
+    price: {
+        type: Number
+    },
+    totalPrice:{
         type: Number
     },
     SizeName: {
         type: String
+    },
+    purity: {
+        type: String   //9k, 18k etc.
     },
     Quantity: {
         type: Number
