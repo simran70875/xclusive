@@ -27,6 +27,7 @@ const SubAdminRoute = require("./Routes/Admin/subAdmin_route");
 const AuthRoute = require("./Routes/Admin/auth_route");
 const NotificationRoute = require("./Routes/FrontendSide/Notification/notification_route");
 const NewsletterRoute = require("./Routes/FrontendSide/Newsletter/newsletter_route");
+const couporonRoute = require("./Routes/FrontendSide/Coupon/coupon_route")
 
 route.use(""  , MarqueeRouter)
 route.use("/category", CategoryRoute);
@@ -53,5 +54,6 @@ route.use("/subAdmin", SubAdminRoute);
 route.use("/auth", AuthRoute);
 route.use("/notification", NotificationRoute);
 route.use("/newsletter", NewsletterRoute);
+route.use("/coupon", couporonRoute);
 
 module.exports = route;
