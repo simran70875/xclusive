@@ -915,7 +915,7 @@ const notifyUserOfOrderStatusChange = async (orderId, orderType) => {
             const templateId = '65940fead6fc053236350e32';
             sendSMS(toPhoneNumber, OrderId, templateId);
             title = 'Order Placed'
-            message = `Greetings, ${userName}! We appreciate your order at Budai Exclusive. Order ID: ${OrderId} has been successfully placed. Thank you for choosing us!`
+            message = `Greetings, ${userName}! We appreciate your order at Xclusive Diamond. Order ID: ${OrderId} has been successfully placed. Thank you for choosing us!`
         }
         else if (orderType === "3") {
             const templateId = '659410a8d6fc052ec5516172';
@@ -925,19 +925,19 @@ const notifyUserOfOrderStatusChange = async (orderId, orderType) => {
         }
         else if (orderType === "4") {
             title = 'Order Rejected`'
-            message = `Hi, ${userName}! We regret to inform you that Budai Exclusive has rejected your order bearing Order ID: ${OrderId}.`
+            message = `Hi, ${userName}! We regret to inform you that Xclusive Diamond has rejected your order bearing Order ID: ${OrderId}.`
         }
         else if (orderType === "5") {
             title = 'Order Deliverd'
-            message = `Greetings, ${userName}! We'd like to inform you that your order bearing Order ID: ${OrderId} has been successfully delivered by Budai Exclusive. Shop Again!.`
+            message = `Greetings, ${userName}! We'd like to inform you that your order bearing Order ID: ${OrderId} has been successfully delivered by Xclusive Diamond. Shop Again!.`
         }
         else if (orderType === "6") {
             title = 'Order Cancelled'
-            message = `Hi, ${userName}! We regret to inform you that Budai Exclusive has cancelled your order with Order ID: ${OrderId}. Feel free to explore our offerings and shop again.`
+            message = `Hi, ${userName}! We regret to inform you that Xclusive Diamond has cancelled your order with Order ID: ${OrderId}. Feel free to explore our offerings and shop again.`
         }
         else if (orderType === "7") {
             title = 'Order Returend'
-            message = `Greetings, ${userName}! We'd like to inform you that your order bearing Order ID: ${orderId} is currently undergoing the return process initiated by Budai Exclusive.`
+            message = `Greetings, ${userName}! We'd like to inform you that your order bearing Order ID: ${orderId} is currently undergoing the return process initiated by Xclusive Diamond.`
         }
 
         const newNotification = new Notification({
@@ -966,7 +966,7 @@ const notifyAdminOfNewOrder = async (mainOrderId, orderId, userId, userName, ord
             message = {
                 notification: {
                     title: `Order Placed`,
-                    body: `Greetings, ${userName}! We appreciate your order at Budai Exclusive. Order ID: ${orderId} has been successfully placed. Thank you for choosing us!`,
+                    body: `Greetings, ${userName}! We appreciate your order at Xclusive Diamond. Order ID: ${orderId} has been successfully placed. Thank you for choosing us!`,
                 },
                 data: {
                     orderId: `${mainOrderId}`
@@ -988,7 +988,7 @@ const notifyAdminOfNewOrder = async (mainOrderId, orderId, userId, userName, ord
             message = {
                 notification: {
                     title: `Order Rejected`,
-                    body: `Hi, ${userName}! We regret to inform you that Budai Exclusive has rejected your order bearing Order ID: ${orderId}.`,
+                    body: `Hi, ${userName}! We regret to inform you that Xclusive Diamond has rejected your order bearing Order ID: ${orderId}.`,
                 },
                 data: {
                     orderId: `${mainOrderId}`
@@ -999,7 +999,7 @@ const notifyAdminOfNewOrder = async (mainOrderId, orderId, userId, userName, ord
             message = {
                 notification: {
                     title: `Order Deliverd`,
-                    body: `Greetings, ${userName}! We'd like to inform you that your order bearing Order ID: ${orderId} has been successfully delivered by Budai Exclusive. Shop Again!.`,
+                    body: `Greetings, ${userName}! We'd like to inform you that your order bearing Order ID: ${orderId} has been successfully delivered by Xclusive Diamond. Shop Again!.`,
                 },
                 data: {
                     orderId: `${mainOrderId}`
@@ -1010,7 +1010,7 @@ const notifyAdminOfNewOrder = async (mainOrderId, orderId, userId, userName, ord
             message = {
                 notification: {
                     title: `Order Cancelled`,
-                    body: `Hi, ${userName}! We regret to inform you that Budai Exclusive has cancelled your order with Order ID: ${orderId}. Feel free to explore our offerings and shop again.`,
+                    body: `Hi, ${userName}! We regret to inform you that Xclusive Diamond has cancelled your order with Order ID: ${orderId}. Feel free to explore our offerings and shop again.`,
                 },
                 data: {
                     orderId: `${mainOrderId}`
@@ -1021,7 +1021,7 @@ const notifyAdminOfNewOrder = async (mainOrderId, orderId, userId, userName, ord
             message = {
                 notification: {
                     title: `Order Returend`,
-                    body: `Greetings, ${userName}! We'd like to inform you that your order bearing Order ID: ${orderId} is currently undergoing the return process initiated by Budai Exclusive.`,
+                    body: `Greetings, ${userName}! We'd like to inform you that your order bearing Order ID: ${orderId} is currently undergoing the return process initiated by Xclusive Diamond.`,
                 },
                 data: {
                     orderId: `${mainOrderId}`

@@ -116,7 +116,7 @@ const LoginPage = () => {
                     <div className="text-center mt-2">
                       <h5 className="text-primary">Welcome Back !</h5>
                       <p className="text-muted">
-                        Sign in to continue to Budai Exclusive.
+                        Sign in to continue to Xclusive Diamond.
                       </p>
                     </div>
                     <div className="p-2 mt-4">
