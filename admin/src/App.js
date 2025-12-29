@@ -55,7 +55,7 @@ function PrivateRoute({ element }) {
 
 function App() {
   return (
-    <Router>
+    <Router basename="/admin">
       <ScrollToTopOnRouteChange />
       <ThemeProvider theme={theme}>
         <Routes>
