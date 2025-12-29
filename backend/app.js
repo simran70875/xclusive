@@ -19,32 +19,35 @@ connectDB();
 // Static file handling
 app.use("/imageUploads", express.static("imageUploads"));
 
-// Initialize Firebase Admin SDK
-// const admin = require("firebase-admin");
-// const serviceAccount = require("./shubhlibaas-c4839-firebase-adminsdk-n9xek-a6fd3cc9e2.json");
-// admin.initializeApp({
-//   credential: admin.credential.cert(serviceAccount),
-// });
-
 const routers = require("./routes.js");
 app.use("", routers);
 
 // Serve admin build first
-app.use(express.static(path.join(__dirname, "./frontend/build")));
-app.use("/admin",express.static(path.join(__dirname, "./admin/build")));
+// 1️⃣ Admin app (served ONLY under /admin)
+app.use(
+  "/admin",
+  express.static(path.join(__dirname, "./admin/build"))
+);
 
+// Admin SPA fallback
 app.get("/admin/*", (req, res) => {
-  res.sendFile(path.join(__dirname, "./admin/build/index.html"));
+  res.sendFile(
+    path.join(__dirname, "./admin/build/index.html")
+  );
 });
 
+// 2️⃣ Frontend app (root)
+app.use(
+  "/",
+  express.static(path.join(__dirname, "./frontend/build"))
+);
 
+// Frontend SPA fallback
 app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "./frontend/build/index.html"));
+  res.sendFile(
+    path.join(__dirname, "./frontend/build/index.html")
+  );
 });
-
-
-
-// app.get("/", (req, res) => res.send("welcome"));
 
 app.listen(port, () => {
   console.log(`Server is running on ${process.env.IP_ADDRESS}`);

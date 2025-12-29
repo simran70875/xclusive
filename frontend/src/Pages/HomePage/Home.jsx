@@ -389,7 +389,7 @@ function Home() {
             <h2 className={styles.sectionTitle}>Trending Products</h2>
 
             <Row justify="start">
-              {productFeatureListing1.map((item, index) => (
+              {productFeatureListing1?.map((item, index) => (
                 <Col
                   key={index}
                   lg={24}
@@ -414,7 +414,7 @@ function Home() {
             <h2 className={styles.sectionTitle}>Trending Products</h2>
 
             <Slider {...settings3} className={styles.smain}>
-              {productFeatureListing1.map((item, index) => (
+              {productFeatureListing1?.map((item, index) => (
                 <Col key={index} lg={24} xl={6} xxl={6}>
                   <ProductCard item={item} />
                 </Col>
@@ -428,7 +428,7 @@ function Home() {
             <h2 className={styles.sectionTitle}>Best Selling Products</h2>
 
             <Row justify="start">
-              {productFeatureListing2.map((item, index) => (
+              {productFeatureListing2?.map((item, index) => (
                 <Col
                   key={index}
                   lg={24}
@@ -453,7 +453,7 @@ function Home() {
             <h2 className={styles.sectionTitle}>Best Selling Products</h2>
 
             <Slider {...settings3} className={styles.smain}>
-              {productFeatureListing2.map((item, index) => (
+              {productFeatureListing2?.map((item, index) => (
                 <Col key={index} lg={24} xl={6} xxl={6}>
                   <ProductCard item={item} />
                 </Col>
@@ -493,7 +493,7 @@ function Home() {
             <h2 className={styles.sectionTitle}>Popular Picks</h2>
 
             <Row justify="start">
-              {productFeatureListing3.map((item, index) => (
+              {productFeatureListing3?.map((item, index) => (
                 <Col
                   key={index}
                   lg={24}
@@ -519,7 +519,7 @@ function Home() {
             <h2 className={styles.sectionTitle}>Popular Picks</h2>
 
             <Slider {...settings3} className={styles.smain}>
-              {productFeatureListing3.map((item, index) => (
+              {productFeatureListing3?.map((item, index) => (
                 <Col key={index} lg={24} xl={6} xxl={6}>
                   <ProductCard item={item} />
                 </Col>
