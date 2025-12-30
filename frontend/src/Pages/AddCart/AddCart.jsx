@@ -277,7 +277,7 @@ function AddCart() {
                   singleImg
                     ? singleImg
                     : productIdData?.variation?.[0]?.variation_Images?.[0]
-                        ?.variation_Image || productIdData.Product_Image
+                        ?.variation_Image || productIdData?.Product_Image
                 }
                 alt="add image"
                 className={styles.cartImg}
