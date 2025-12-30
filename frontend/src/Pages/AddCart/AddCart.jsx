@@ -30,9 +30,6 @@ function AddCart() {
   const productIdData = useSelector((state) => state.product?.productIdData);
   const loader = useSelector((state) => state.addCart?.isAddCartLoad);
   const loaderFev = useSelector((state) => state.wishList?.wishListLoading);
-  const productReview = useSelector(
-    (state) => state.setting?.productReviewData
-  );
   const likeProductList = useSelector(
     (state) => state.product?.productFeatureListLike
   );

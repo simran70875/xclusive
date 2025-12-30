@@ -269,42 +269,17 @@ route.get("/get/createbyreseller", authMiddleWare, async (req, res) => {
 route.get("/get/all/forordertime", authMiddleWare, async (req, res) => {
   try {
     const userId = req?.user?.userId;
-    const user = await User.findById(userId);
-    const userType = user?.User_Type;
-    let coupons = [];
 
     const currentDate = new Date();
 
-    if (userType === "0") {
-      coupons = await Coupon.find({
-        type: "2",
-        creationDate: { $lte: currentDate },
-        expiryDate: { $gte: currentDate },
-        $or: [
-          { "createFor.type": { $in: ["0", "1"] } },
-          { "createFor.type": "1", "createFor.id": userId?.toString() },
-          { "createFor.type": "3", "createFor.id": userId?.toString() },
-        ],
-        status: true,
-      });
-    } else {
-      coupons = await Coupon.find({
-        type: "2",
-        creationDate: { $lte: currentDate },
-        expiryDate: { $gte: currentDate },
-        $or: [
-          { "createFor.type": { $in: ["0", "2"] } },
-          { "createFor.type": "2", "createFor.id": userId?.toString() },
-          { "createFor.type": "4", "createFor.id": userId?.toString() },
-        ],
-        status: true,
-      });
-    }
+    const coupons = await Coupon.find({
+      creationDate: { $lte: currentDate },
+      expiryDate: { $gte: currentDate },
+      status: true,
+    });
 
     if (!coupons || coupons.length === 0) {
-      return res
-        .status(200)
-        .json({ type: "error", message: "No coupons found.", coupon: [] });
+      return res.status(200).json({ type: "error", message: "No coupons found.", coupon: [] });
     }
 
     // Filter out coupons where usage limit is exceeded
@@ -346,14 +321,12 @@ route.get("/get/all/forordertime", authMiddleWare, async (req, res) => {
 });
 
 // Check Coupon Code for User at Order Time
-route.post(
-  "/check/couponcode/forordertime",
+route.post("/check/couponcode/forordertime",
   authMiddleWare,
   async (req, res) => {
     try {
       const userId = req.user.userId;
       const user = await User.findById(userId);
-      const userType = user.User_Type;
       const couponCode = req.body.couponCode;
 
       const coupon = await Coupon.findOne({ couponCode: couponCode });
@@ -395,56 +368,6 @@ route.post(
         });
       }
 
-      if (userType === "0") {
-        if (coupon?.type === "2") {
-          if (
-            coupon?.createFor?.type === "2" ||
-            coupon?.createFor?.type === "4"
-          ) {
-            return res.status(200).json({
-              type: "error",
-              message:
-                "Oops! it seems like this coupon is for reseller not user.",
-              coupon: [],
-            });
-          } else if (
-            coupon?.createFor?.type === "3" &&
-            user?._id !== coupon?.createFor?.id
-          ) {
-            return res.status(200).json({
-              type: "error",
-              message: " Oops! it seems like this coupon is invalid.",
-              coupon: [],
-            });
-          }
-        }
-      } else if (userType !== "0") {
-        if (coupon?.type !== "2") {
-          return res.status(200).json({
-            type: "error",
-            message: "This coupon is not applicable for reseller.",
-            coupon: [],
-          });
-        } else if (
-          coupon?.createFor?.type === "1" ||
-          coupon?.createFor?.type === "3"
-        ) {
-          return res.status(200).json({
-            type: "error",
-            message: "Oops! it seems like this coupon is for user not reseller",
-            coupon: [],
-          });
-        } else if (
-          coupon?.createFor?.type === "4" &&
-          user?._id !== coupon?.createFor?.id
-        ) {
-          return res.status(200).json({
-            type: "error",
-            message: " Oops! it seems like this coupon is invalid.",
-            coupon: [],
-          });
-        }
-      }
 
       res.status(200).json({
         type: "success",

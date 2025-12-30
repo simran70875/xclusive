@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import React, { useState } from "react";
+import { useState } from "react";
 import { Button, Col, Image, Row } from "antd";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
@@ -21,16 +21,17 @@ function Shopping() {
   const dispatch = useDispatch();
   const [data, setData] = useState();
   const [stoke, setStoke] = useState();
-  const [quantity, setQuantity] = useState();
+  const [quentity, setQuentity] = useState();
   const [stockCont, setStockCount] = useState();
   const userToken = useSelector((state) => state.user?.token);
   const cartCounter = useSelector((state) => state.user?.cartCount);
   const cartlist = useSelector((state) => state.addCart?.cartListData);
-  const loader = useSelector((state) => state.addCart?.isAddCartLoad);
+  console.log("cartlist ==> ", cartlist);
 
+  const loader = useSelector((state) => state.addCart?.isAddCartLoad);
   const isContinueButtonDisabled = cartlist?.cartItems?.some(
     (item) =>
-      item?.quantity > item?.Stock || item?.quantity <= 0 || item?.outOfStock
+      item?.Quantity > item?.Stock || item?.Quantity <= 0 || item?.outOfStock
   );
 
   useEffect(() => {
@@ -40,14 +41,13 @@ function Shopping() {
   useEffect(() => {
     dispatch(geCartListApi(userToken));
     setStockCount(stockCont);
-    setData(quantity);
+    setData(quentity);
   }, []);
 
   const Incree = (item) => {
-    setQuantity(item?.quantity);
+    setQuentity(item?.Quantity);
     setStoke(item?.Stock);
-
-    const updatedQuantity = item?.quantity + 1;
+    const updatedQuantity = item?.Quantity + 1;
     const obj = {
       Quantity: updatedQuantity,
     };
@@ -60,7 +60,7 @@ function Shopping() {
 
   const Decree = (item) => {
     setStoke(item?.Stock);
-    const updatedQuantity = item?.quantity - 1;
+    const updatedQuantity = item?.Quantity - 1;
     const obj = {
       Quantity: updatedQuantity,
     };
@@ -122,10 +122,10 @@ function Shopping() {
                   <p>Product</p>
                   <div>
                     <p>Price</p>
-                    <p>quantity</p>
+                    <p>Quantity</p>
                     <p>Total</p>
                     <p className={styles.mobileSize}>
-                      Price & quantity & Total
+                      Price & Quantity & Total
                     </p>
                   </div>
                 </div>
@@ -146,18 +146,19 @@ function Shopping() {
                           <div>
                             <Image
                               preview={false}
-                              src={item.image}
+                              src={item.Variation.variation_Image}
                               alt="wear1"
                               className={styles.wear}
                             />
                             <div>
                               <p className={styles.boota}>
-                                {item?.productName}
+                                {item?.Product?.product_Name}
                               </p>
                               <p className={styles.size}>
-                               {item?.variationName} {item?.purity} {item?.size}
+                                Size - {item?.SizeName}{" "}
+                                {item?.Variation?.variation_name}
                               </p>
-                              {item?.quantity > item?.Stock ? (
+                              {item?.Quantity > item?.Stock ? (
                                 <p
                                   className={styles.size}
                                   style={{
@@ -176,12 +177,12 @@ function Shopping() {
                           </div>
                           <div className={styles.seting}>
                             <div className={styles.prices}>
-                              {/* <p className={styles.prices1}>
-                                £{item?.discountPrice_product}
-                              </p> */}
                               <p className={styles.prices1}>
-                                £{item?.price}
+                                ₹{item?.originalPrice_product}
                               </p>
+                              {/* <p className={styles.prices2}>
+                                ₹{item?.originalPrice_product}
+                              </p> */}
                             </div>
                             <div className={styles.incree}>
                               <Button
@@ -191,18 +192,19 @@ function Shopping() {
                                 -
                               </Button>
                               <p className={styles.showdata}>
-                                {item?.quantity}
+                                {item?.Quantity}
                               </p>
                               <Button
                                 onClick={() => Incree(item)}
                                 className={styles.incre2}
-                                disabled={item?.quantity >= item?.Stock}
+                                // disabled={data >= stock1}
+                                disabled={item?.Quantity >= item?.Stock}
                               >
                                 +
                               </Button>
                             </div>
                             <div className={styles.total}>
-                              <p>£{item?.price}</p>
+                              <p>₹{item?.originalPrice_product}</p>
                             </div>
                           </div>
                         </div>
@@ -235,31 +237,31 @@ function Shopping() {
                       <p>Total MRP</p>
                       <div className={styles.prices}>
                         <p className={styles.price1}>
-                          £{cartlist?.totalDiscount | 0}
+                          ₹{cartlist?.totalOriginalAmount}
                         </p>
-                        <span className={styles.price2}>
-                          £{cartlist?.totalOriginalAmount}
-                        </span>
+                        {/* <span className={styles.price2}>
+                          ₹{cartlist?.totalOriginalAmount}
+                        </span> */}
                       </div>
                     </div>
                     <div>
                       <p>Shipping Charge</p>
                       <div className={styles.prices}>
                         <p className={styles.price1}>
-                          £{cartlist?.ShippingCharge}
+                          ₹{cartlist?.ShippingCharge}
                         </p>
                       </div>
                     </div>
                     <div className={styles.blank3}></div>
                     <div className={styles.amount}>
                       <p className={styles.amount1}>Total Amount</p>
-                      <p className={styles.amount2}>£{cartlist?.totalAmount}</p>
+                      <p className={styles.amount2}>₹{cartlist?.totalAmount}</p>
                     </div>
                     <Button
                       className={styles.proced}
                       onClick={handleSubmit}
                       loading={loader}
-                      // disabled={item?.quantity > item?.Stock}
+                      // disabled={item?.Quantity > item?.Stock}
                       disabled={isContinueButtonDisabled}
                     >
                       CONTINUE

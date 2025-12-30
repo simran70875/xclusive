@@ -736,7 +736,8 @@ function Header() {
               </Badge>
             </Tooltip>
           )}
-          {cartCounter ? (
+
+          {cartCounter && (
             <Badge
               style={{ backgroundColor: "#FF9800" }}
               showZero
@@ -750,22 +751,6 @@ function Header() {
                 onClick={handleCart}
               />
             </Badge>
-          ) : (
-            <Tooltip>
-              <Badge
-                style={{ backgroundColor: "#FF9800" }}
-                showZero
-                count={cartlist?.Count > 0 ? cartlist?.Count : 0}
-                className={styles.badge}
-              >
-                <Image
-                  preview={false}
-                  src={cart}
-                  alt="shopping"
-                  onClick={handleCart}
-                />
-              </Badge>
-            </Tooltip>
           )}
         </Col>
       </Row>

@@ -105,64 +105,119 @@ route.post("/add", authMiddleware, async (req, res) => {
 
 // get all cartItem (second method)
 route.get("/cartItems/get", authMiddleware, async (req, res) => {
-  const userId = req.user.userId;
+  try {
+    const userId = req.user?.userId;
+    const cartItems = await Cart.find({ userId }).populate("product").populate({ path: "variation" });
+    console.log("cartItems ==> ", cartItems);
 
-  const cartItems = await Cart.find({ userId }).populate("product").populate("variation");
+    if (cartItems?.length <= 0) {
+      return res.status(200).json({ type: "warning", message: "CartItem Not Found!", cartItems: [] });
+    }
 
-  if (!cartItems.length) {
-    return res.json({ type: "warning", message: "Cart empty", cartItems: [] });
+    const result = cartItems.map((cart) => ({
+      _id: cart?._id,
+      userId: cart?.userId || "",
+      originalPrice: cart?.price * cart?.Quantity || 0,
+      discountPrice: cart?.discountPrice * cart?.Quantity || 0,
+      originalPrice_product: cart?.price || 0,
+      discountPrice_product: cart?.discountPrice || 0,
+      Quantity: cart?.Quantity || 0,
+      SizeName: cart?.SizeName || "",
+      Stock: cart?.variation?.Variation_Size?.find((size) => size?.Size_Name === cart?.SizeName)?.Size_Stock || 0,
+      Product: {
+        product_id: cart?.product?._id || "",
+        product_Name: cart?.product?.Product_Name || "",
+      },
+      Variation: {
+        variation_id: cart?.variation?._id || "",
+        variation_name: cart?.variation?.Variation_Name || "",
+        variation_Image: cart?.variation?.Variation_Images?.[0]?.path
+          ? `${process.env.IP_ADDRESS
+          }/${cart?.variation?.Variation_Images[0]?.path.replace(
+            /\\/g,
+            "/"
+          )}`
+          : "",
+      },
+    }));
+
+    const Charges = await getShippingCharges();
+    let ShippingCharge = Charges?.Normal_Ship_Charge;
+
+    // Calculate total discount
+    const totalDiscount = cartItems.reduce((total, cart) => {
+      return total + cart?.discountPrice * cart?.Quantity || 0;
+    }, 0);
+
+    // Calculate total original Amount
+    const totalOriginalAmount = cartItems.reduce((total, cart) => {
+      return total + cart?.price * cart?.Quantity || 0;
+    }, 0);
+
+    // Calculate total amount
+    // const SubTotalAmount = cartItems.reduce((total, cart) => {
+    //   return total + cart?.discountPrice * cart?.Quantity;
+    // }, 0);
+
+    const totalAmount = totalOriginalAmount + totalDiscount + ShippingCharge;
+
+    // Check cart for shippingStatus
+    const readyToShip = cartItems.every(
+      (cart) => cart.product?.Shipping === "READY TO SHIP"
+    );
+
+    let shippingStatus;
+
+    if (readyToShip) {
+      shippingStatus = "DISPATCH IN 24-48HRS";
+    } 
+     else {
+      shippingStatus =
+        "DISPATCH STARTS WITHIN 3-7 DAYS (If Shipped Together)";
+    }
+
+    return res.status(200).json({
+      type: "success",
+      message: "All CartItem get successfully!",
+      totalAmount: totalAmount,
+      totalDiscount: totalDiscount,
+      totalOriginalAmount: totalOriginalAmount,
+      ShippingCharge: ShippingCharge,
+      cartItems: result || [],
+      Count: result?.length || 0,
+      shippingStatus,
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ type: "error", message: "Server Error!", errorMessage: error });
   }
-
-  const formatted = cartItems.map((item) => ({
-    _id: item._id,
-    productName: item.product?.Product_Name,
-    variationName: item.variation?.Variation_Name,
-    size: item.SizeName,
-    purity: item.purity,
-    quantity: item.Quantity,
-    price: item.price,
-    total: item.price * item.Quantity,
-    image: item.variation?.Variation_Images?.[0]?.path
-      ? `${process.env.IP_ADDRESS}/${item.variation.Variation_Images[0].path}`
-      : "",
-  }));
-
-  const totalAmount = formatted.reduce((s, i) => s + i.total, 0);
-
-  res.json({
-    type: "success",
-    cartItems: formatted,
-    totalAmount,
-  });
 });
+
 
 // update the cart item Quantity
-route.put("/cartItems/update/:id", authMiddleware, async (req, res) => {
+route.put("/cartItems/update/:cartItemId", authMiddleware, async (req, res) => {
+  const cartItemId = req.params.cartItemId;
   const { Quantity } = req.body;
 
-  if (Quantity <= 0) {
-    return res.status(400).json({ type: "error", message: "Invalid quantity" });
+  try {
+    const updatedCartItem = await Cart.findByIdAndUpdate(
+      cartItemId,
+      { $set: { Quantity: Quantity } },
+      { new: true }
+    );
+
+    if (!updatedCartItem) {
+      res.status(200).json({ type: "error", message: "CartItem Not Found!" });
+      return;
+    }
+
+    res.status(200).json({ type: "success", message: "CartItem update successfully!" });
+  } catch (error) {
+    res.status(500).json({ type: "error", message: "Server Error!", errorMessage: error });
+    console.log(error);
   }
-
-  const cart = await Cart.findById(req.params.id).populate("variation");
-  if (!cart) return res.status(404).json({ type: "error", message: "Item not found" });
-
-  console.log("cart ==> ", cart);
-
-  const size = cart.variation.Variation_Size.find(
-    (s) => s.Size_Name === cart.SizeName && s.Size_purity === cart.purity
-  );
-
-  if (!size || Quantity > size.Size_Stock) {
-    return res.status(400).json({ type: "error", message: "Stock exceeded" });
-  }
-
-  cart.Quantity = Quantity;
-  cart.totalPrice = Quantity * size.Size_Price;
-  await cart.save();
-
-  res.json({ type: "success", message: "Cart updated" });
 });
+
 
 // remove or delete item on cart
 route.delete("/cartItems/delete/:id", authMiddleware, async (req, res) => {

@@ -326,6 +326,7 @@
             .coding {
               border: 0;
               padding: 10px;
+              width: 300px;
               @media (max-width:426px) {
                 width: 300px !important;
               }
@@ -387,8 +388,8 @@
               }
             }
             .arrow {
-              width: 25px;
-              height: 25px;
+              width: 20px;
+              height: 20px;
               cursor: pointer;
             }
           }
@@ -403,8 +404,8 @@
               width: 100px;
             }
             .arrow {
-              width: 25px;
-              height: 25px;
+              width: 20px;
+              height: 20px;
               cursor: pointer;
             }
           }
@@ -623,4 +624,22 @@
       font-weight: 500;
     }
   }
+}
+
+
+.rowNew {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.rowNew p{
+  font-size: 14px !important;
+}
+
+.arrow {
+  width: 20px !important;
+  height: 20px !important;
 }
