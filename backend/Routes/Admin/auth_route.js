@@ -39,19 +39,13 @@ route.get("/userName", verifyToken, async (req, res) => {
       const admin = await Admin.findById(req.userId);
 
       if (!admin) {
-        return res
-          .status(404)
-          .json({ type: "warning", message: "Admin not found" });
+        return res.status(404).json({ type: "warning", message: "Admin not found" });
       }
-      return res
-        .status(200)
-        .json({ type: "success", name: admin.username, role: "admin" });
+      return res.status(200).json({ type: "success", name: admin.username, role: "admin" });
     } else {
       const subAdmin = await SubAdmin.findById(req.userId);
       if (!subAdmin) {
-        return res
-          .status(404)
-          .json({ type: "warning", message: "Sub-admin not found" });
+        return res.status(404).json({ type: "warning", message: "Sub-admin not found" });
       }
       role = subAdmin?.role;
 

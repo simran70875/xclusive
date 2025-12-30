@@ -20,7 +20,7 @@ const upload = multer({ storage, limits: { fileSize: 5 * 1024 * 1024 } }); // 5 
 // Create variations
 route.post("/add/:productId", checkAdminOrRole2, upload.array("images", 5), async (req, res) => {
     try {
-        const { Variation_Name, Variation_Label, Size_Name, Size_Stock, Size_Price } = req.body;
+        const { Variation_Name, Variation_Label, Size_Name, Size_Stock, Size_Price, Size_Purity } = req.body;
 
         const productId = req.params.productId;
 
@@ -33,13 +33,15 @@ route.post("/add/:productId", checkAdminOrRole2, upload.array("images", 5), asyn
         const variationSizes = Array.isArray(Size_Name) ? Size_Name.map((size, index) => ({
             Size_Name: size,
             Size_Stock: Size_Stock[index],
-            Size_Price: Size_Price[index]
+            Size_Price: Size_Price[index],
+            Size_purity: Size_Purity[index],
         }))
             : [
                 {
                     Size_Name: Size_Name,
                     Size_Stock: Size_Stock,
                     Size_Price: Size_Price,
+                    Size_purity: Size_Purity,
                 },
             ];
 

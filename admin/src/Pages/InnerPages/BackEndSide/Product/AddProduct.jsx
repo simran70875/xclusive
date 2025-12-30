@@ -30,9 +30,6 @@ const AddProduct = () => {
   const [data, setData] = useState([]);
   const [selectedBrand, setSelectedBrand] = useState("");
   const [selectedCollection, setSelectedCollection] = useState("");
-  const [originalPrice, setOriginalPrice] = useState(0);
-  const [discountPrice, setDiscountPrice] = useState(0);
-  const [maxDisPrice, setMaxDiscPrice] = useState(0);
   const [description, setDescription] = useState("");
   const [productAddStatus, setProductAddStatus] = useState();
   const [statusMessage, setStatusMessage] = useState("");
@@ -67,15 +64,19 @@ const AddProduct = () => {
         );
         formData.append("Category", selectedCategoryIds);
 
+
+        console.log("selectedCollection ==>", selectedCollection);
+
         if (selectedBrand?.dataId) {
           formData.append("Brand_Name", selectedBrand?.dataId);
         }
+        
 
         formData.append("Collection_Name", selectedCollection?.dataId);
 
-        formData.append("Product_Dis_Price", discountPrice);
-        formData.append("Product_Ori_Price", originalPrice);
-        formData.append("Max_Dis_Price", maxDisPrice);
+        // formData.append("Product_Dis_Price", discountPrice);
+        // formData.append("Product_Ori_Price", originalPrice);
+        // formData.append("Max_Dis_Price", maxDisPrice);
         formData.append("Description", description);
 
         try {
@@ -103,13 +104,15 @@ const AddProduct = () => {
                   variationFormData.append("Size_Name", size?.size);
                   variationFormData.append("Size_Stock", size?.stock);
                   variationFormData.append("Size_Price", size?.price);
+                  variationFormData.append("Size_Purity", size?.purity);
                 });
 
                 variation?.images?.forEach((image) => {
                   variationFormData.append("images", image);
                 });
 
-                await axios.post(`${url}/product/variation/add/${productId}`,
+                const response = await axios.post(
+                  `${url}/product/variation/add/${productId}`,
                   variationFormData,
                   {
                     headers: {
@@ -117,6 +120,7 @@ const AddProduct = () => {
                     },
                   }
                 );
+                console.log("Variation added successfully", response);
                 setVariations("");
               }
             } catch (error) {
@@ -162,7 +166,8 @@ const AddProduct = () => {
             Authorization: `${adminToken}`,
           },
         });
-        const options = response?.data?.category_data?.map((option) => ({
+
+        const options = response?.data?.category?.map((option) => ({
           value: option._id,
           label:
             option.Category_Name.charAt(0).toUpperCase() +
@@ -190,7 +195,8 @@ const AddProduct = () => {
             Authorization: `${adminToken}`,
           },
         });
-        setData(Response?.data?.dataType);
+        console.log("Response Data ==>", Response?.data);
+        setData(Response?.data?.data);
       } catch (error) {
         console.error("Failed to fetch categories:", error);
       }
@@ -217,6 +223,8 @@ const AddProduct = () => {
   const collectionsData = data?.filter(
     (option) => option?.Data_Type === "Collection"
   );
+
+  console.log("collectionsData ==>", collectionsData);
 
   const brandOptions = brandData?.map((option) => {
     return {
@@ -406,7 +414,7 @@ const AddProduct = () => {
                         </div>
                       </div>
 
-                      <div className="mb-3 row">
+                      {/* <div className="mb-3 row">
                         <label
                           htmlFor="example-text-input"
                           className="col-md-2 col-form-label"
@@ -470,7 +478,7 @@ const AddProduct = () => {
                             }}
                           />
                         </div>
-                      </div>
+                      </div> */}
 
                       <div className="mb-3 row">
                         <label

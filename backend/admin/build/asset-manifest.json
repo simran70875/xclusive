@@ -1,24 +1,24 @@
 {
   "files": {
-    "main.css": "/admin/static/css/main.f711ded7.css",
-    "main.js": "/admin/static/js/main.1fdb69e6.js",
-    "static/media/confirmed order.png": "/admin/static/media/confirmed order.bff2b54f51f979505589.png",
-    "static/media/return.png": "/admin/static/media/return.fe67310c58ae34803ae7.png",
-    "static/media/pending_order.png": "/admin/static/media/pending_order.0ce1667a7b6ed9245d98.png",
-    "static/media/pickup.png": "/admin/static/media/pickup.28b9af71ae6843a1b210.png",
-    "static/media/total order.png": "/admin/static/media/total order.0c2bee043c629aa74198.png",
-    "static/media/total.png": "/admin/static/media/total.aa72263532b275109dba.png",
-    "static/media/reject_order.png": "/admin/static/media/reject_order.f456952e79c54e551bba.png",
-    "static/media/3135715.png": "/admin/static/media/3135715.5faf09a7795d28bf5a2b.png",
-    "static/media/coin.png": "/admin/static/media/coin.6ebb0c0030898beb033c.png",
-    "static/media/Complete order.png": "/admin/static/media/Complete order.b95c44f1812df680f62b.png",
-    "index.html": "/admin/index.html",
-    "static/media/down-arrow.svg": "/admin/static/media/down-arrow.1edfab86f389055c97b80ec14e52f85c.svg",
-    "main.f711ded7.css.map": "/admin/static/css/main.f711ded7.css.map",
-    "main.1fdb69e6.js.map": "/admin/static/js/main.1fdb69e6.js.map"
+    "main.css": "/static/css/main.f711ded7.css",
+    "main.js": "/static/js/main.03d2a949.js",
+    "static/media/confirmed order.png": "/static/media/confirmed order.bff2b54f51f979505589.png",
+    "static/media/return.png": "/static/media/return.fe67310c58ae34803ae7.png",
+    "static/media/pending_order.png": "/static/media/pending_order.0ce1667a7b6ed9245d98.png",
+    "static/media/pickup.png": "/static/media/pickup.28b9af71ae6843a1b210.png",
+    "static/media/total order.png": "/static/media/total order.0c2bee043c629aa74198.png",
+    "static/media/total.png": "/static/media/total.aa72263532b275109dba.png",
+    "static/media/reject_order.png": "/static/media/reject_order.f456952e79c54e551bba.png",
+    "static/media/3135715.png": "/static/media/3135715.5faf09a7795d28bf5a2b.png",
+    "static/media/coin.png": "/static/media/coin.6ebb0c0030898beb033c.png",
+    "static/media/Complete order.png": "/static/media/Complete order.b95c44f1812df680f62b.png",
+    "index.html": "/index.html",
+    "static/media/down-arrow.svg": "/static/media/down-arrow.1edfab86f389055c97b80ec14e52f85c.svg",
+    "main.f711ded7.css.map": "/static/css/main.f711ded7.css.map",
+    "main.03d2a949.js.map": "/static/js/main.03d2a949.js.map"
   },
   "entrypoints": [
     "static/css/main.f711ded7.css",
-    "static/js/main.1fdb69e6.js"
+    "static/js/main.03d2a949.js"
   ]
 }

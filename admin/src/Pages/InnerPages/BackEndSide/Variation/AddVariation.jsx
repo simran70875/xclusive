@@ -13,9 +13,8 @@ const AddVariation = ({
 
   const [variationImages, setVariationImages] = useState([]);
   const [imagePreviews, setImagePreviews] = useState([]);
-  const [metalPurity, setMetalPurity] = useState("");
   const [sizeInputs, setSizeInputs] = useState([
-    { index: 1, size: "", stock: 0, price: 0 },
+    { index: 1, size: "", stock: 0, price: 0, purity: "" },
   ]);
 
   let url = process.env.REACT_APP_API_URL;
@@ -62,7 +61,7 @@ const AddVariation = ({
 
     setColorName("");
     setVariationImages([]);
-    setSizeInputs([{ index: 1, size: "", stock: 0, price: 0 }]);
+    setSizeInputs([{ index: 1, size: "", stock: 0, price: 0, purity: "" }]);
     setImagePreviews([]);
 
     handleCloseModal();
@@ -73,12 +72,13 @@ const AddVariation = ({
 
     const formData = new FormData();
     formData.append("Variation_Name", colorName);
-    formData.append("Variation_Label", metalPurity);
+    formData.append("Variation_Label", colorName);
 
     sizeInputs?.forEach((size) => {
       formData.append("Size_Name", size?.size);
       formData.append("Size_Stock", size?.stock);
       formData.append("Size_Price", size?.price);
+      formData.append("Size_Purity", size?.purity);
     });
 
     variationImages?.forEach((image) => {
@@ -99,7 +99,7 @@ const AddVariation = ({
         setVariations([...variations, response.data.variation]);
         setColorName("");
         setVariationImages([]);
-        setSizeInputs([{ index: 1, size: "", stock: 0, price: 0 }]);
+        setSizeInputs([{ index: 1, size: "", stock: 0, price: 0, purity: "" }]);
         handleCloseModal();
       } else {
         console.error("Failed to add variation:", response.data.message);
@@ -200,7 +200,7 @@ const AddVariation = ({
                       </div>
                     </div>
 
-                    <div className="mb-3 row">
+                    {/* <div className="mb-3 row">
                       <label
                         htmlFor="example-text-input"
                         className="col-md-2 col-form-label"
@@ -219,7 +219,7 @@ const AddVariation = ({
                           }}
                         />
                       </div>
-                    </div>
+                    </div> */}
 
                     {sizeInputs.map((sizeInput, index) => (
                       <div className="mb-3 row" key={sizeInput.index}>
@@ -281,6 +281,26 @@ const AddVariation = ({
                             onChange={(e) => {
                               const updatedSizeInputs = [...sizeInputs];
                               updatedSizeInputs[index].price = e.target.value;
+                              setSizeInputs(updatedSizeInputs);
+                            }}
+                          />
+                        </div>
+                        <div className="col-md-3">
+                          <label
+                            htmlFor="example-text-input"
+                            className="col-form-label"
+                          >
+                            Purity:
+                          </label>
+                          <input
+                            required
+                            className="form-control"
+                            type="text"
+                            id="subcategory-control"
+                            value={sizeInput.purity}
+                            onChange={(e) => {
+                              const updatedSizeInputs = [...sizeInputs];
+                              updatedSizeInputs[index].purity = e.target.value;
                               setSizeInputs(updatedSizeInputs);
                             }}
                           />

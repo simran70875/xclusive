@@ -339,9 +339,6 @@ route.post(
         Category,
         Brand_Name,
         Collection_Name,
-        Product_Dis_Price,
-        Product_Ori_Price,
-        Max_Dis_Price,
         Description,
       } = req.body;
 
@@ -398,9 +395,6 @@ route.post(
         Category: categoryIds,
         Brand_Name,
         Collections: Collection_Name,
-        Product_Dis_Price,
-        Product_Ori_Price,
-        Max_Dis_Price,
         Description,
         Product_Label: Product_Name,
         Product_Images,
@@ -978,7 +972,7 @@ route.get("/mob/get/single/:id", async (req, res) => {
 
       console.log("result ==> ", result);
 
-      res.status(200).json({type: "success", message: "Products found successfully!", product: result});
+      res.status(200).json({ type: "success", message: "Products found successfully!", product: result });
     }
   } catch (error) {
     res.status(200).json({ type: "error", message: "Server Error!", errorMessage: error });

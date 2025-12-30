@@ -108,7 +108,6 @@ const ShowProduct = () => {
       sortable: true,
       filterType: "multiselect",
     },
-
     {
       field: "Features",
       headerName: "Features",

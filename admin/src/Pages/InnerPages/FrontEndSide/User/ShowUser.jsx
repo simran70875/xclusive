@@ -112,22 +112,6 @@ const ShowUser = () => {
       filterType: "multiselect",
     },
     {
-      field: "Wallet",
-      headerName: "Wallet",
-      width: 80,
-      filterable: true,
-      sortable: true,
-      filterType: "multiselect",
-    },
-    {
-      field: "Coins",
-      headerName: "Coins",
-      width: 80,
-      filterable: true,
-      sortable: true,
-      filterType: "multiselect",
-    },
-    {
       field: "Block",
       headerName: "Block",
       width: 85,
