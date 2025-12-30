@@ -57,7 +57,7 @@ function App() {
     <Router>
       <ScrollToTopOnRouteChange />
       <ThemeProvider theme={theme}>
-        <Routes>
+        <Routes basename="/admin">
           <Route path="/login" element={<LoginPage />} />
           <Route path="error" element={<ErrorPage />} />
 
