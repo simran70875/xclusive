@@ -57,14 +57,16 @@ function App() {
     <Router>
       <ScrollToTopOnRouteChange />
       <ThemeProvider theme={theme}>
-        <Routes basename="/admin">
+        <Routes
+        // basename="/admin"
+        >
           <Route path="/login" element={<LoginPage />} />
           <Route path="error" element={<ErrorPage />} />
 
           {/* Private routes */}
           <Route path="/*" element={<PrivateRoute element={<HomePage />} />} />
-          <Route path="/addSubAdmin" element={<PrivateRoute element={<CreateSubAdminPage />} />}/>
-          <Route path="/editSubAdmin" element={<PrivateRoute element={<EditSubAdminPage />} />}/>
+          <Route path="/addSubAdmin" element={<PrivateRoute element={<CreateSubAdminPage />} />} />
+          <Route path="/editSubAdmin" element={<PrivateRoute element={<EditSubAdminPage />} />} />
         </Routes>
       </ThemeProvider>
     </Router>
