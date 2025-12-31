@@ -108,7 +108,6 @@ route.get("/cartItems/get", authMiddleware, async (req, res) => {
   try {
     const userId = req.user?.userId;
     const cartItems = await Cart.find({ userId }).populate("product").populate({ path: "variation" });
-    console.log("cartItems ==> ", cartItems);
 
     if (cartItems?.length <= 0) {
       return res.status(200).json({ type: "warning", message: "CartItem Not Found!", cartItems: [] });
