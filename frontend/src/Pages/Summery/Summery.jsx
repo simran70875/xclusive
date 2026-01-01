@@ -80,11 +80,11 @@ function Summery() {
     dispatch(geCartListApi(userToken));
     dispatch(getProfileApi(userToken));
     dispatch(getCouponCodeApi(userToken));
-    let qty = 0;
-    cartlist?.cartItems.forEach((x) => {
-      qty += x.Quantity;
-    });
-    setQuienty(qty);
+    // let qty = 0;
+    // cartlist?.cartItems.forEach((x) => {
+    //   qty += x.Quantity;
+    // });
+    // setQuienty(qty);
   }, [quienty, couponPrice, applyCoupon]);
 
   const handleAddreesRemove = (item) => {
@@ -200,6 +200,53 @@ function Summery() {
   };
 
   const cancel = (e) => {};
+
+  const handleSubmit = async () => {
+    let totalQty = 0;
+
+    console.log("cart list ", cartlist)
+
+    cartlist?.cartItems?.forEach((item) => {
+      totalQty += item.Quantity;
+    });
+
+    const addressId = Add?._id || addressList?.[0]?._id;
+
+    if (!addressId) {
+      toast.error("Please select delivery address");
+      return;
+    }
+
+    const payload = {
+      Coupon: couponId || "",
+      CouponPrice: couponPrice
+        ? Number(couponPrice) * totalQty
+        : applyCoupon?.[0]?.discountAmount
+        ? Number(applyCoupon?.[0]?.discountAmount) * totalQty
+        : 0,
+
+      OriginalPrice: Number(cartlist?.totalOriginalAmount),
+      DiscountPrice: Number(cartlist?.totalDiscount),
+      Shipping_Charge: Number(cartlist?.ShippingCharge || 0),
+      FinalPrice: Number(cartlist?.totalAmount),
+
+      Address: addressId,
+
+      // Manual payment handled by admin
+      payment_mode: "COD",
+      order_status: "Pending",
+      reason: "",
+    };
+
+    const onSuccessCallback = (response) => {
+      toast.success(response.message);
+      navigate(routes.thankyouUrl, {
+        state: { orderId: response.data.orderId },
+      });
+    };
+
+    dispatch(addOrderApi(payload, onSuccessCallback, userToken));
+  };
 
   return (
     <div>
@@ -432,7 +479,7 @@ function Summery() {
                   </div>
 
                   <Button
-                    // onClick={() => handleSubmit()}
+                    onClick={() => handleSubmit()}
                     className={styles.proced}
                     loading={loader}
                   >

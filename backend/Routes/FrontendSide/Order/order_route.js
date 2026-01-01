@@ -12,19 +12,6 @@ const checkAdminRole = require("../../../Middleware/adminMiddleWares");
 const moment = require("moment-timezone");
 const order_counter_model = require("../../../Models/BackendSide/order_counter_model");
 
-// ************************************************************************************************
-
-async function generateUniqueKey() {
-  const randomNum = Math.floor(Math.random() * 1000000);
-  const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-  const randomAlphabet = alphabet[Math.floor(Math.random() * alphabet.length)];
-  const paddedRandomNum = String(randomNum).padStart(6, "0");
-  const uniqueOrderId = `SL-${randomAlphabet}${paddedRandomNum}`;
-
-  return uniqueOrderId;
-}
-
-
 const sendQuotationEmail = async ({
   email,
   firstName,
@@ -34,72 +21,73 @@ const sendQuotationEmail = async ({
   deliveryCharges,
   total,
   orderId,
-  userId, // optional (for confirm order)
+  userId, // optional
 }) => {
   try {
-    /* ---------------- ATTACH PRODUCT IMAGES ---------------- */
     const attachments = [];
     const cidMap = await Promise.all(
-      products.map(async (p, i) => {
+      products.map(async (item, i) => {
         try {
-          const response = await axios.get(p.image, {
+          const imagePath = item?.product?.Product_Images?.[0]?.path;
+          if (!imagePath) return null;
+
+          const response = await axios.get(imagePath, {
             responseType: "arraybuffer",
+            timeout: 5000,
           });
 
+          const ext = path.extname(imagePath) || ".jpg";
           const cid = `product-${i}@quote`;
-          const ext = path.extname(p.image).slice(1) || "jpg";
 
           attachments.push({
-            filename: `product-${i}.${ext}`,
+            filename: `product-${i}${ext}`,
             content: Buffer.from(response.data, "binary"),
             cid,
           });
 
           return cid;
-        } catch (error) {
-          console.warn(`Image load failed: ${p.code}`);
+        } catch (err) {
+          console.warn("Image load failed:", err.message);
           return null;
         }
       })
     );
 
     /* ---------------- CONFIRM ORDER LINK ---------------- */
-    let confirmOrderUrl = frontendUrl;
+    let confirmOrderUrl = process.env.frontendUrl;
 
     if (userId) {
-      const token = jwt.sign(
-        { userId, orderId },
-        JWT_SECRET,
-        { expiresIn: "7d" }
-      );
+      const token = jwt.sign({ userId, orderId }, JWT_SECRET, {
+        expiresIn: "48h",
+        audience: "order-confirm",
+      });
 
       confirmOrderUrl = `${frontendUrl}/confirm-order/${token}`;
     }
 
     /* ---------------- PRODUCT TABLE ---------------- */
     const productRows = products
-      .map((p, i) => {
+      .map((item, i) => {
         const cid = cidMap[i];
-
         return `
 <tr>
   <td style="border:1px solid #ddd;padding:8px;text-align:center">
-    ${cid ? `<img src="cid:${cid}" width="80"/>` : "N/A"}
+    ${cid ? `<img src="cid:${cid}" width="80" />` : "N/A"}
   </td>
   <td style="border:1px solid #ddd;padding:8px">
-    ${p.code}
+    ${item.product?.Product_Name || "N/A"}
   </td>
   <td style="border:1px solid #ddd;padding:8px">
-    ${p.description}
+    ${item.product?.SKU_Code || ""}
   </td>
   <td style="border:1px solid #ddd;padding:8px;text-align:center">
-    ${p.quantity}
+    ${item.Quantity}
   </td>
   <td style="border:1px solid #ddd;padding:8px;text-align:right">
-    £${p.unitPrice?.toFixed(2)}
+    £${item.price?.toFixed(2)}
   </td>
   <td style="border:1px solid #ddd;padding:8px;text-align:right">
-    £${p.totalPrice?.toFixed(2)}
+    £${(item.price * item.Quantity).toFixed(2)}
   </td>
 </tr>`;
       })
@@ -109,19 +97,16 @@ const sendQuotationEmail = async ({
     const mailHtml = `
 <p>Hi ${firstName || "Customer"},</p>
 
-<p>
-Thank you for reaching out to us – we’re delighted to support your PPE needs.
-Below is your personalised quotation:
-</p>
+<p>Thank you for reaching out to us – we’re delighted to support your order.</p>
 
-<h3>🛒 Quotation Summary</h3>
+<h3>🛒 Order Summary</h3>
 
 <table style="border-collapse:collapse;width:100%">
   <thead>
     <tr>
       <th style="border:1px solid #ddd;padding:8px">Image</th>
       <th style="border:1px solid #ddd;padding:8px">Product</th>
-      <th style="border:1px solid #ddd;padding:8px">Description</th>
+      <th style="border:1px solid #ddd;padding:8px">SKU</th>
       <th style="border:1px solid #ddd;padding:8px">Qty</th>
       <th style="border:1px solid #ddd;padding:8px">Unit</th>
       <th style="border:1px solid #ddd;padding:8px">Total</th>
@@ -134,46 +119,105 @@ Below is your personalised quotation:
 
 <p>
 <strong>Subtotal:</strong> £${subtotal.toFixed(2)}<br/>
-<strong>VAT (20%):</strong> £${tax.toFixed(2)}<br/>
+<strong>VAT:</strong> £${tax.toFixed(2)}<br/>
 <strong>Delivery:</strong> £${deliveryCharges.toFixed(2)}<br/>
 <strong>Total Payable:</strong> £${total.toFixed(2)}
 </p>
 
+${
+  userId
+    ? `
 <p>
 👉 <a href="${confirmOrderUrl}" target="_blank">
-Confirm / Place Your Order
+Confirm Your Order
 </a>
+</p>`
+    : ""
+}
+
+<p>
+Thank you for choosing <b>Workwear</b>.<br/>
+If you have any questions, just reply to this email.
 </p>
 
 <p>
-If you need any changes or have questions, just reply to this email.
-</p>
-
-<p>
-Best regards,<br/>
-<b>Workwear Admin Team</b><br/>
-Work Wear Pvt. Ltd.<br/>
+<b>Workwear Team</b><br/>
 📞 +44 17996 11006<br/>
-✉️ hello@work-safety.co.uk<br/>
-🌐 workwearcompany.co.uk
+✉️ hello@work-safety.co.uk
 </p>
 `;
 
-    /* ---------------- SEND MAIL ---------------- */
     await transporter.sendMail({
       from: process.env.SMTP_FROM_EMAIL,
       to: email,
-      subject: `Quotation – Order ${orderId}`,
+      subject: `Order Confirmation – ${orderId}`,
       html: mailHtml,
       attachments,
     });
 
     return true;
   } catch (error) {
-    console.error("sendQuotationMail error:", error);
+    console.error("sendQuotationEmail error:", error);
     throw error;
   }
 };
+
+async function sendOrderCancelledEmail(order) {
+  const user = await User.findById(order.userId);
+
+  const html = `
+  <p>Hi ${user.name},</p>
+
+  <p>Your order <b>${order.orderId}</b> has been successfully cancelled.</p>
+
+  <p>If payment was already made, the refund will be processed within 5–7 working days.</p>
+
+  <p>If you have any questions, feel free to reply to this email.</p>
+
+  <p>
+    Regards,<br/>
+    <b>Workwear Team</b>
+  </p>
+  `;
+
+  await transporter.sendMail({
+    to: user.email,
+    from: process.env.SMTP_FROM_EMAIL,
+    subject: `Order Cancelled – ${order.orderId}`,
+    html,
+  });
+}
+
+
+async function sendOrderEmails(orderId, userId) {
+  const order = await Order.findById(orderId).populate("userId");
+  const user = order.userId;
+
+  // Send to User
+  await sendQuotationEmail({
+    email: user.email,
+    firstName: user.name,
+    products: order.cartData,
+    subtotal: order.OriginalPrice,
+    tax: order.DiscountPrice,
+    deliveryCharges: order.Shipping_Charge,
+    total: order.FinalPrice,
+    orderId: order.orderId,
+    userId: user._id,
+  });
+
+  // Send to Admin
+  await sendQuotationEmail({
+    email: process.env.ADMIN_EMAIL,
+    firstName: "Admin",
+    products: order.cartData,
+    subtotal: order.OriginalPrice,
+    tax: order.DiscountPrice,
+    deliveryCharges: order.Shipping_Charge,
+    total: order.FinalPrice,
+    orderId: order.orderId,
+  });
+}
 
 // function for get cart data for user
 async function getCartData(userId) {
@@ -205,7 +249,7 @@ async function generateOrderId() {
 }
 
 const checkStockAvailability = async (products) => {
-  const checks = products.map(item =>
+  const checks = products.map((item) =>
     Variation.exists({
       _id: item.variationId,
       "Variation_Size._id": item.sizeId,
@@ -215,7 +259,7 @@ const checkStockAvailability = async (products) => {
 
   const results = await Promise.all(checks);
 
-  const failedIndex = results.findIndex(r => !r);
+  const failedIndex = results.findIndex((r) => !r);
 
   if (failedIndex !== -1) {
     const failedItem = products[failedIndex];
@@ -226,7 +270,7 @@ const checkStockAvailability = async (products) => {
 };
 
 const deductStock = async (products) => {
-  const bulkOps = products.map(item => ({
+  const bulkOps = products.map((item) => ({
     updateOne: {
       filter: {
         _id: item.variationId,
@@ -241,221 +285,185 @@ const deductStock = async (products) => {
   await Variation.bulkWrite(bulkOps);
 };
 
+async function restoreStock(cartData) {
+  const bulkOps = cartData.map(item => ({
+    updateOne: {
+      filter: {
+        _id: item.variation,
+        "Variation_Size._id": item.sizeId,
+      },
+      update: {
+        $inc: { "Variation_Size.$.Size_Stock": item.Quantity },
+      },
+    },
+  }));
+
+  await Variation.bulkWrite(bulkOps);
+}
+
+route.post("/cancel/:orderId", authMiddleware, async (req, res) => {
+  try {
+    const { orderId } = req.params;
+
+    const order = await Order.findById(orderId);
+
+    if (!order)
+      return res.status(404).json({ message: "Order not found" });
+
+    // Prevent double cancel
+    if (order.order_status === "Cancelled") {
+      return res.status(400).json({ message: "Order already cancelled" });
+    }
+
+    // Prevent cancelling shipped orders
+    if (["Shipped", "Delivered"].includes(order.order_status)) {
+      return res
+        .status(400)
+        .json({ message: "Order already shipped, cannot cancel" });
+    }
+
+    // Restore stock
+    await restoreStock(order.cartData);
+
+    // Update order
+    order.order_status = "Cancelled";
+    order.payment_status = "Refund Pending";
+    await order.save();
+
+    // Send mail
+    await sendOrderCancelledEmail(order);
+
+    res.json({
+      success: true,
+      message: "Order cancelled successfully",
+    });
+  } catch (error) {
+    console.error("Cancel order error:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+
+async function createOrder({
+  userId,
+  cartData,
+  address,
+  pricing,
+  couponId,
+  payment_mode,
+  order_status,
+  reason,
+}) {
+  const orderId = await generateOrderId();
+
+  // Check stock
+  const stockItems = cartData.map((item) => ({
+    variationId: item.variation,
+    sizeId: item.sizeId,
+    quantity: item.Quantity,
+    SKU_Code: item.SKU_Code,
+  }));
+
+  await checkStockAvailability(stockItems);
+  await deductStock(stockItems);
+
+  const order = new Order({
+    orderId,
+    userId,
+    Coupon: couponId || null,
+    CouponPrice: pricing.coupon || 0,
+    cartData,
+    Address: address,
+    OriginalPrice: pricing.subtotal,
+    DiscountPrice: pricing.discount,
+    Shipping_Charge: pricing.shipping,
+    FinalPrice: pricing.total,
+    payment_mode,
+    order_status,
+    reason,
+  });
+
+  return await order.save();
+}
+
 // Add Order Route with Coupon and Coupon Usage from retailer side
 route.post("/add", authMiddleware, async (req, res) => {
   try {
-    let {
-      Coupon,
-      CouponPrice = 0,
-      Address,
-      OriginalPrice, //subtotal
-      DiscountPrice, //subtotal after discounted
-      Shipping_Charge, // shipping charges
-      FinalPrice, // grand total price
-      reason,
-      payment_mode,
-      order_status,
-      payment_status,
-    } = req.body;
-
     const userId = req.user.userId;
+    const cartData = await getCartData(userId);
 
-    // Convert to numbers
-    CouponPrice = Number(CouponPrice);
-    OriginalPrice = Number(OriginalPrice);
-    DiscountPrice = Number(DiscountPrice);
-    Shipping_Charge = Number(Shipping_Charge);
-    FinalPrice = Number(FinalPrice);
-
-    const CartData = await getCartData(userId);
-    if (!CartData.length) {
-      return res.status(404).json({ type: "error", message: "Cart is empty" });
+    if (!cartData.length) {
+      return res.status(400).json({ message: "Cart is empty" });
     }
 
-    const isCouponApplied = Coupon && Coupon !== "not";
-
-    let appliedCoupon = null;
-
-    if (isCouponApplied) {
-      appliedCoupon = await Coupons.findById(Coupon);
-      if (!appliedCoupon) {
-        return res.status(404).json({ type: "error", message: "Invalid coupon" });
-      }
-
-      const usage = appliedCoupon.UserCouponUsage.find(u => u.userId.equals(userId));
-
-      if (usage && usage.usageCount >= appliedCoupon.usageLimits) {
-        return res.status(400).json({ type: "error", message: "Coupon usage limit exceeded" });
-      }
-
-      if (usage) usage.usageCount += 1;
-      else appliedCoupon.UserCouponUsage.push({ userId, usageCount: 1 });
-
-      await appliedCoupon.save();
-    }
-
-    const orderId = await generateOrderId();
-
-    const orderPayload = {
-      orderId,
+    const order = await createOrder({
       userId,
-      Coupon: isCouponApplied ? Coupon : undefined,
-      CouponPrice,
-      cartData: CartData,
-      Address,
-
-      OriginalPrice,
-      DiscountPrice,
-      Shipping_Charge,
-      is_Shipping_ChargeAdd: Shipping_Charge > 0,
-      FinalPrice,
-
-      reason: reason || "",
-      payment_mode,
-      order_status,
-      payment_status,
-    };
-
-    const stockItems = CartData.map(item => ({
-      variationId: item.variation,
-      sizeId: item.sizeId,
-      quantity: item.Quantity,
-      SKU_Code: item.SKU_Code,
-    }));
-    await checkStockAvailability(stockItems);
-    await deductStock(
-      CartData.map(item => ({
-        variationId: item.variation,
-        sizeId: item.sizeId,
-        quantity: item.Quantity,
-      }))
-    );
-
-    const newOrder = new Order(orderPayload);
-    const data = await newOrder.save();
+      cartData,
+      address: req.body.Address,
+      pricing: {
+        subtotal: req.body.OriginalPrice,
+        discount: req.body.DiscountPrice,
+        shipping: req.body.Shipping_Charge,
+        total: req.body.FinalPrice,
+        coupon: req.body.CouponPrice,
+      },
+      couponId: req.body.Coupon,
+      payment_mode: req.body.payment_mode,
+      order_status: req.body.order_status,
+      reason: req.body.reason,
+    });
 
     await Cart.deleteMany({ userId });
 
-    return res.status(200).json({
-      type: "success",
-      message: "Request sent successfully",
-      data,
-    });
+    await sendOrderEmails(order._id, userId);
 
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({
-      type: "error",
-      message: "Server Error",
-      errorMessage: error.message,
+    return res.json({
+      type: "success",
+      message: "Order placed successfully",
+      data: order,
     });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: err.message });
   }
 });
 
 // create orsder by admin for retailer
-route.post("/createOrderByAdmin", authMiddleware, async (req, res) => {
+route.post("/admin/create-order", adminAuth, async (req, res) => {
   try {
-    const {
-      userId, // optional (existing retailer)
-      email,
-      fullName,
-      phone,
-      products,
-      deliveryCharges = 0, //shipping charges
-      subtotal,
-      tax,
-      total,
-      paymentStatus = "Unpaid", // Send invoice / Mark as paid
-    } = req.body;
+    let userId = req.body.userId;
 
-    /* ---------------- BASIC VALIDATION ---------------- */
-    if (!products || !products.length) {
-      return res.status(400).json({ message: "Products are required" });
-    }
-
-    if (!email) {
-      return res.status(400).json({ message: "Email is required" });
-    }
-
-    /* ---------------- STOCK CHECK ---------------- */
-    await checkStockAvailability(products);
-
-
-    /* ---------------- USER (RETAILER) ---------------- */
-    let user;
-
+    // Create user if not exists
     if (!userId) {
-      // Create new retailer
-      user = await User.create({
-        User_Name: fullName.trim(),
-        User_Email: email,
-        User_Mobile_No: phone,
-        User_Label: "Retailer",
-        User_Status: true,
-        Is_Verify: true,
+      const newUser = await User.create({
+        name: req.body.name,
+        email: req.body.email,
+        phone: req.body.phone,
       });
-    } else {
-      // Update existing retailer
-      user = await User.findByIdAndUpdate(
-        userId,
-        {
-          User_Name: fullName.trim(),
-          User_Email: email,
-          User_Mobile_No: phone,
-        },
-        { new: true }
-      );
-
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
-      }
+      userId = newUser._id;
     }
 
-    /* ---------------- ORDER ---------------- */
-    const orderId = await generateOrderId();
-
-    const newOrder = await Order.create({
-      orderId,
-      userId: user._id,
-      cartData: products,
-      Shipping_Charge: deliveryCharges,
-      is_Shipping_ChargeAdd: deliveryCharges > 0,
-      OriginalPrice: subtotal,
-      DiscountPrice: tax,
-      FinalPrice: total,
-      payment_status: paymentStatus,
-      order_status: "Quotation Sent",
-      PaymentType: paymentStatus === "Paid" ? "Manual" : "Pending",
-      processed: paymentStatus === "Paid",
-    });
-
-
-    /* STOCK */
-    await deductStock(products);
-
-
-    /* ---------------- SEND QUOTATION EMAIL ---------------- */
-    await sendQuotationEmail({
-      email,
-      fullName,
-      products,
-      subtotal,
-      tax,
-      deliveryCharges,
-      total,
-      orderId,
+    const order = await createOrder({
       userId,
+      cartData: req.body.cartData,
+      address: req.body.address,
+      pricing: req.body.pricing,
+      couponId: req.body.couponId,
+      payment_mode: "Admin",
+      order_status: "Confirmed",
+      reason: "Admin Created Order",
     });
 
-    return res.status(201).json({
-      message: "Order created and quotation sent successfully",
-      order: newOrder,
+    await sendOrderEmails(order._id, userId);
+
+    res.json({
+      success: true,
+      message: "Order created successfully",
+      order,
     });
-  } catch (error) {
-    console.error("createOrderByAdmin error:", error);
-    return res.status(500).json({
-      message: error.message || "Internal server error",
-    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
   }
 });
 
@@ -505,11 +513,12 @@ route.get("/get/upcoming", authMiddleware, async (req, res) => {
         reason: order?.reason || "",
         cartData: order?.cartData.map((cartItem) => ({
           ...cartItem,
-          variationImage: `${process.env.IP_ADDRESS
-            }/${cartItem?.variation?.Variation_Images[0]?.path?.replace(
-              /\\/g,
-              "/"
-            )}`,
+          variationImage: `${
+            process.env.IP_ADDRESS
+          }/${cartItem?.variation?.Variation_Images[0]?.path?.replace(
+            /\\/g,
+            "/"
+          )}`,
         })),
         Shipping_Charge: order?.Shipping_Charge,
         cod_advance_amt: order?.cod_advance_amt,
@@ -579,11 +588,12 @@ route.get("/get/history", authMiddleware, async (req, res) => {
         Address: order?.Address || {},
         cartData: order?.cartData.map((cartItem) => ({
           ...cartItem,
-          variationImage: `${process.env.IP_ADDRESS
-            }/${cartItem?.variation?.Variation_Images[0]?.path?.replace(
-              /\\/g,
-              "/"
-            )}`,
+          variationImage: `${
+            process.env.IP_ADDRESS
+          }/${cartItem?.variation?.Variation_Images[0]?.path?.replace(
+            /\\/g,
+            "/"
+          )}`,
         })),
         Shipping_Charge: order?.Shipping_Charge,
         cod_advance_amt: order?.cod_advance_amt,
@@ -622,7 +632,10 @@ route.get("/getAll", authMiddleware, async (req, res) => {
   try {
     const userId = req.user.userId;
     console.log("userId", userId);
-    let OrderList = await Order.find({ userId: userId, $or: [{ payment_status: "Paid" }, { cod_status: "Paid" }] })
+    let OrderList = await Order.find({
+      userId: userId,
+      $or: [{ payment_status: "Paid" }, { cod_status: "Paid" }],
+    })
       .populate({
         path: "cartData.product",
         model: "Products",
@@ -638,7 +651,6 @@ route.get("/getAll", authMiddleware, async (req, res) => {
         select: "Variation_Images",
       })
       .sort({ updatedAt: -1 });
-
 
     if (OrderList.length >= 1) {
       OrderList = OrderList?.map(async (order) => ({
@@ -658,7 +670,12 @@ route.get("/getAll", authMiddleware, async (req, res) => {
         walletAmount: order?.walletAmount,
         cartData: order?.cartData.map((cartItem) => ({
           ...cartItem,
-          variationImage: `${process.env.IP_ADDRESS}/${cartItem?.variation?.Variation_Images[0]?.path?.replace(/\\/g, "/")}`,
+          variationImage: `${
+            process.env.IP_ADDRESS
+          }/${cartItem?.variation?.Variation_Images[0]?.path?.replace(
+            /\\/g,
+            "/"
+          )}`,
         })),
         Shipping_Charge: order?.Shipping_Charge,
         Status: order?.Status,
@@ -672,8 +689,6 @@ route.get("/getAll", authMiddleware, async (req, res) => {
 
       OrderList = await Promise.all(OrderList);
     }
-
-
 
     return res.status(200).json({
       type: "success",
@@ -726,11 +741,12 @@ route.get("/get/singleOrder/:id", authMiddleware, async (req, res) => {
           ...cartItem,
           discountPrice: discountPrice * Quantity,
           originalPrice: originalPrice * Quantity,
-          variationImage: `${process.env.IP_ADDRESS
-            }/${cartItem.variation?.Variation_Images[0]?.path?.replace(
-              /\\/g,
-              "/"
-            )}`,
+          variationImage: `${
+            process.env.IP_ADDRESS
+          }/${cartItem.variation?.Variation_Images[0]?.path?.replace(
+            /\\/g,
+            "/"
+          )}`,
         };
       });
 
@@ -795,7 +811,7 @@ route.get("/get/all", async (req, res) => {
         });
     } else {
       baseQuery = Order.find({
-        OrderType: { $in: ["1", "2", "3", "4", "5", "6"] }
+        OrderType: { $in: ["1", "2", "3", "4", "5", "6"] },
       })
         .populate({
           path: "cartData.product",
@@ -1196,11 +1212,12 @@ route.get("/get/single/:orderId", checkAdminOrRole1, async (req, res) => {
       cartData: order.cartData.map((cartItem) => ({
         ...cartItem,
         variationImage: cartItem?.variation?.Variation_Images[0]?.path
-          ? `${process.env.IP_ADDRESS
-          }/${cartItem?.variation?.Variation_Images[0]?.path.replace(
-            /\\/g,
-            "/"
-          )}`
+          ? `${
+              process.env.IP_ADDRESS
+            }/${cartItem?.variation?.Variation_Images[0]?.path.replace(
+              /\\/g,
+              "/"
+            )}`
           : "",
       })),
     };
@@ -1312,7 +1329,6 @@ route.delete("/delete", checkAdminOrRole1, async (req, res) => {
 //         coinsReward *
 //         order.cartData.reduce((total, item) => total + (item.Quantity || 0), 0);
 
-
 //       if (!userId === null || userId !== null) {
 //         if (!existingCoinsRecord) {
 //           // Create a new Coins record
@@ -1407,14 +1423,21 @@ route.put("/update/type/:id", checkAdminOrRole1, async (req, res) => {
   try {
     const { orderType, UserName, trackingId, payment_status } = req.body;
     let newType = await Order.findByIdAndUpdate(id);
-    console.log("newType ==> ", orderType, UserName, trackingId, payment_status);
+    console.log(
+      "newType ==> ",
+      orderType,
+      UserName,
+      trackingId,
+      payment_status
+    );
 
     if (orderType !== undefined) {
       let oldOrder = await Order.findById(id);
       newType.OrderType = await orderType;
       newType.tracking_id = await trackingId;
-      newType.payment_status = await payment_status ? payment_status : newType.payment_status;
-
+      newType.payment_status = (await payment_status)
+        ? payment_status
+        : newType.payment_status;
 
       if (orderType === "2") {
         // await pushOrderIntoShipRocket(id)
@@ -1438,15 +1461,21 @@ route.put("/update/type/:id", checkAdminOrRole1, async (req, res) => {
       await notifyUserOfOrderStatusChange(id, orderType);
 
       await newType.save();
-      return res.status(200).json({ type: "success", message: "OrderType update Successfully!" });
+      return res
+        .status(200)
+        .json({ type: "success", message: "OrderType update Successfully!" });
     } else {
       newType.tracking_id = await trackingId;
       await newType.save();
-      return res.status(200).json({ type: "success", message: "OrderType update Successfully!" });
+      return res
+        .status(200)
+        .json({ type: "success", message: "OrderType update Successfully!" });
     }
   } catch (error) {
     console.log(error);
-    return res.status(500).json({ type: "error", message: "Server Error!", errorMessage: error });
+    return res
+      .status(500)
+      .json({ type: "error", message: "Server Error!", errorMessage: error });
   }
 });
 
@@ -1567,11 +1596,12 @@ route.get("/get/all/betweendates", authMiddleware, async (req, res) => {
         Address: order?.Address || {},
         cartData: order?.cartData.map((cartItem) => ({
           ...cartItem,
-          variationImage: `${process.env.IP_ADDRESS
-            }/${cartItem?.variation?.Variation_Images[0]?.path?.replace(
-              /\\/g,
-              "/"
-            )}`,
+          variationImage: `${
+            process.env.IP_ADDRESS
+          }/${cartItem?.variation?.Variation_Images[0]?.path?.replace(
+            /\\/g,
+            "/"
+          )}`,
         })),
         Shipping_Charge: order?.Shipping_Charge,
         Status: order?.Status,
@@ -1830,18 +1860,31 @@ route.post("/get/byStatus/forAdmin", checkAdminRole, async (req, res) => {
       0
     );
     const ctotalOrders = totalOrders?.length || 0;
-    const totalOrdersCODPaid = totalOrders.filter((order) => ["1", "2", "3", "5"].includes(order.OrderType) && order.cod_status == "Paid" && order.payment_status == "Unpaid");
-    const totalOrdersPaid = totalOrders.filter((order) => ["1", "2", "3", "5"].includes(order.OrderType) && order.payment_status == "Paid");
+    const totalOrdersCODPaid = totalOrders.filter(
+      (order) =>
+        ["1", "2", "3", "5"].includes(order.OrderType) &&
+        order.cod_status == "Paid" &&
+        order.payment_status == "Unpaid"
+    );
+    const totalOrdersPaid = totalOrders.filter(
+      (order) =>
+        ["1", "2", "3", "5"].includes(order.OrderType) &&
+        order.payment_status == "Paid"
+    );
 
     console.log("totalOrdersCODPaid:", totalOrdersCODPaid?.length);
     console.log("totalOrdersOnlinePaid:", totalOrdersPaid?.length);
 
-
-    const totalOrderCODAmount = totalOrdersCODPaid.reduce((total, order) => total + order.cod_advance_amt, 0);
-    const totalOrderOnlineAmount = totalOrdersPaid.reduce((total, order) => total + order.FinalPrice + order.CouponPrice, 0);
+    const totalOrderCODAmount = totalOrdersCODPaid.reduce(
+      (total, order) => total + order.cod_advance_amt,
+      0
+    );
+    const totalOrderOnlineAmount = totalOrdersPaid.reduce(
+      (total, order) => total + order.FinalPrice + order.CouponPrice,
+      0
+    );
     const totalOrderAmount = totalOrderCODAmount + totalOrderOnlineAmount;
     console.log("totalOrderAmount:", totalOrderAmount);
-
 
     res.status(200).json({
       type: "success",
@@ -1869,7 +1912,8 @@ route.post("/get/byStatus/forAdmin", checkAdminRole, async (req, res) => {
 });
 
 // update order traking id with order id
-route.post("/update/singleOrder/trackingId/:id",
+route.post(
+  "/update/singleOrder/trackingId/:id",
   authMiddleware,
   async (req, res) => {
     const orderId = await req.params.id;
