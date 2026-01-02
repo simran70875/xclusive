@@ -1,7 +1,6 @@
 const mongoose = require('mongoose')
 
 const CartSchema = mongoose.Schema({
-
     userId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Users"
@@ -20,8 +19,12 @@ const CartSchema = mongoose.Schema({
     price: {
         type: Number
     },
-    totalPrice:{
+    totalPrice: {
         type: Number
+    },
+    sizeId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Variations'
     },
     SizeName: {
         type: String

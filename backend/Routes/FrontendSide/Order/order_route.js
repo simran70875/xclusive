@@ -11,6 +11,7 @@ const checkAdminOrRole1 = require("../../../Middleware/checkAdminOrRole1");
 const checkAdminRole = require("../../../Middleware/adminMiddleWares");
 const moment = require("moment-timezone");
 const order_counter_model = require("../../../Models/BackendSide/order_counter_model");
+const { jwt } = require("jsonwebtoken");
 
 const sendQuotationEmail = async ({
   email,
@@ -124,16 +125,15 @@ const sendQuotationEmail = async ({
 <strong>Total Payable:</strong> £${total.toFixed(2)}
 </p>
 
-${
-  userId
-    ? `
+${userId
+        ? `
 <p>
 👉 <a href="${confirmOrderUrl}" target="_blank">
 Confirm Your Order
 </a>
 </p>`
-    : ""
-}
+        : ""
+      }
 
 <p>
 Thank you for choosing <b>Workwear</b>.<br/>
@@ -249,10 +249,11 @@ async function generateOrderId() {
 }
 
 const checkStockAvailability = async (products) => {
+
   const checks = products.map((item) =>
     Variation.exists({
       _id: item.variationId,
-      "Variation_Size._id": item.sizeId,
+      "Variation_Size.Size_Name": item.SizeName,
       "Variation_Size.Size_Stock": { $gte: item.quantity },
     })
   );
@@ -274,7 +275,7 @@ const deductStock = async (products) => {
     updateOne: {
       filter: {
         _id: item.variationId,
-        "Variation_Size._id": item.sizeId,
+        "Variation_Size.Size_Name": item.SizeName,
       },
       update: {
         $inc: { "Variation_Size.$.Size_Stock": -item.quantity },
@@ -290,7 +291,7 @@ async function restoreStock(cartData) {
     updateOne: {
       filter: {
         _id: item.variation,
-        "Variation_Size._id": item.sizeId,
+        "Variation_Size.Size_Name": item.SizeName,
       },
       update: {
         $inc: { "Variation_Size.$.Size_Stock": item.Quantity },
@@ -343,7 +344,6 @@ route.post("/cancel/:orderId", authMiddleware, async (req, res) => {
   }
 });
 
-
 async function createOrder({
   userId,
   cartData,
@@ -359,10 +359,11 @@ async function createOrder({
   // Check stock
   const stockItems = cartData.map((item) => ({
     variationId: item.variation,
-    sizeId: item.sizeId,
+    SizeName: item.SizeName,
     quantity: item.Quantity,
     SKU_Code: item.SKU_Code,
   }));
+
 
   await checkStockAvailability(stockItems);
   await deductStock(stockItems);
@@ -392,6 +393,8 @@ route.post("/add", authMiddleware, async (req, res) => {
     const userId = req.user.userId;
     const cartData = await getCartData(userId);
 
+    console.log("cartData ==>", req.body);
+
     if (!cartData.length) {
       return res.status(400).json({ message: "Cart is empty" });
     }
@@ -414,7 +417,6 @@ route.post("/add", authMiddleware, async (req, res) => {
     });
 
     await Cart.deleteMany({ userId });
-
     await sendOrderEmails(order._id, userId);
 
     return res.json({
@@ -429,7 +431,7 @@ route.post("/add", authMiddleware, async (req, res) => {
 });
 
 // create orsder by admin for retailer
-route.post("/admin/create-order", adminAuth, async (req, res) => {
+route.post("/admin/create-order", authMiddleware, async (req, res) => {
   try {
     let userId = req.body.userId;
 
@@ -513,12 +515,11 @@ route.get("/get/upcoming", authMiddleware, async (req, res) => {
         reason: order?.reason || "",
         cartData: order?.cartData.map((cartItem) => ({
           ...cartItem,
-          variationImage: `${
-            process.env.IP_ADDRESS
-          }/${cartItem?.variation?.Variation_Images[0]?.path?.replace(
-            /\\/g,
-            "/"
-          )}`,
+          variationImage: `${process.env.IP_ADDRESS
+            }/${cartItem?.variation?.Variation_Images[0]?.path?.replace(
+              /\\/g,
+              "/"
+            )}`,
         })),
         Shipping_Charge: order?.Shipping_Charge,
         cod_advance_amt: order?.cod_advance_amt,
@@ -553,22 +554,21 @@ route.get("/get/history", authMiddleware, async (req, res) => {
     const userId = req.user.userId;
     let OrderList = await Order.find({
       userId: userId,
-      OrderType: { $in: [4, 5, 6, 7] },
     })
-      .populate({
-        path: "cartData.product",
-        model: "Products",
-        select: "Product_Name",
-      })
-      .populate({
-        path: "Address",
-        model: "Address",
-      })
-      .populate({
-        path: "cartData.variation",
-        model: "Variations",
-        select: "Variation_Images",
-      })
+      // .populate({
+      //   path: "cartData.product",
+      //   model: "Products",
+      //   select: "Product_Name",
+      // })
+      // .populate({
+      //   path: "Address",
+      //   model: "Address",
+      // })
+      // .populate({
+      //   path: "cartData.variation",
+      //   model: "Variations",
+      //   select: "Variation_Images",
+      // })
       .sort({ updatedAt: -1 });
 
     if (OrderList.length >= 1) {
@@ -579,7 +579,6 @@ route.get("/get/history", authMiddleware, async (req, res) => {
         Coupon: order?.Coupon || "",
         PaymentType: order?.PaymentType,
         PaymentId: order?.PaymentId || "",
-        OrderType: order?.OrderType,
         CouponPrice: order?.CouponPrice,
         DiscountPrice: order?.DiscountPrice,
         FinalPrice: order?.FinalPrice,
@@ -588,12 +587,11 @@ route.get("/get/history", authMiddleware, async (req, res) => {
         Address: order?.Address || {},
         cartData: order?.cartData.map((cartItem) => ({
           ...cartItem,
-          variationImage: `${
-            process.env.IP_ADDRESS
-          }/${cartItem?.variation?.Variation_Images[0]?.path?.replace(
-            /\\/g,
-            "/"
-          )}`,
+          variationImage: `${process.env.IP_ADDRESS
+            }/${cartItem?.variation?.Variation_Images[0]?.path?.replace(
+              /\\/g,
+              "/"
+            )}`,
         })),
         Shipping_Charge: order?.Shipping_Charge,
         cod_advance_amt: order?.cod_advance_amt,
@@ -624,17 +622,15 @@ route.get("/getAll", authMiddleware, async (req, res) => {
   const getOrderRatingStatus = async (orderId) => {
     const reviewsForOrder = await Review.find({
       order: orderId,
-      OrderType: { $ne: "9" },
     });
     return reviewsForOrder.length > 0;
   };
 
   try {
     const userId = req.user.userId;
-    console.log("userId", userId);
+
     let OrderList = await Order.find({
       userId: userId,
-      $or: [{ payment_status: "Paid" }, { cod_status: "Paid" }],
     })
       .populate({
         path: "cartData.product",
@@ -658,33 +654,25 @@ route.get("/getAll", authMiddleware, async (req, res) => {
         orderId: order?.orderId,
         userId: order?.userId,
         Coupon: order?.Coupon || "",
-        PaymentType: order?.PaymentType,
-        PaymentId: order?.PaymentId || "",
-        OrderType: order?.OrderType,
         CouponPrice: order?.CouponPrice,
         DiscountPrice: order?.DiscountPrice,
         FinalPrice: order?.FinalPrice,
         OriginalPrice: order?.OriginalPrice,
         reason: order?.reason || "",
         Address: order?.Address || {},
-        walletAmount: order?.walletAmount,
         cartData: order?.cartData.map((cartItem) => ({
           ...cartItem,
-          variationImage: `${
-            process.env.IP_ADDRESS
-          }/${cartItem?.variation?.Variation_Images[0]?.path?.replace(
-            /\\/g,
-            "/"
-          )}`,
+          variationImage: `${process.env.IP_ADDRESS
+            }/${cartItem?.variation?.Variation_Images[0]?.path?.replace(
+              /\\/g,
+              "/"
+            )}`,
         })),
         Shipping_Charge: order?.Shipping_Charge,
-        Status: order?.Status,
+        Status: order?.order_status,
         createdAt: order?.createdAt?.toISOString()?.substring(0, 10),
         checkRating: await getOrderRatingStatus(order?._id),
         PaymentStatus: order?.payment_status || "",
-        cod_status: order?.cod_status || "",
-        ActualPayment: order?.ActualPayment || 0,
-        cod_advance_amt: order?.cod_advance_amt || 0,
       }));
 
       OrderList = await Promise.all(OrderList);
@@ -741,12 +729,11 @@ route.get("/get/singleOrder/:id", authMiddleware, async (req, res) => {
           ...cartItem,
           discountPrice: discountPrice * Quantity,
           originalPrice: originalPrice * Quantity,
-          variationImage: `${
-            process.env.IP_ADDRESS
-          }/${cartItem.variation?.Variation_Images[0]?.path?.replace(
-            /\\/g,
-            "/"
-          )}`,
+          variationImage: `${process.env.IP_ADDRESS
+            }/${cartItem.variation?.Variation_Images[0]?.path?.replace(
+              /\\/g,
+              "/"
+            )}`,
         };
       });
 
@@ -1212,12 +1199,11 @@ route.get("/get/single/:orderId", checkAdminOrRole1, async (req, res) => {
       cartData: order.cartData.map((cartItem) => ({
         ...cartItem,
         variationImage: cartItem?.variation?.Variation_Images[0]?.path
-          ? `${
-              process.env.IP_ADDRESS
-            }/${cartItem?.variation?.Variation_Images[0]?.path.replace(
-              /\\/g,
-              "/"
-            )}`
+          ? `${process.env.IP_ADDRESS
+          }/${cartItem?.variation?.Variation_Images[0]?.path.replace(
+            /\\/g,
+            "/"
+          )}`
           : "",
       })),
     };
@@ -1596,12 +1582,11 @@ route.get("/get/all/betweendates", authMiddleware, async (req, res) => {
         Address: order?.Address || {},
         cartData: order?.cartData.map((cartItem) => ({
           ...cartItem,
-          variationImage: `${
-            process.env.IP_ADDRESS
-          }/${cartItem?.variation?.Variation_Images[0]?.path?.replace(
-            /\\/g,
-            "/"
-          )}`,
+          variationImage: `${process.env.IP_ADDRESS
+            }/${cartItem?.variation?.Variation_Images[0]?.path?.replace(
+              /\\/g,
+              "/"
+            )}`,
         })),
         Shipping_Charge: order?.Shipping_Charge,
         Status: order?.Status,

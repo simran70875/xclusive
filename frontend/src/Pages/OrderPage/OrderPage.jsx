@@ -1,5 +1,3 @@
-/* eslint-disable react-hooks/exhaustive-deps */
-import React from "react";
 import { useEffect } from "react";
 import { Button, Col, Row, Table } from "antd";
 import { useNavigate } from "react-router-dom";
@@ -24,45 +22,9 @@ function OrderPage() {
   }, [userToken]);
 
   const order2 = (record) => {
-    console.log("records ==>", record);
     navigate(routes.orderviewUrl, {
-        state: record,
+      state: record,
     });
-  };
-
-  const getOrderStatusLabel = (orderType) => {
-    switch (orderType) {
-      case "1":
-        return "Pending";
-      case "2":
-        return "Accepted";
-      case "3":
-        return "Pick Up";
-      case "4":
-        return "Rejected";
-      case "5":
-        return "Delivered";
-      case "6":
-        return "Cancelled";
-      case "7":
-        return "Returned";
-      default:
-        return "Cancelled";
-    }
-  };
-
-  const paymentTypeStatus = (paymentStatus) => {
-    // console.log(paymentStatus);
-    switch (paymentStatus) {
-      case "0":
-        return "Wallet";
-      case "1":
-        return "Online";
-      case "2":
-        return "Cash On Delivery";
-      default:
-        return "-";
-    }
   };
 
   const columns = [
@@ -106,22 +68,21 @@ function OrderPage() {
       },
     },
     {
-      title: "Payment Type",
-      dataIndex: "PaymentType",
-      key: "PaymentType",
+      title: "Payment Status",
+      dataIndex: "PaymentStatus",
+      key: "PaymentStatus",
       width: "200px",
       render: (text, record) => {
-        const paymentStatus = paymentTypeStatus(record?.PaymentType);
-        return paymentStatus;
+        return record?.PaymentStatus;
       },
     },
     {
       title: "Order Status",
-      dataIndex: "OrderType",
-      key: "OrderType",
+      dataIndex: "Status",
+      key: "Status",
       width: "200px",
       render: (text, record) => {
-        const orderStatus = getOrderStatusLabel(record?.OrderType);
+        const orderStatus = record?.Status;
         const statusColor =
           orderStatus === "Pending"
             ? "#FCB711"
@@ -187,9 +148,7 @@ function OrderPage() {
                       dataSource={orderData}
                       columns={columns}
                       pagination={false}
-                      // onRow={(record) => ({
-                      //   onClick: () => order2(record),
-                      // })}
+                      loading={loader}
                     />
                   </Col>
                 </div>

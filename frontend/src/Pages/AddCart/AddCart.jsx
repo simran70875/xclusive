@@ -47,6 +47,7 @@ function AddCart() {
   const [variationName, setVariationName] = useState();
 
   const [sizeName, setSizeName] = useState();
+  const [sizeId, setSizeId] = useState();
   const [qty, setQty] = useState(1);
   const [stockCount, setStockCount] = useState();
   const [originalPrice, setOriginalPrice] = useState(0);
@@ -84,6 +85,7 @@ function AddCart() {
     const cartobj = {
       product: state?.productId,
       variation: variationId,
+      sizeId: sizeId,
       SizeName: sizeName,
       purity: purity,
       Quantity: qty,
@@ -101,6 +103,7 @@ function AddCart() {
 
   const handleSize = (size) => {
     setIsSizeSelected(true);
+    setSizeId(size.id);
     setSizeName(size.name);
     setStockCount(size.stock);
     setOriginalPrice(size.price);
