@@ -1,17 +1,29 @@
 const express = require("express");
 const route = express.Router();
+const nodemailer = require("nodemailer");
+
 const { Variation } = require("../../../Models/BackendSide/product_model");
 const Order = require("../../../Models/FrontendSide/order_model");
 const Cart = require("../../../Models/FrontendSide/cart_model");
 const User = require("../../../Models/FrontendSide/user_model");
-const Coupons = require("../../../Models/FrontendSide/coupon_model");
 const Review = require("../../../Models/FrontendSide/review_model");
 const authMiddleware = require("../../../Middleware/authMiddleWares");
 const checkAdminOrRole1 = require("../../../Middleware/checkAdminOrRole1");
 const checkAdminRole = require("../../../Middleware/adminMiddleWares");
 const moment = require("moment-timezone");
 const order_counter_model = require("../../../Models/BackendSide/order_counter_model");
-const { jwt } = require("jsonwebtoken");
+const jwt = require("jsonwebtoken");
+const user_model = require("../../../Models/FrontendSide/user_model");
+
+// Create a transporter using Ethereal test credentials.
+// For production, replace with your actual SMTP server details.
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.SMTP_FROM_EMAIL,
+    pass: process.env.SMTP_PASSWORD, // App Password
+  },
+});
 
 const sendQuotationEmail = async ({
   email,
@@ -55,10 +67,11 @@ const sendQuotationEmail = async ({
     );
 
     /* ---------------- CONFIRM ORDER LINK ---------------- */
-    let confirmOrderUrl = process.env.frontendUrl;
+    let frontendUrl = process.env.frontendUrl;
+    let confirmOrderUrl = frontendUrl;
 
     if (userId) {
-      const token = jwt.sign({ userId, orderId }, JWT_SECRET, {
+      const token = jwt.sign({ userId, orderId }, process.env.JWT_TOKEN, {
         expiresIn: "48h",
         audience: "order-confirm",
       });
@@ -85,10 +98,10 @@ const sendQuotationEmail = async ({
     ${item.Quantity}
   </td>
   <td style="border:1px solid #ddd;padding:8px;text-align:right">
-    £${item.price?.toFixed(2)}
+     £${Number(item.price || 0).toFixed(2)}
   </td>
   <td style="border:1px solid #ddd;padding:8px;text-align:right">
-    £${(item.price * item.Quantity).toFixed(2)}
+    £${Number(item.price * item.Quantity || 0).toFixed(2)}
   </td>
 </tr>`;
       })
@@ -125,15 +138,16 @@ const sendQuotationEmail = async ({
 <strong>Total Payable:</strong> £${total.toFixed(2)}
 </p>
 
-${userId
-        ? `
+${
+  userId
+    ? `
 <p>
 👉 <a href="${confirmOrderUrl}" target="_blank">
 Confirm Your Order
 </a>
 </p>`
-        : ""
-      }
+    : ""
+}
 
 <p>
 Thank you for choosing <b>Workwear</b>.<br/>
@@ -188,10 +202,11 @@ async function sendOrderCancelledEmail(order) {
   });
 }
 
-
 async function sendOrderEmails(orderId, userId) {
   const order = await Order.findById(orderId).populate("userId");
-  const user = order.userId;
+  const user = await user_model.findById(order.userId);
+
+  console.log("details ==>", order, user);
 
   // Send to User
   await sendQuotationEmail({
@@ -249,7 +264,6 @@ async function generateOrderId() {
 }
 
 const checkStockAvailability = async (products) => {
-
   const checks = products.map((item) =>
     Variation.exists({
       _id: item.variationId,
@@ -287,7 +301,7 @@ const deductStock = async (products) => {
 };
 
 async function restoreStock(cartData) {
-  const bulkOps = cartData.map(item => ({
+  const bulkOps = cartData.map((item) => ({
     updateOne: {
       filter: {
         _id: item.variation,
@@ -308,8 +322,7 @@ route.post("/cancel/:orderId", authMiddleware, async (req, res) => {
 
     const order = await Order.findById(orderId);
 
-    if (!order)
-      return res.status(404).json({ message: "Order not found" });
+    if (!order) return res.status(404).json({ message: "Order not found" });
 
     // Prevent double cancel
     if (order.order_status === "Cancelled") {
@@ -364,7 +377,6 @@ async function createOrder({
     SKU_Code: item.SKU_Code,
   }));
 
-
   await checkStockAvailability(stockItems);
   await deductStock(stockItems);
 
@@ -393,7 +405,6 @@ route.post("/add", authMiddleware, async (req, res) => {
     const userId = req.user.userId;
     const cartData = await getCartData(userId);
 
-    console.log("cartData ==>", req.body);
 
     if (!cartData.length) {
       return res.status(400).json({ message: "Cart is empty" });
@@ -416,7 +427,7 @@ route.post("/add", authMiddleware, async (req, res) => {
       reason: req.body.reason,
     });
 
-    await Cart.deleteMany({ userId });
+    // await Cart.deleteMany({ userId });
     await sendOrderEmails(order._id, userId);
 
     return res.json({
@@ -515,11 +526,12 @@ route.get("/get/upcoming", authMiddleware, async (req, res) => {
         reason: order?.reason || "",
         cartData: order?.cartData.map((cartItem) => ({
           ...cartItem,
-          variationImage: `${process.env.IP_ADDRESS
-            }/${cartItem?.variation?.Variation_Images[0]?.path?.replace(
-              /\\/g,
-              "/"
-            )}`,
+          variationImage: `${
+            process.env.IP_ADDRESS
+          }/${cartItem?.variation?.Variation_Images[0]?.path?.replace(
+            /\\/g,
+            "/"
+          )}`,
         })),
         Shipping_Charge: order?.Shipping_Charge,
         cod_advance_amt: order?.cod_advance_amt,
@@ -587,11 +599,12 @@ route.get("/get/history", authMiddleware, async (req, res) => {
         Address: order?.Address || {},
         cartData: order?.cartData.map((cartItem) => ({
           ...cartItem,
-          variationImage: `${process.env.IP_ADDRESS
-            }/${cartItem?.variation?.Variation_Images[0]?.path?.replace(
-              /\\/g,
-              "/"
-            )}`,
+          variationImage: `${
+            process.env.IP_ADDRESS
+          }/${cartItem?.variation?.Variation_Images[0]?.path?.replace(
+            /\\/g,
+            "/"
+          )}`,
         })),
         Shipping_Charge: order?.Shipping_Charge,
         cod_advance_amt: order?.cod_advance_amt,
@@ -662,11 +675,12 @@ route.get("/getAll", authMiddleware, async (req, res) => {
         Address: order?.Address || {},
         cartData: order?.cartData.map((cartItem) => ({
           ...cartItem,
-          variationImage: `${process.env.IP_ADDRESS
-            }/${cartItem?.variation?.Variation_Images[0]?.path?.replace(
-              /\\/g,
-              "/"
-            )}`,
+          variationImage: `${
+            process.env.IP_ADDRESS
+          }/${cartItem?.variation?.Variation_Images[0]?.path?.replace(
+            /\\/g,
+            "/"
+          )}`,
         })),
         Shipping_Charge: order?.Shipping_Charge,
         Status: order?.order_status,
@@ -729,11 +743,12 @@ route.get("/get/singleOrder/:id", authMiddleware, async (req, res) => {
           ...cartItem,
           discountPrice: discountPrice * Quantity,
           originalPrice: originalPrice * Quantity,
-          variationImage: `${process.env.IP_ADDRESS
-            }/${cartItem.variation?.Variation_Images[0]?.path?.replace(
-              /\\/g,
-              "/"
-            )}`,
+          variationImage: `${
+            process.env.IP_ADDRESS
+          }/${cartItem.variation?.Variation_Images[0]?.path?.replace(
+            /\\/g,
+            "/"
+          )}`,
         };
       });
 
@@ -743,13 +758,8 @@ route.get("/get/singleOrder/:id", authMiddleware, async (req, res) => {
         userId: order?.userId,
         Coupon: order?.Coupon?.couponCode || "",
         PaymentType: order?.PaymentType,
-        PaymentId: order?.PaymentId || "",
-        OrderType: order?.OrderType,
-        tracking_id: order?.tracking_id || "",
         CouponPrice: order?.CouponPrice || 0,
         DiscountPrice: order?.DiscountPrice || 0,
-        cod_advance_amt: order?.cod_advance_amt || 0,
-        FinalPrice: order?.FinalPrice || 0,
         OriginalPrice: order?.OriginalPrice || 0,
         reason: order?.reason || "",
         Address: order?.Address || {},
@@ -757,7 +767,6 @@ route.get("/get/singleOrder/:id", authMiddleware, async (req, res) => {
         Shipping_Charge: order?.Shipping_Charge,
         createdAt: order?.createdAt?.toISOString()?.substring(0, 10),
         PaymentStatus: order?.order_status || "",
-        walletAmount: order?.walletAmount || 0,
       };
     }
 
@@ -774,132 +783,79 @@ route.get("/get/singleOrder/:id", authMiddleware, async (req, res) => {
   }
 });
 
-// get all orders
+// get all orders with pagination
 route.get("/get/all", async (req, res) => {
-  const status = req.query.status;
-  const page = parseInt(req.query.page); // Current page number, default to 1
-  const pageSize = parseInt(req.query.pageSize); // Page size, default to 10
-
   try {
-    let baseQuery;
+    const {
+      status = "Paid",
+      page = 1,
+      pageSize = 10,
+    } = req.query;
 
-    // Define the query based on the status
-    if (status === "Unpaid") {
-      baseQuery = Order.find({ OrderType: "9" })
-        .populate({
-          path: "cartData.product",
-          model: "Products",
-          select: "Product_Name",
-        })
-        .populate({
-          path: "userId",
-          model: "Users",
-          select: "User_Name User_Mobile_No User_Type",
-        });
-    } else {
-      baseQuery = Order.find({
-        OrderType: { $in: ["1", "2", "3", "4", "5", "6"] },
+    const pageNumber = parseInt(page);
+    const limit = parseInt(pageSize);
+
+    /* ---------------- BUILD FILTER ---------------- */
+    // const filter = {};
+
+    // if (status === "Unpaid") {
+    //   filter.payment_status = "Unpaid";
+    // } else if (status === "Paid") {
+    //   filter.payment_status = "Paid";
+    // }
+
+    /* ---------------- TOTAL COUNT ---------------- */
+    const totalOrders = await Order.countDocuments();
+
+    /* ---------------- FETCH ORDERS ---------------- */
+    const orders = await Order.find()
+      .populate({
+        path: "cartData.product",
+        model: "Products",
+        select: "Product_Name",
       })
-        .populate({
-          path: "cartData.product",
-          model: "Products",
-          select: "Product_Name",
-        })
-        .populate({
-          path: "userId",
-          model: "Users",
-          select: "User_Name User_Mobile_No User_Type",
-        });
-    }
-
-    // First, get the total count of documents for pagination
-    const totalOrders = await Order.countDocuments(baseQuery.getFilter());
-
-    // Apply sorting, pagination (skip & limit) to the original query
-    const orders = await baseQuery
+      .populate({
+        path: "userId",
+        model: "Users",
+        select: "User_Name User_Mobile_No",
+      })
       .sort({ createdAt: -1 })
-      .skip((page - 1) * pageSize)
-      .limit(pageSize);
+      .skip((pageNumber - 1) * limit)
+      .limit(limit);
 
-    const modifiedOrders = orders.map((order) => {
-      // Mapping logic as before...
-      let OrderType = "";
-      if (order.OrderType === "1") {
-        OrderType = "Pending";
-      } else if (order.OrderType === "2") {
-        OrderType = "Accepted";
-      } else if (order.OrderType === "3") {
-        OrderType = "Pick Up";
-      } else if (order.OrderType === "4") {
-        OrderType = "Rejected";
-      } else if (order.OrderType === "5") {
-        OrderType = "Delivered";
-      } else if (order.OrderType === "6") {
-        OrderType = "Cancelled";
-      } else if (order.OrderType === "7") {
-        OrderType = "Returned";
-      } else if (order.OrderType === "9") {
-        OrderType = "Failed";
-      }
-
-      let PaymentType = "";
-      if (order.PaymentType === "0") {
-        PaymentType = "Wallet";
-      } else if (order.PaymentType === "1") {
-        PaymentType = "Online Payment";
-      } else if (order.PaymentType === "2") {
-        PaymentType = "Cash On Delivery";
-      }
-
-      let PaymentId = "";
-      if (order.PaymentId === "0") {
-        PaymentId = "";
-      } else {
-        PaymentId = order.PaymentId;
-      }
-
-      let UserType = "";
-      if (order?.userId?.User_Type === "0") {
-        UserType = "User";
-      } else if (order?.userId?.User_Type === "1") {
-        UserType = "Gold";
-      } else if (order?.userId?.User_Type === "2") {
-        UserType = "Silver";
-      } else {
-        UserType = "PPO";
-      }
-
-      return {
-        ...order.toObject(),
-        userId: order?.userId?._id,
-        User_Name: order?.userId?.User_Name,
-        User_Type: UserType,
-        User_Mobile_No: order?.userId?.User_Mobile_No,
-        OrderType: OrderType,
-        PaymentType: PaymentType,
-        PaymentId: PaymentId,
-        Date: new Date(order?.createdAt)?.toLocaleDateString("en-IN"),
-        Time: moment(order?.createdAt).tz("Asia/Kolkata").format("hh:mm:ss A"),
-        PaymentStatus: order?.order_status || "",
-      };
-    });
+      console.log("orders ==> ", orders)
+    /* ---------------- RESPONSE MAPPING ---------------- */
+    const modifiedOrders = orders.map((order) => ({
+      ...order.toObject(),
+      userId: order?.userId?._id || null,
+      User_Name: order?.userId?.User_Name || "",
+      User_Mobile_No: order?.userId?.User_Mobile_No || "",
+      OrderStatus: order?.order_status || "",
+      Date: new Date(order?.createdAt).toLocaleDateString("en-IN"),
+      Time: moment(order?.createdAt)
+        .tz("Asia/Kolkata")
+        .format("hh:mm:ss A"),
+      PaymentStatus: order?.payment_status || "",
+    }));
 
     return res.status(200).json({
       type: "success",
       message: "Orders fetched successfully!",
-      orderList: modifiedOrders || [],
-      totalOrders, // Total number of orders for pagination
-      currentPage: page, // Current page
-      pageSize, // Page size
+      orderList: modifiedOrders,
+      totalOrders,
+      currentPage: pageNumber,
+      pageSize: limit,
+      totalPages: Math.ceil(totalOrders / limit),
     });
   } catch (error) {
     return res.status(500).json({
       type: "error",
       message: "Server Error!",
-      errorMessage: error,
+      errorMessage: error.message,
     });
   }
 });
+
 
 // get all orders (pagination)
 route.get("/list/getAll", async (req, res) => {
@@ -1199,11 +1155,12 @@ route.get("/get/single/:orderId", checkAdminOrRole1, async (req, res) => {
       cartData: order.cartData.map((cartItem) => ({
         ...cartItem,
         variationImage: cartItem?.variation?.Variation_Images[0]?.path
-          ? `${process.env.IP_ADDRESS
-          }/${cartItem?.variation?.Variation_Images[0]?.path.replace(
-            /\\/g,
-            "/"
-          )}`
+          ? `${
+              process.env.IP_ADDRESS
+            }/${cartItem?.variation?.Variation_Images[0]?.path.replace(
+              /\\/g,
+              "/"
+            )}`
           : "",
       })),
     };
@@ -1582,11 +1539,12 @@ route.get("/get/all/betweendates", authMiddleware, async (req, res) => {
         Address: order?.Address || {},
         cartData: order?.cartData.map((cartItem) => ({
           ...cartItem,
-          variationImage: `${process.env.IP_ADDRESS
-            }/${cartItem?.variation?.Variation_Images[0]?.path?.replace(
-              /\\/g,
-              "/"
-            )}`,
+          variationImage: `${
+            process.env.IP_ADDRESS
+          }/${cartItem?.variation?.Variation_Images[0]?.path?.replace(
+            /\\/g,
+            "/"
+          )}`,
         })),
         Shipping_Charge: order?.Shipping_Charge,
         Status: order?.Status,

@@ -14,18 +14,13 @@ import {
   addReviewApi,
   getSingleReviewApi,
 } from "../../../Features/Setting/Setting";
-import cash from "../../../Assets/PNG/cash.png";
-import wallet from "../../../Assets/PNG/wallet.png";
-import online from "../../../Assets/PNG/online.png";
 import { getProfileApi } from "../../../Features/User/User";
 import styles from "./index.module.scss";
 
 function OrderView() {
   const dispatch = useDispatch();
   const { state } = useLocation();
-  console.log("state ==> ", state);
-  // console.log(state?.PaymentType);
-  // console.log("state", state);
+
   const [status, setStatus] = useState();
   const [value, setValue] = useState(0);
   const [comment, setComment] = useState();
@@ -36,59 +31,22 @@ function OrderView() {
   const [ordertype, setOrdertype] = useState("");
   const [orderCancel2, setOrderCancel2] = useState(null);
   const [inputValue, setInputValue] = useState(null);
-  const [quienty, setQuienty] = useState(0);
-  // console.log("quienty", quienty);
 
   const userToken = useSelector((state) => state.user?.token);
-  const profileData = useSelector((state) => state.user?.profileData);
-  // console.log("profileData", profileData);
   const reviewData = useSelector((state) => state.setting?.singleReviewData);
-  // console.log("reviewData", reviewData);
   const orderData = useSelector((state) => state.order?.cancelOrderData);
-  // console.log("orderData", orderData);
-  const loader = useSelector((state) => state.setting?.settingLoading);
 
+  const loader = useSelector((state) => state.setting?.settingLoading);
   const desc = ["Very disappointmenting", "Poor", "okay", "good", "Excellent"];
 
   useEffect(() => {
     dispatch(getSingleReviewApi(state?._id, userToken));
     dispatch(getSingleOrderApi(state?._id, userToken));
     dispatch(getProfileApi(userToken));
-    let qty = 0;
-    state?.cartData.forEach((x) => {
-      qty += x.Quantity;
-    });
-    setQuienty(qty);
     window.scrollTo(0, 0);
   }, []);
 
   useEffect(() => {
-    // switch (state?.status) {
-    //   case "1":
-    //     setStatus("Pending");
-    //     break;
-    //   case "2":
-    //     setStatus("Accepted");
-    //     break;
-    //   case "3":
-    //     setStatus("Pick Up");
-    //     break;
-    //   case "4":
-    //     setStatus("Rejected");
-    //     break;
-    //   case "5":
-    //     setStatus("Delivered");
-    //     break;
-    //   case "6":
-    //     setStatus("Cancelled");
-    //     break;
-    //   case "7":
-    //     setStatus("Returned");
-    //     break;
-    //   default:
-    //     setStatus("Unknown");
-    // }
-
     setStatus(state?.Status);
   }, []);
 
@@ -278,11 +236,11 @@ function OrderView() {
                             <div className={styles.seting}>
                               <div className={styles.prices}>
                                 <p className={styles.prices1}>
-                                  £{item2?.discountPrice}
+                                  £{item2?.price}
                                 </p>
-                                <p className={styles.prices2}>
-                                  £{item2?.originalPrice}
-                                </p>
+                                {/* <p className={styles.prices2}>
+                                  £{item2?.price}
+                                </p> */}
                               </div>
                               <div className={styles.incree}>
                                 <p className={styles.showdata}>
@@ -290,7 +248,7 @@ function OrderView() {
                                 </p>
                               </div>
                               <div className={styles.total}>
-                                <p>£{item2?.discountPrice * item2?.Quantity}</p>
+                                <p>£{item2?.totalPrice}</p>
                               </div>
                             </div>
                           </div>
@@ -326,67 +284,10 @@ function OrderView() {
 
                     <div className={styles.total}>
                       <p className={styles.pricetotal}>Shipping Charges</p>
-                      <p className={styles.money}>£{state?.Shipping_Charge}</p>
+                      <p className={styles.money}>
+                        + £{state?.Shipping_Charge}
+                      </p>
                     </div>
-
-                    {state?.cod_advance_amt > 0 && (
-                      <div className={styles.total}>
-                        <p
-                          style={{ color: "green" }}
-                          className={styles.pricetotal}
-                        >
-                          COD Advance Amount
-                        </p>
-                        <p style={{ color: "green" }} className={styles.money}>
-                          £{state?.cod_advance_amt}
-                        </p>
-                      </div>
-                    )}
-
-                    {state?.cod_advance_amt > 0 && (
-                      <div className={styles.total}>
-                        <p
-                          style={{
-                            color: state?.OrderType === "5" ? "green" : "red",
-                          }}
-                          className={styles.pricetotal}
-                        >
-                          Pending Amount
-                        </p>
-                        <p
-                          style={{
-                            color: state?.OrderType === "5" ? "green" : "red",
-                          }}
-                          className={styles.money}
-                        >
-                          £{state?.FinalPrice - state?.cod_advance_amt}
-                        </p>
-                      </div>
-                    )}
-
-                    {state?.walletAmount > 0 && (
-                      <div className={styles.total}>
-                        <p
-                          style={{ color: "green" }}
-                          className={styles.pricetotal}
-                        >
-                          Used From Wallet
-                        </p>
-                        <p style={{ color: "green" }} className={styles.money}>
-                          £{state?.walletAmount}
-                        </p>
-                      </div>
-                    )}
-
-                    {(state?.ActualPayment > 0 ||
-                      state?.FinalAdavnceCodPrice) && (
-                      <div className={styles.total}>
-                        <p className={styles.pricetotal}>Online Paid</p>
-                        <p className={styles.money}>
-                          £{state?.ActualPayment || state?.FinalAdavnceCodPrice}
-                        </p>
-                      </div>
-                    )}
 
                     {state?.CouponPrice > 0 && (
                       <div className={styles.total}>
@@ -400,27 +301,15 @@ function OrderView() {
                           </span>
                         </p>
                         <p style={{ color: "green" }} className={styles.money}>
-                          £{state?.CouponPrice}
+                          - £{state?.CouponPrice}
                         </p>
                       </div>
                     )}
 
-                    {state?.cod_status && (
-                      <div className={styles.total}>
-                        <p className={styles.pricetotal}>COD Status</p>
-                        <p className={styles.money}>{state?.cod_status}</p>
-                      </div>
-                    )}
-
-                    <div className={styles.total}>
-                      <p className={styles.pricetotal}>Payment Status</p>
-                      <p className={styles.money}>{state?.PaymentStatus}</p>
-                    </div>
-
                     <div className={styles.total1}>
                       <p className={styles.pricetotal1}>Total Amount</p>
                       <p className={styles.money1}>
-                        £{state?.FinalPrice + state?.CouponPrice}
+                        £{state?.FinalPrice - state?.CouponPrice}
                       </p>
                     </div>
                   </Col>
@@ -446,32 +335,30 @@ function OrderView() {
                       </div>
                     </div>
                     <div className={styles.paydetail2}>
-                      <p className={styles.paydetailtext2}>Payment Method :</p>
-
-                      <div className={styles.choose}>
-                        {state?.PaymentType === "0" ? (
-                          <Image
-                            preview={false}
-                            src={wallet}
-                            alt="wallet"
-                            className={styles.wallet}
-                          />
-                        ) : (
-                          <Image
-                            preview={false}
-                            src={cash}
-                            alt="cash"
-                            className={styles.wallet}
-                          />
-                        )}
-
-                        <p className={styles.thousand} value={2}>
-                          {state?.PaymentType === "0"
-                            ? "Wallet"
-                            : state?.PaymentType === "1"
-                            ? "Online Payment"
-                            : "Cash on Delivery"}
+                      <div>
+                        <p className={styles.paydetailtext2}>
+                          Payment Method :
                         </p>
+                        <div className={styles.choose}>
+                          <p className={styles.thousand} value={2}>
+                            {state?.PaymentType === "0"
+                              ? "Wallet"
+                              : state?.PaymentType === "1"
+                              ? "Online Payment"
+                              : "Cash on Delivery"}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div>
+                        <p className={styles.paydetailtext2}>
+                          Payment Status :
+                        </p>
+                        <div className={styles.choose}>
+                          <p className={styles.thousand} value={2}>
+                            {state?.PaymentStatus}
+                          </p>
+                        </div>
                       </div>
                     </div>
                   </Col>
@@ -539,22 +426,21 @@ function OrderView() {
                         </>
                       ) : (
                         <>
-                          {state?.OrderType === "6"
-                            ? ""
-                            : ""
-                              // <Button
-                              //   className={styles.addrate}
-                              //   onClick={() => showModalOrder()}
-                              //   // style={{
-                              //   //   background: "#AB8000",
-                              //   //   color: "#ffff",
-                              //   //   width: "30%",
-                              //   //   height: "40px",
-                              //   //   marginBottom: "50px",
-                              //   // }}
-                              // >
-                              //   Cancel Order
-                              // </Button>
+                          {
+                            state?.OrderType === "6" ? "" : ""
+                            // <Button
+                            //   className={styles.addrate}
+                            //   onClick={() => showModalOrder()}
+                            //   // style={{
+                            //   //   background: "#AB8000",
+                            //   //   color: "#ffff",
+                            //   //   width: "30%",
+                            //   //   height: "40px",
+                            //   //   marginBottom: "50px",
+                            //   // }}
+                            // >
+                            //   Cancel Order
+                            // </Button>
                           }
                         </>
                       )}

@@ -273,7 +273,13 @@ function Shopping() {
           </Col>
         </Row>
       ) : (
-        <>
+        <div style={{
+           display:"flex",
+           alignItems:"center",
+           justifyContent:"center",
+           padding:"50px 0",
+           flexDirection:"column"
+        }}>
           <p
             style={{
               fontSize: "20px",
@@ -291,7 +297,7 @@ function Shopping() {
           >
             Back to Home
           </Button>
-        </>
+        </div>
       )}
     </div>
   );

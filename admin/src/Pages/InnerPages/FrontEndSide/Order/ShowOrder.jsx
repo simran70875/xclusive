@@ -23,10 +23,10 @@ let url = process.env.REACT_APP_API_URL;
 const ShowOrder = () => {
   const adminToken = localStorage.getItem("token");
   const dispatch = useDispatch();
+
   const [view, setView] = useState("Paid");
   const [orderData, setOrderData] = useState([]);
   const [allOrderData, setAllOrderData] = useState([]);
-  console.log(allOrderData.length);
   const orderName = "";
   const [selectedRows, setSelectedRows] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -282,6 +282,7 @@ const ShowOrder = () => {
             Authorization: `${adminToken}`,
           },
         });
+        
         console.log("getOrder", res?.data);
         setOrderData(res?.data?.orderList || []);
         setRowCount(res?.data?.totalOrders);
@@ -299,7 +300,7 @@ const ShowOrder = () => {
           headers: { Authorization: `${adminToken}` },
         });
         setAllOrderData(res?.data?.orderList || []);
-        // console.log("getOrder without pagination", res?.data?.orderList);
+        console.log("getOrder without pagination", res?.data?.orderList);
         setIsLoading(false);
       } catch (error) {
         setIsLoading(false);
