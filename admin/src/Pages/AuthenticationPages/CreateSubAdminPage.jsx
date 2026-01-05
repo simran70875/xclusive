@@ -39,7 +39,7 @@ const CreateSubAdminPage = () => {
 
         try {
             const response = await axios.post(`${url}/subAdmin/create/byAdmin`,
-                { username, password, name, role }
+                { username, password, name, role : "role_1" }
                 , {
                     headers: {
                         Authorization: `${adminToken}`,
@@ -98,7 +98,7 @@ const CreateSubAdminPage = () => {
                                                     <input required type="text" className="form-control" onChange={(e) => setName(e.target.value)} id="useremail" placeholder="Enter Name" />
                                                 </div>
 
-                                                <div className="mb-3">
+                                                {/* <div className="mb-3">
                                                     <label className="form-label" htmlFor="username">Role</label>
                                                     <select className="form-select" onChange={(e) => setRole(e.target.value)}>
                                                         <option value="role_1">role_1</option>
@@ -107,7 +107,7 @@ const CreateSubAdminPage = () => {
                                                         <option value="role_4">role_4</option>
                                                         <option value="role_5">role_5</option>
                                                     </select>
-                                                </div>
+                                                </div> */}
 
                                                 <div className="mb-3">
                                                     <label className="form-label" htmlFor="username">Username</label>

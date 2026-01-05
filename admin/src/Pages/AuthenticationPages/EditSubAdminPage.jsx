@@ -105,7 +105,7 @@ const EditSubAdminPage = () => {
                           />
                         </div>
 
-                        <div className="mb-3">
+                        {/* <div className="mb-3">
                           <label className="form-label" htmlFor="username">
                             Role
                           </label>
@@ -120,7 +120,7 @@ const EditSubAdminPage = () => {
                             <option value={"role_4"}>role_4</option>
                             <option value={"role_5"}>role_5</option>
                           </select>
-                        </div>
+                        </div> */}
 
                         <div className="mb-3">
                           <label className="form-label" htmlFor="username">

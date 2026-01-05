@@ -28,7 +28,6 @@ const UserSchema = mongoose.Schema(
         User_Password: {
             type: String,
         },
-
         Block: {
             type: Boolean,
             default: false
@@ -38,7 +37,7 @@ const UserSchema = mongoose.Schema(
         },
         User_Status: {
             type: Boolean,
-            default: true,
+            default: false,
         },
         Notification_Token: {
             type: String,

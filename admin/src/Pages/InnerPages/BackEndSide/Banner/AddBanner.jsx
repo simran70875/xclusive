@@ -29,7 +29,8 @@ const AddBanner = () => {
             Authorization: `${adminToken}`,
           },
         });
-        setCategoryData(res?.data?.category_data);
+        console.log(res)
+        setCategoryData(res?.data?.category);
       } catch (error) {
         console.log(error);
       }

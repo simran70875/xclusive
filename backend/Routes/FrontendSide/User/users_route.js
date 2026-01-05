@@ -9,7 +9,10 @@ const fs = require("fs");
 const path = require("path");
 const Coupon = require("../../../Models/FrontendSide/coupon_model");
 const Charges = require("../../../Models/Settings/add_charges_model");
-const { checkAdminWithMultRole123 } = require("../../../Middleware/checkAdminWithMultRole");
+const {
+  checkAdminWithMultRole123,
+} = require("../../../Middleware/checkAdminWithMultRole");
+const { transporter } = require("../../../utils/mailTransporter");
 
 // Set up multer middleware to handle file uploads
 const storage = multer.diskStorage({
@@ -25,13 +28,7 @@ const upload = multer({ storage: storage });
 // SIGNUP API
 route.post("/user", async (req, res) => {
   try {
-    const {
-      name,
-      email,
-      password,
-      phoneNumber,
-      companyName,
-    } = req.body;
+    const { name, email, password, phoneNumber, companyName } = req.body;
 
     // 1️⃣ Validation
     if (!name || !email || !password || !phoneNumber || !companyName) {
@@ -72,16 +69,15 @@ route.post("/user", async (req, res) => {
       User_Mobile_No: phoneNumber,
       Company: companyName,
       User_Label: "User",
+      User_Status: false,
     });
 
     await newUser.save();
 
     // 6️⃣ (Optional) JWT Token
-    const token = jwt.sign(
-      { userId: newUser._id },
-      process.env.JWT_TOKEN,
-      { expiresIn: "7d" }
-    );
+    const token = jwt.sign({ userId: newUser._id }, process.env.JWT_TOKEN, {
+      expiresIn: "7d",
+    });
 
     return res.status(201).json({
       type: "success",
@@ -120,10 +116,7 @@ route.post("/login", async (req, res) => {
 
     // 2️⃣ Find user by email OR phone
     const user = await User.findOne({
-      $or: [
-        { User_Email: email },
-        { User_Mobile_No: phoneNumber },
-      ],
+      $or: [{ User_Email: email }, { User_Mobile_No: phoneNumber }],
     });
 
     if (!user) {
@@ -142,10 +135,7 @@ route.post("/login", async (req, res) => {
     }
 
     // 4️⃣ Verify password
-    const isMatch = await bcrypt.compare(
-      password,
-      user.User_Password
-    );
+    const isMatch = await bcrypt.compare(password, user.User_Password);
 
     if (!isMatch) {
       return res.status(400).json({
@@ -155,11 +145,9 @@ route.post("/login", async (req, res) => {
     }
 
     // 5️⃣ Generate JWT
-    const token = jwt.sign(
-      { userId: user._id },
-      process.env.JWT_TOKEN,
-      { expiresIn: "7d" }
-    );
+    const token = jwt.sign({ userId: user._id }, process.env.JWT_TOKEN, {
+      expiresIn: "7d",
+    });
 
     // 6️⃣ Success response
     return res.status(200).json({
@@ -620,24 +608,71 @@ route.patch(
   }
 );
 
-// update user from admin
+// approve retailer from admin
 route.patch("/update/byAdmin/:id", async (req, res) => {
-  const UserId = req.params.id;
+  const userId = req.params.id;
+  const { status } = req.body; // expected: "true" | "false" | etc.
 
   try {
-    const { wallet, coins, type } = req.body;
-    const newUser = await User.findByIdAndUpdate(UserId);
-    newUser.Wallet = await wallet;
-    newUser.Coins = await coins;
-    newUser.User_Type = await type;
-    await newUser.save();
-    res
-      .status(200)
-      .json({ type: "success", message: "User Status update successfully!" });
+    if (!status) {
+      return res.status(400).json({
+        type: "error",
+        message: "Status is required",
+      });
+    }
+
+    // update user & return updated document
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { User_Status: status },
+      { new: true } // IMPORTANT
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({
+        type: "error",
+        message: "User not found!",
+      });
+    }
+
+    /* ---------------- SEND MAIL ONLY IF APPROVED ---------------- */
+    if (status === true) {
+      const mailHtml = `
+        <div style="font-family: Arial, sans-serif; line-height: 1.6;">
+          <h2>Hello ${updatedUser.User_Name || "Retailer"},</h2>
+          <p>🎉 Congratulations!</p>
+          <p>Your retailer account has been <b>approved</b> by our admin team.</p>
+          <p>You can now log in and start using all retailer features.</p>
+
+          <br/>
+          <p><b>Email:</b> ${updatedUser.User_Email}</p>
+
+          <br/>
+          <p>Regards,</p>
+          <p><b>Team ${process.env.APP_NAME || "Xclusive Diamonds"}</b></p>
+        </div>
+      `;
+
+      await transporter.sendMail({
+        from: process.env.SMTP_FROM_EMAIL,
+        to: updatedUser.User_Email,
+        subject: "Your Retailer Account Has Been Approved 🎉",
+        html: mailHtml,
+      });
+    }
+
+    return res.status(200).json({
+      type: "success",
+      message: "Retailer approved and approval mail sent.",
+      data: updatedUser,
+    });
   } catch (error) {
-    res
-      .status(500)
-      .json({ type: "error", message: "Server Error!", errorMessage: error });
+    console.error(error);
+    return res.status(500).json({
+      type: "error",
+      message: "Server Error!",
+      errorMessage: error.message,
+    });
   }
 });
 

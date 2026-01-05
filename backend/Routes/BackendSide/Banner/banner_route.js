@@ -17,13 +17,14 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage });
 
 // Create Banner
-route.post(
-  "/add",
+route.post("/add",
   checkAdminOrRole2,
   upload.single("image"),
   async (req, res) => {
     try {
       const { Banner_Sequence, Banner_Name } = req.body;
+
+      console.log("req.body ==> ", req.body)
 
       const existingBanner = await Banner.findOne(req.body);
       const existingSequence = await Banner.findOne({ Banner_Sequence });

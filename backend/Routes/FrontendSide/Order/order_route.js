@@ -1,7 +1,5 @@
 const express = require("express");
 const route = express.Router();
-const nodemailer = require("nodemailer");
-
 const { Variation } = require("../../../Models/BackendSide/product_model");
 const Order = require("../../../Models/FrontendSide/order_model");
 const Cart = require("../../../Models/FrontendSide/cart_model");
@@ -14,16 +12,7 @@ const moment = require("moment-timezone");
 const order_counter_model = require("../../../Models/BackendSide/order_counter_model");
 const jwt = require("jsonwebtoken");
 const user_model = require("../../../Models/FrontendSide/user_model");
-
-// Create a transporter using Ethereal test credentials.
-// For production, replace with your actual SMTP server details.
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.SMTP_FROM_EMAIL,
-    pass: process.env.SMTP_PASSWORD, // App Password
-  },
-});
+const { transporter } = require("../../../utils/mailTransporter");
 
 const sendQuotationEmail = async ({
   email,
@@ -405,7 +394,6 @@ route.post("/add", authMiddleware, async (req, res) => {
     const userId = req.user.userId;
     const cartData = await getCartData(userId);
 
-
     if (!cartData.length) {
       return res.status(400).json({ message: "Cart is empty" });
     }
@@ -786,11 +774,7 @@ route.get("/get/singleOrder/:id", authMiddleware, async (req, res) => {
 // get all orders with pagination
 route.get("/get/all", async (req, res) => {
   try {
-    const {
-      status = "Paid",
-      page = 1,
-      pageSize = 10,
-    } = req.query;
+    const { status = "Paid", page = 1, pageSize = 10 } = req.query;
 
     const pageNumber = parseInt(page);
     const limit = parseInt(pageSize);
@@ -823,7 +807,7 @@ route.get("/get/all", async (req, res) => {
       .skip((pageNumber - 1) * limit)
       .limit(limit);
 
-      console.log("orders ==> ", orders)
+    console.log("orders ==> ", orders);
     /* ---------------- RESPONSE MAPPING ---------------- */
     const modifiedOrders = orders.map((order) => ({
       ...order.toObject(),
@@ -832,9 +816,7 @@ route.get("/get/all", async (req, res) => {
       User_Mobile_No: order?.userId?.User_Mobile_No || "",
       OrderStatus: order?.order_status || "",
       Date: new Date(order?.createdAt).toLocaleDateString("en-IN"),
-      Time: moment(order?.createdAt)
-        .tz("Asia/Kolkata")
-        .format("hh:mm:ss A"),
+      Time: moment(order?.createdAt).tz("Asia/Kolkata").format("hh:mm:ss A"),
       PaymentStatus: order?.payment_status || "",
     }));
 
@@ -855,7 +837,6 @@ route.get("/get/all", async (req, res) => {
     });
   }
 });
-
 
 // get all orders (pagination)
 route.get("/list/getAll", async (req, res) => {

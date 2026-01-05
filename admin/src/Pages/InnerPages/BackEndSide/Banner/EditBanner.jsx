@@ -35,7 +35,7 @@ const EditBanner = () => {
             Authorization: `${adminToken}`,
           },
         });
-        setCategoryData(res?.data?.category_data);
+        setCategoryData(res?.data?.category);
       } catch (error) {
         console.log(error);
       }
@@ -66,6 +66,8 @@ const EditBanner = () => {
             },
           }
         );
+        console.log("update banner ", response);
+
         if (response.data.type === "success") {
           setBannerAddStatus(response.data.type);
           let alertBox = document.getElementById("alert-box");

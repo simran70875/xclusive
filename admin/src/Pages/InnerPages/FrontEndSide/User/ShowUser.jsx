@@ -46,32 +46,29 @@ const ShowUser = () => {
     noRowsLabel: "No Data Found 😔",
   };
 
+  const approveAccount = async (user) => {
+    try {
+      const adminToken = localStorage.getItem("token");
+      await axios.patch(
+        `${url}/user/update/byAdmin/${user?._id}`,
+        {
+          status: true,
+        },
+        {
+          headers: {
+            Authorization: `${adminToken}`,
+          },
+        }
+      );
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   const columns = [
-    {
-      field: "_id",
-      width: 220,
-      headerName: "Id",
-    },
-    {
-      field: "User_Type",
-      headerName: "Type",
-      width: 90,
-      filterable: true,
-      sortable: true,
-      filterType: "multiselect",
-    },
-    {
-      field: "User_Name",
-      headerName: "Name",
-      width: 130,
-      filterable: true,
-      sortable: true,
-      filterType: "multiselect",
-    },
     {
       field: "User_Image",
       headerName: "Image",
-      width: 110,
       renderCell: (params) => (
         <img
           src={
@@ -96,9 +93,22 @@ const ShowUser = () => {
       filterable: false,
     },
     {
+      field: "_id",
+      flex: 2,
+      headerName: "Id",
+    },
+    {
+      field: "User_Name",
+      headerName: "Name",
+      flex: 1,
+      filterable: true,
+      sortable: true,
+      filterType: "multiselect",
+    },
+    {
       field: "User_Email",
       headerName: "Email",
-      width: 190,
+      flex: 2,
       filterable: true,
       sortable: true,
       filterType: "multiselect",
@@ -106,7 +116,7 @@ const ShowUser = () => {
     {
       field: "User_Mobile_No",
       headerName: "Mobile No",
-      width: 115,
+      flex: 1,
       filterable: true,
       sortable: true,
       filterType: "multiselect",
@@ -114,7 +124,7 @@ const ShowUser = () => {
     {
       field: "Block",
       headerName: "Block",
-      width: 85,
+      flex: 1,
       renderCell: (params) => (
         <div className="form-check form-switch-user">
           <input
@@ -138,10 +148,34 @@ const ShowUser = () => {
       sortable: true,
       hide: false,
     },
+
+    {
+      field: "User_Status",
+      headerName: "Approval Status",
+      flex: 1,
+      renderCell: (params) => (
+        <div>
+          {params.value ? (
+            <label
+              style={{ color: "green" }}
+            >
+              Approved
+            </label>
+          ) : (
+            <button onClick={() => approveAccount(params.row)}>
+              Approve Account
+            </button>
+          )}
+        </div>
+      ),
+      filterable: false,
+      sortable: true,
+      hide: false,
+    },
     {
       field: "action",
       headerName: "Action",
-      width: 80,
+      flex: 1,
       renderCell: (params) => (
         <Stack direction="row">
           <IconButton
@@ -252,14 +286,13 @@ const ShowUser = () => {
       confirmButtonText: "Yes, delete it!",
     }).then((result) => {
       if (result.isConfirmed) {
-        axios.delete(`${url}/user/deletes`,
-            {
-              headers: {
-                Authorization: `${adminToken}`,
-              },
-              data: { ids: idsToDelete },
-            }
-          )
+        axios
+          .delete(`${url}/user/deletes`, {
+            headers: {
+              Authorization: `${adminToken}`,
+            },
+            data: { ids: idsToDelete },
+          })
           .then(() => {
             getUser(paginationModel.page, paginationModel.pageSize);
             getAllUsers();
