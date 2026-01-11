@@ -34,6 +34,7 @@ import ThankYouMobile from "../Pages/ThankYou/ThankYouMobile";
 import PaymentPending from "../Pages/ThankYou/PaymentPending";
 import PaymentError from "../Pages/ThankYou/PaymentError";
 import Error from "../Pages/ThankYou/error";
+import LoadingScreen from "../Component/Loader";
 
 const Layout = ({ children }) => {
   const location = useLocation();
@@ -73,6 +74,28 @@ const UserRouting = () => {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  const [initialLoading, setInitialLoading] = useState(true);
+
+  useEffect(() => {
+    Aos.init();
+
+    // FIRST TIME APP LOAD LOADER
+    const timer = setTimeout(() => {
+      setInitialLoading(false);
+    }, 4000); // you can reduce/increase time
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (initialLoading) {
+    return (
+      <LoadingScreen
+        isAppLoading={initialLoading}
+        onFinish={() => setInitialLoading(false)}
+      />
+    );
+  }
 
   return (
     <Router>

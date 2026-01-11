@@ -134,6 +134,13 @@ route.post("/login", async (req, res) => {
       });
     }
 
+     if (user.User_Status === false) {
+      return res.status(403).json({
+        type: "error",
+        message: "Your account is not approved yet. Please contact to admin.",
+      });
+    }
+
     // 4️⃣ Verify password
     const isMatch = await bcrypt.compare(password, user.User_Password);
 
@@ -665,6 +672,76 @@ route.patch("/update/byAdmin/:id", async (req, res) => {
       type: "success",
       message: "Retailer approved and approval mail sent.",
       data: updatedUser,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      type: "error",
+      message: "Server Error!",
+      errorMessage: error.message,
+    });
+  }
+});
+
+// need more details from retailer by admin
+route.post("/needMoreDetails/byAdmin/:id", async (req, res) => {
+  const userId = req.params.id;
+  const { remarks } = req.body;
+
+  try {
+    /* ---------------- VALIDATION ---------------- */
+    if (!remarks || !remarks.trim()) {
+      return res.status(400).json({
+        type: "error",
+        message: "Remarks is required",
+      });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        type: "error",
+        message: "User not found!",
+      });
+    }
+
+    /* ---------------- OPTIONAL: SAVE REMARKS ---------------- */
+    user.Admin_Remarks = remarks;
+    user.Admin_Remarks_At = new Date();
+    await user.save();
+
+    /* ---------------- SEND MAIL TO RETAILER ---------------- */
+    const mailHtml = `
+      <div style="font-family: Arial, sans-serif; line-height: 1.6;">
+        <h2>Hello ${user.User_Name || "Retailer"},</h2>
+
+        <p>Our admin team has reviewed your profile and needs some additional information.</p>
+
+        <p><b>Admin Remarks:</b></p>
+        <div style="background:#f5f5f5;padding:12px;border-radius:5px;">
+          ${remarks}
+        </div>
+
+        <br/>
+        <p>Kindly share all the above details with us at your earliest convenience so we can proceed further.</p>
+
+        <br/>
+        <p>Regards,</p>
+        <p><b>Team ${process.env.APP_NAME || "Xclusive Diamonds"}</b></p>
+      </div>
+    `;
+
+    await transporter.sendMail({
+      from: process.env.SMTP_FROM_EMAIL,
+      to: user.User_Email,
+      subject: "Additional Information Required for Your Retailer Account",
+      html: mailHtml,
+    });
+
+    return res.status(200).json({
+      type: "success",
+      message: "Request for more details sent to retailer",
+      data: user,
     });
   } catch (error) {
     console.error(error);

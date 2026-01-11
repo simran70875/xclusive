@@ -87,7 +87,6 @@ async function copyLocalImage(imagePath, uploadFolder) {
     };
   }
 
-  console.warn("Local image not found:", imagePath);
   return null;
 }
 
@@ -101,7 +100,6 @@ route.post(
       return res
         .status(400)
         .json({ type: "error", message: "CSV not uploaded" });
-    console.log(" CSV ==> ", req.file);
 
     const uploadFolder = "./imageUploads/backend/product";
     const rows = [];
@@ -202,8 +200,6 @@ route.post(
 
               productImagesArray = productImagesArray.filter(Boolean);
             }
-
-            console.log(productImagesArray);
 
             // 5️⃣ CREATE PRODUCT FIRST
             const newProduct = await Product.create({
@@ -333,7 +329,7 @@ route.post(
   upload.array("images", 5),
   async (req, res) => {
     try {
-      const {
+      let {
         Product_Name,
         SKU_Code,
         Category,
@@ -342,9 +338,6 @@ route.post(
         Description,
       } = req.body;
 
-      console.log("req.files product images ==> ", req.files);
-
-      // Validate product images
       if (!req.files || req.files.length === 0) {
         return res.status(202).json({
           type: "warning",
@@ -352,16 +345,18 @@ route.post(
         });
       }
 
-      const categoryIds = Category.split(",");
+      // ✅ normalize SKU
+      SKU_Code = SKU_Code.trim().toUpperCase();
 
-      // 🔍 CHECK IF SKU ALREADY EXISTS
-      const existingProductCode = await Product.findOne({
-        SKU_Code: { $regex: `^${SKU_Code}$`, $options: "i" },
-      });
+      const categoryIds = Array.isArray(Category)
+        ? Category
+        : Category.split(",");
 
-      if (existingProductCode) {
-        // delete uploaded images
-        req.files?.forEach((f) => f?.path && fs.unlinkSync(f.path));
+      /* ---------- SKU CHECK (SECONDARY SAFETY) ---------- */
+      const existingProduct = await Product.findOne({ SKU_Code });
+
+      if (existingProduct) {
+        req.files.forEach((f) => f?.path && fs.unlinkSync(f.path));
 
         return res.status(202).json({
           type: "warning",
@@ -369,16 +364,14 @@ route.post(
         });
       }
 
-      // 📸 Handle Multiple Images
-      const Product_Images = (req.files || []).map((file) => {
+      /* ---------- HANDLE IMAGES ---------- */
+      const Product_Images = req.files.map((file) => {
         const ext = path.extname(file.originalname);
-        const imageFilename = `${Product_Name.replace(
-          /\s/g,
-          "_"
-        )}_${Date.now()}_${Math.floor(Math.random() * 9999)}${ext}`;
+        const imageFilename = `${Product_Name.replace(/\s/g, "_")}_${Date.now()}_${Math.floor(
+          Math.random() * 9999
+        )}${ext}`;
 
         const newPath = `imageUploads/backend/product/${imageFilename}`;
-
         fs.renameSync(file.path, newPath);
 
         return {
@@ -388,8 +381,8 @@ route.post(
         };
       });
 
-      // 🆕 CREATE PRODUCT
-      const product = new Product({
+      /* ---------- CREATE PRODUCT ---------- */
+      const product = await Product.create({
         Product_Name,
         SKU_Code,
         Category: categoryIds,
@@ -400,99 +393,197 @@ route.post(
         Product_Images,
       });
 
-      await product.save();
-
       return res.status(200).json({
         type: "success",
         message: "Product added successfully!",
         productId: product._id,
       });
+
     } catch (error) {
       req.files?.forEach((f) => f?.path && fs.unlinkSync(f.path));
+
+      // 🔥 HANDLE DUPLICATE KEY ERROR
+      if (error.code === 11000) {
+        return res.status(202).json({
+          type: "warning",
+          message: "Product with same SKU already exists.",
+        });
+      }
 
       console.error(error);
       return res.status(500).json({
         type: "error",
         message: "Server Error!",
-        errorMessage: error,
       });
     }
   }
 );
 
+
 // get all product
 route.get("/get", async (req, res) => {
   try {
-    // COMMON POPULATE FIELDS
-    const populateFields = [
-      { path: "Category", select: "Category_Name" },
-      { path: "Brand_Name", select: "Data_Name" },
-      { path: "Collections", select: "Data_Name" },
-    ];
+    const products = await Product.aggregate([
+      { $sort: { createdAt: -1 } },
 
-    // 🔹 Fetch all products (Admin)
-    const allProducts = await Product.find()
-      .sort({ createdAt: -1 })
-      .populate(populateFields);
+      /* ---------- POPULATE CATEGORY ---------- */
+      {
+        $lookup: {
+          from: "categories",
+          localField: "Category",
+          foreignField: "_id",
+          as: "Category"
+        }
+      },
 
-    if (!allProducts)
+      { $unwind: { path: "$Category", preserveNullAndEmptyArrays: true } },
+
+      /* ---------- CATEGORY HIERARCHY ---------- */
+      {
+        $graphLookup: {
+          from: "categories",
+          startWith: "$Category.Parent_Category",
+          connectFromField: "Parent_Category",
+          connectToField: "_id",
+          as: "categoryHierarchy"
+        }
+      },
+
+      /* ---------- ORDER TOP → CHILD ---------- */
+      {
+        $addFields: {
+          categoryHierarchy: {
+            $reverseArray: "$categoryHierarchy"
+          }
+        }
+      },
+
+      /* ---------- STRING PATH ---------- */
+      {
+        $addFields: {
+          category_path: {
+            $reduce: {
+              input: {
+                $concatArrays: [
+                  {
+                    $map: {
+                      input: "$categoryHierarchy",
+                      as: "cat",
+                      in: "$$cat.Category_Name"
+                    }
+                  },
+                  ["$Category.Category_Name"]
+                ]
+              },
+              initialValue: "",
+              in: {
+                $cond: [
+                  { $eq: ["$$value", ""] },
+                  "$$this",
+                  { $concat: ["$$value", " > ", "$$this"] }
+                ]
+              }
+            }
+          }
+        }
+      },
+
+      /* ---------- POPULATE BRAND ---------- */
+      {
+        $lookup: {
+          from: "datas",
+          localField: "Brand_Name",
+          foreignField: "_id",
+          as: "Brand_Name"
+        }
+      },
+      { $unwind: { path: "$Brand_Name", preserveNullAndEmptyArrays: true } },
+
+      /* ---------- POPULATE COLLECTION ---------- */
+      {
+        $lookup: {
+          from: "datas",
+          localField: "Collections",
+          foreignField: "_id",
+          as: "Collections"
+        }
+      },
+      { $unwind: { path: "$Collections", preserveNullAndEmptyArrays: true } }
+    ]);
+
+    if (!products.length) {
       return res.status(404).json({
         type: "warning",
-        message: "Products not found!",
+        message: "Products not found!"
       });
+    }
 
-    // 🔹 Admin formatted list
-    const adminProducts = allProducts.map((p) => ({
+    /* ================= ADMIN PRODUCTS ================= */
+    const adminProducts = products.map((p) => ({
       _id: p._id,
       Product_Name: p.Product_Name,
       SKU_Code: p.SKU_Code,
       Product_Images: p.Product_Images,
+
       Brand: {
         _id: p.Brand_Name?._id,
-        Brand_Name: p.Brand_Name?.Data_Name,
-      },
-      Collections: {
-        _id: p.Collections?._id,
-        Collections: p.Collections?.Data_Name,
+        Brand_Name: p.Brand_Name?.Data_Name
       },
 
-      Variation_Count: p.Variation.length,
+      Collections: {
+        _id: p.Collections?._id,
+        Collections: p.Collections?.Data_Name
+      },
+
+      Variation_Count: p.Variation?.length || 0,
       Popular_pick: p.Popular_pick,
       Trendy_collection: p.Trendy_collection,
       HomePage: p.HomePage,
       Product_Status: p.Product_Status,
       Product_Label: p.Product_Label,
       Shipping: p.Shipping,
-      category: p.Category[0]?.Category_Name,
+
+      // ✅ NEW
+      category_path: p.category_path,
+
+      // old fields kept
+      category: p.Category?.Category_Name,
       brand: p.Brand_Name?.Data_Name,
       collection: p.Collections?.Data_Name,
+      createdAt: p.createdAt,
+      updatedAt:p.updatedAt
     }));
 
-    // 🔹 FRONTEND products (only active)
-    const activeProducts = allProducts.filter((p) => p.Product_Status === true);
+    /* ================= FRONTEND PRODUCTS ================= */
+    const frontendProducts = products
+      .filter((p) => p.Product_Status === true)
+      .map((p) => ({
+        _id: p._id,
+        Product_Name: p.Product_Name,
+        SKU_Code: p.SKU_Code,
+        Product_Label: p.Product_Label,
 
-    const frontendProducts = activeProducts.map((p) => ({
-      _id: p._id,
-      Product_Name: p.Product_Name,
-      SKU_Code: p.SKU_Code,
-      Product_Label: p.Product_Label,
-    }));
+        // optional but useful for frontend
+        category_path: p.category_path
+      }));
 
-    // 🔹 RESPONSE
+    /* ================= RESPONSE ================= */
     res.json({
       type: "success",
       message: "Products found successfully!",
       product: adminProducts,
-      product_data: frontendProducts,
+      product_data: frontendProducts
     });
+
   } catch (error) {
     console.error(error);
     res.status(500).json({
       type: "error",
-      message: "Failed to fetch products",
+      message: "Failed to fetch products"
     });
   }
 });
+
 
 // get all products or perform universal search
 route.get("/list/getAll", async (req, res) => {
@@ -970,8 +1061,6 @@ route.get("/mob/get/single/:id", async (req, res) => {
         ratings: ratings,
       };
 
-      console.log("result ==> ", result);
-
       res.status(200).json({ type: "success", message: "Products found successfully!", product: result });
     }
   } catch (error) {
@@ -1156,7 +1245,7 @@ route.patch("/update/shipping/:id", checkAdminOrRole2, async (req, res) => {
 route.patch(
   "/update/:id",
   checkAdminOrRole2,
-  upload.single("image"),
+  upload.array("images", 5),
   async (req, res) => {
     try {
       const productId = req.params.id;
@@ -1166,109 +1255,103 @@ route.patch(
         Category,
         Brand_Name,
         Collections,
-        Product_Dis_Price,
-        Product_Ori_Price,
-        Max_Dis_Price,
         Description,
+        existingImages,
       } = req.body;
 
-      const categoryIdsArray = Category.split(","); // Convert comma-separated string to an array
-      const categoryObjectIds = categoryIdsArray.map(
-        (cat) => new mongoose.Types.ObjectId(cat)
-      );
-
+      /* ---------- FIND PRODUCT ---------- */
       const existingProduct = await Product.findById(productId);
-
       if (!existingProduct) {
-        if (req.file) {
-          fs.unlinkSync(req?.file?.path);
-        }
         return res.status(404).json({
           type: "warning",
           message: "Product not found!",
         });
       }
 
-      // Check if the product name is being changed and if there is another product with the same name and category
-      if (
-        Product_Name.toLowerCase() !==
-        existingProduct.Product_Name.toLowerCase() ||
-        Category !== existingProduct.Category
-      ) {
-        const duplicateProduct = null;
+      /* ---------- CATEGORY ---------- */
+      if (Category) {
+        const categoryIds = Array.isArray(Category)
+          ? Category
+          : Category.split(",");
+        existingProduct.Category = categoryIds.map(
+          (id) => new mongoose.Types.ObjectId(id)
+        );
+      }
 
-        if (duplicateProduct) {
-          if (req.file) {
-            fs.unlinkSync(req?.file?.path);
-          }
+      /* ---------- SKU CHECK ---------- */
+      if (
+        SKU_Code &&
+        SKU_Code.trim().toUpperCase() !== existingProduct.SKU_Code
+      ) {
+        const duplicateSKU = await Product.findOne({
+          SKU_Code: SKU_Code.trim().toUpperCase(),
+          _id: { $ne: productId },
+        });
+
+        if (duplicateSKU) {
           return res.status(202).json({
             type: "warning",
-            message:
-              "Product with the same Product_Name already exists for the selected Category.",
+            message: "Product with same SKU already exists!",
           });
         }
       }
 
-      existingProduct.Product_Name = Product_Name;
-      existingProduct.SKU_Code = SKU_Code;
-      if (!Category == undefined || !Category == "") {
-        existingProduct.Category = categoryObjectIds;
+      /* ---------- UPDATE FIELDS ---------- */
+      if (Product_Name) existingProduct.Product_Name = Product_Name;
+      if (SKU_Code)
+        existingProduct.SKU_Code = SKU_Code.trim().toUpperCase();
+
+      if (Brand_Name) existingProduct.Brand_Name = Brand_Name;
+      if (Collections) existingProduct.Collections = Collections;
+      if (Description !== undefined)
+        existingProduct.Description = Description;
+
+      /* ---------- HANDLE EXISTING IMAGES ---------- */
+      let finalImages = [];
+      if (existingImages) {
+        finalImages = JSON.parse(existingImages);
       }
-      if (!Brand_Name == undefined || !Brand_Name == "") {
-        existingProduct.Brand_Name = Brand_Name;
+
+      /* ---------- HANDLE NEW IMAGES ---------- */
+      if (req.files && req.files.length > 0) {
+        const newImages = req.files.map((file) => {
+          const ext = path.extname(file.originalname);
+          const filename = `${existingProduct.Product_Name.replace(
+            /\s/g,
+            "_"
+          )}_${Date.now()}${ext}`;
+
+          const imagePath = `imageUploads/backend/product/${filename}`;
+          fs.renameSync(file.path, imagePath);
+
+          return {
+            filename,
+            path: imagePath,
+            originalname: file.originalname,
+          };
+        });
+
+        finalImages = [...finalImages, ...newImages];
       }
-      if (!Collections == undefined || !Collections == "") {
-        existingProduct.Collections = Collections;
-      }
 
-      existingProduct.Product_Dis_Price = Product_Dis_Price;
-      existingProduct.Product_Ori_Price = Product_Ori_Price;
-      existingProduct.Max_Dis_Price = Max_Dis_Price;
-      existingProduct.Description = Description;
-
-      // Handle the image update
-      if (req.file) {
-        if (
-          existingProduct.Product_Image &&
-          existingProduct.Product_Image.filename
-        ) {
-          // Remove the previous image
-          // fs.unlinkSync(existingProduct?.Product_Image.path);
-        }
-
-        const originalFilename = req.file.originalname;
-        const extension = originalFilename.substring(
-          originalFilename.lastIndexOf(".")
-        );
-        const imageFilename = `${Product_Name.replace(/\s/g, "_")}${extension}`;
-        const imagePath = "imageUploads/backend/product/" + imageFilename;
-
-        fs.renameSync(req?.file?.path, imagePath);
-
-        const image = {
-          filename: imageFilename,
-          path: imagePath,
-          originalname: originalFilename,
-        };
-        existingProduct.Product_Image = image;
-      }
+      existingProduct.Product_Images = finalImages;
 
       await existingProduct.save();
 
-      res
-        .status(200)
-        .json({ type: "success", message: "Product updated successfully!" });
+      return res.status(200).json({
+        type: "success",
+        message: "Product updated successfully!",
+      });
     } catch (error) {
-      if (req?.file) {
-        fs.unlinkSync(req?.file?.path);
-      }
-      res
-        .status(500)
-        .json({ type: "error", message: "Server Error!", errorMessage: error });
-      console.log(error);
+      console.error(error);
+      return res.status(500).json({
+        type: "error",
+        message: "Server Error!",
+      });
     }
   }
 );
+
 
 route.get("/lowstockproducts/get", checkAdminOrRole2, async (req, res) => {
   try {

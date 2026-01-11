@@ -20,6 +20,8 @@ const ShowProduct = () => {
   const adminToken = localStorage.getItem("token");
 
   const [productData, setProductData] = useState([]);
+  console.log("productData ==> ", productData);
+
   const [selectedRows, setSelectedRows] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(true);
@@ -46,6 +48,19 @@ const ShowProduct = () => {
 
   const columns = [
     {
+      field: "createdAt",
+      headerName: "Created At",
+      width: 100,
+      filterable: true,
+      sortable: true,
+      filterType: "multiselect",
+      renderCell: (params) => {
+        if (!params.value) return "";
+        return new Date(params.value).toLocaleDateString("en-IN");
+        // example: 06/01/2026
+      },
+    },
+    {
       field: "Product_Images",
       headerName: "Image",
       width: 90,
@@ -63,19 +78,6 @@ const ShowProduct = () => {
       filterable: false,
     },
     {
-      field: "_id",
-      flex: 2,
-      headerName: "Id",
-    },
-    {
-      field: "Product_Name",
-      headerName: "Product Name",
-      flex: 2,
-      filterable: true,
-      sortable: true,
-      filterType: "multiselect",
-    },
-    {
       field: "SKU_Code",
       headerName: "SKU Code",
       width: 90,
@@ -84,12 +86,42 @@ const ShowProduct = () => {
       filterType: "multiselect",
     },
     {
-      field: "category",
-      headerName: "Category",
-      width: 90,
+      field: "Product_Name",
+      headerName: "Product Name",
+      width: 300,
       filterable: true,
       sortable: true,
+      filterType: "multiselect",
+      renderCell: (params) => {
+        return (
+          <div
+            style={{
+              textTransform: "capitalize",
+            }}
+          >
+            {params.value}
+          </div>
+        );
+      },
+    },
 
+    {
+      field: "category_path",
+      headerName: "Category",
+      width: 300,
+      filterable: true,
+      sortable: true,
+      renderCell: (params) => {
+        return (
+          <div
+            style={{
+              textTransform: "capitalize",
+            }}
+          >
+            {params.value}
+          </div>
+        );
+      },
       filterType: "multiselect",
     },
     {
@@ -111,13 +143,13 @@ const ShowProduct = () => {
     {
       field: "Features",
       headerName: "Features",
-      flex: 1,
+      width: 190,
       renderCell: (params) => {
         const selectedFeature = params.row["Features"];
         return (
           <FormControl variant="outlined" size="small">
             <Select
-              style={{ height: "20px", width: "100px" }}
+              style={{ height: "20px", width: "100%" }}
               value={getSelectedFeatureValue(params.row)}
               onChange={(e) =>
                 handleProductFeatures(params.row, !params.value, e.target.value)
@@ -138,7 +170,7 @@ const ShowProduct = () => {
     {
       field: "Product_Status",
       headerName: "Status",
-      flex: 1,
+      width: 120,
       renderCell: (params) => (
         <div className="form-check form-switch">
           <input
@@ -164,7 +196,7 @@ const ShowProduct = () => {
     {
       field: "action",
       headerName: "Action",
-      flex: 1,
+      width: 90,
       renderCell: (params) => (
         <Stack direction="row">
           <IconButton
@@ -567,6 +599,15 @@ const ShowProduct = () => {
                     </div>
                   )}
                 </div>
+
+                <a
+                  href="/products.xlsx"
+                  className="btn btn-primary waves-effect waves-light"
+                  download
+                >
+                  Export Product Template
+                  <i className="fas fa-download ms-2"></i>
+                </a>
               </div>
               <div className="searchContainer mb-3">
                 <div className="searchBarcontainer">

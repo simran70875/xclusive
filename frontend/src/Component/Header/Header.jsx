@@ -38,10 +38,6 @@ import { getSearchProductApi } from "../../Features/Product/Product";
 import { getWishListApi } from "../../Features/WishList/WishList";
 import { geCartListApi } from "../../Features/AddCart/AddCart";
 
-// import Marquee from "react-fast-marquee";
-// import axios from "axios";
-// import { apiUrl } from "../../Constant";
-
 function Header() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -74,6 +70,8 @@ function Header() {
       return bHasChildren - aHasChildren;
     });
   }, [catagoryItem]);
+
+  console.log(catagoryItem)
 
   // 🔹 helper function (ADD THIS ABOVE megaMenu)
   const sortByChildrenFirst = (list = []) => {
@@ -110,20 +108,6 @@ function Header() {
       },
     });
   };
-
-  // useEffect(() => {
-  //   async function getExistingMarquee() {
-  //     try {
-  //       const response = await axios.get(apiUrl.GET_MARQUEE);
-  //       console.log("marquee text ==> ", response.data);
-  //       setText(response.data.marquee.text);
-  //     } catch (error) {
-  //       console.error(error);
-  //     }
-  //   }
-
-  //   getExistingMarquee();
-  // }, [userToken]);
 
   const handlesubmit = () => {
     navigate(routes.homepageUrl);
@@ -554,6 +538,7 @@ function Header() {
                 span={8}
                 style={{
                   backgroundColor: "#e9e9e9",
+                  paddingBottom:20,
                 }}
               >
                 <h3 className={styles.bestTitle}>Best Selling</h3>
@@ -579,9 +564,7 @@ function Header() {
 
   return (
     <div className="">
-      {/* <Marquee className={styles.offer}>{text}</Marquee> */}
-
-      <Row style={{ background: "#000", padding: 20 }} justify="space-between">
+      <Row style={{ background: "#492b18", padding: 20 }} justify="space-between">
         <Col xs={6} md={6} lg={6} xl={6} xxl={6}>
           <div
             style={{ cursor: "pointer", color: "#fff" }}
@@ -777,8 +760,8 @@ function Header() {
                 About Us
               </div>
             </Col>
-            <Col>
-              {sortedCategories?.map((item) => (
+            {sortedCategories?.map((item) => (
+              <Col>
                 <Dropdown
                   key={item._id}
                   menu={megaMenu(item)}
@@ -786,10 +769,10 @@ function Header() {
                   overlayClassName={styles.megaDropdown}
                 >
                   {/* SINGLE CHILD – REQUIRED */}
-                  <span className={styles.navItem}>Categories</span>
+                  <div className={styles.navItem}>{item?.Category_Name}</div>
                 </Dropdown>
-              ))}
-            </Col>
+              </Col>
+            ))}
             <Col>
               <div className={styles.navItem} onClick={() => Catagory("all")}>
                 Shop

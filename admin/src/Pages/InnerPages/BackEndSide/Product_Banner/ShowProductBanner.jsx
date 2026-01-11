@@ -24,7 +24,7 @@ const ShowProductBanner = () => {
     const [bannerName, setBannerName] = useState("");
     const [selectedRows, setSelectedRows] = useState([]);
     const [searchQuery, setSearchQuery] = useState("");
-    const [isLoading, setIsLoading] = useState(true)
+    const [isLoading, setIsLoading] = useState(true);
 
     // for big image
     const [selectedImage, setSelectedImage] = useState("");
@@ -65,17 +65,17 @@ const ShowProductBanner = () => {
             filterType: "multiselect",
         },
         {
-            field: "Banner_Image",
+            field: "banner_Image",
             headerName: "Image",
             width: 100,
             renderCell: (params) => (
                 <img
-                    src={params?.row?.Banner_Image}
+                    src={params?.row?.banner_Image}
                     alt="Banner Image"
                     height={35}
                     width={35}
                     style={{ borderRadius: '50%', cursor: "pointer" }}
-                    onClick={() => handleImageClick(params?.row?.Banner_Image)}
+                    onClick={() => handleImageClick(params?.row?.banner_Image)}
                 />
             ),
             sortable: false,

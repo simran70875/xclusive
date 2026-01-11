@@ -17,10 +17,6 @@ const variationSchema = mongoose.Schema(
       },
     ],
 
-    SKU_Code: {
-      type: String,
-    },
-
     // Yellow Gold, Rose Gold, White Gold
     Variation_Name: {
       type: String,
@@ -70,7 +66,12 @@ const productSchema = mongoose.Schema(
     },
     SKU_Code: {
       type: String,
+      required: true,
+      unique: true,
+      trim: true,
+      uppercase: true,
     },
+
     Category: [
       {
         type: mongoose.Schema.Types.ObjectId,

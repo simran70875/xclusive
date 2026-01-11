@@ -41,8 +41,6 @@ import { geCartListApi } from "../../Features/AddCart/AddCart";
 import { getProfileApi } from "../../Features/User/User";
 
 import styles from "./index.module.scss";
-import axios from "axios";
-import { apiUrl } from "../../Constant";
 
 function Summery() {
   const [form] = Form.useForm();
@@ -52,8 +50,10 @@ function Summery() {
   const addressList = useSelector((state) => state.address?.addressData);
   const userToken = useSelector((state) => state.user?.token);
   const cartlist = useSelector((state) => state.addCart?.cartListData);
-  const profileData = useSelector((state) => state.user?.profileData);
   const couponListData = useSelector((state) => state.setting?.couponCodeData);
+
+  console.log("couponListData ==> ", couponListData);
+
   const loader = useSelector((state) => state.addCart?.isAddCartLoad);
   const loaderAddress = useSelector((state) => state.address?.isAddressLoading);
   const loaderCoupon = useSelector((state) => state.setting?.settingLoading);
@@ -80,11 +80,6 @@ function Summery() {
     dispatch(geCartListApi(userToken));
     dispatch(getProfileApi(userToken));
     dispatch(getCouponCodeApi(userToken));
-    // let qty = 0;
-    // cartlist?.cartItems.forEach((x) => {
-    //   qty += x.Quantity;
-    // });
-    // setQuienty(qty);
   }, [quienty, couponPrice, applyCoupon]);
 
   const handleAddreesRemove = (item) => {
@@ -168,12 +163,6 @@ function Summery() {
   };
 
   const TotalAmount = () => {
-    // if (applyCoupon?.[0]?.discountAmount) {
-    //   return Number(cartlist?.totalAmount) - quienty * 100;
-    // }
-
-    console.log("couponPrice", couponPrice, applyCoupon);
-
     if (couponPrice) {
       return Number(cartlist?.totalAmount) - Number(couponPrice);
     } else {
@@ -204,8 +193,6 @@ function Summery() {
   const handleSubmit = async () => {
     let totalQty = 0;
 
-    console.log("cart list ", cartlist)
-
     cartlist?.cartItems?.forEach((item) => {
       totalQty += item.Quantity;
     });
@@ -220,19 +207,16 @@ function Summery() {
     const payload = {
       Coupon: couponId || "",
       CouponPrice: couponPrice
-        ? Number(couponPrice) * totalQty
+        ? Number(couponPrice)
         : applyCoupon?.[0]?.discountAmount
-        ? Number(applyCoupon?.[0]?.discountAmount) * totalQty
+        ? Number(applyCoupon?.[0]?.discountAmount)
         : 0,
 
       OriginalPrice: Number(cartlist?.totalOriginalAmount),
       DiscountPrice: Number(cartlist?.totalDiscount),
       Shipping_Charge: Number(cartlist?.ShippingCharge || 0),
       FinalPrice: Number(cartlist?.totalAmount),
-
       Address: addressId,
-
-      // Manual payment handled by admin
       payment_mode: "COD",
       order_status: "Pending",
       reason: "",
@@ -361,20 +345,10 @@ function Summery() {
                           <p className={styles.price1}>
                             £{item?.originalPrice}
                           </p>
-                          {/* <span className={styles.price2}>
-                            £{item?.originalPrice}
-                          </span> */}
                         </div>
                       </div>
                     </>
                   ))}
-
-                  {/* <div className={styles.delivery}>
-                    <Image preview={false} src={delivery} alt="delivery" />
-                    <p className={styles.business}>
-                      Estimated delivery by 5 to 7 business days
-                    </p>
-                  </div> */}
 
                   <div className={styles.code}>
                     <div className={styles.enter}>
@@ -429,48 +403,29 @@ function Summery() {
                       <p className={styles.pro1}>
                         £{cartlist?.totalOriginalAmount}
                       </p>
-                      {/* <span className={styles.pro2}>
-                        £{cartlist?.totalOriginalAmount}
-                      </span> */}
                     </div>
                   </div>
+
                   <div className={styles.coupon}>
                     <p className={styles.coupon1} style={{ color: "black" }}>
                       Shipping Charge
                     </p>
                     <p className={styles.coupon2} style={{ color: "black" }}>
-                      £{cartlist?.ShippingCharge ? cartlist?.ShippingCharge : 0}
+                      + £
+                      {cartlist?.ShippingCharge ? cartlist?.ShippingCharge : 0}
                     </p>
                   </div>
-                  {ordertype === "cash" ? (
-                    ""
-                  ) : (
+
+                  {couponPrice ? (
                     <div className={styles.coupon}>
-                      {applyCoupon?.[0]?.discountAmount ? (
-                        <>
-                          <p className={styles.coupon1}>Coupon Discount</p>
-                          <p className={styles.coupon2}>
-                            £
-                            {applyCoupon?.[0]?.discountAmount
-                              ? applyCoupon?.[0]?.discountAmount * quienty
-                              : 0}
-                          </p>
-                        </>
-                      ) : (
-                        <>
-                          <p className={styles.coupon1}>Coupon Discount</p>
-                          <p className={styles.coupon2}>
-                            £
-                            {couponPrice
-                              ? couponPrice * quienty
-                              : couponName === ""
-                              ? 0
-                              : 0}
-                          </p>
-                        </>
-                      )}
+                      <p className={styles.coupon1} style={{ color: "black" }}>
+                        Coupon Price
+                      </p>
+                      <p className={styles.coupon2} style={{ color: "black" }}>
+                        - £{couponPrice}
+                      </p>
                     </div>
-                  )}
+                  ): null}
 
                   <div className={styles.blank3}></div>
                   <div style={{ margin: 0 }} className={styles.amount}>

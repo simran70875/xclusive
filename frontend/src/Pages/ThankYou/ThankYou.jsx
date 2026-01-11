@@ -55,7 +55,6 @@ function ThankYou() {
 
   const handleSubmit = () => {
     navigate(routes.homepageUrl);
-    
   };
 
   return (
@@ -66,20 +65,8 @@ function ThankYou() {
         </div>
         <h1>Payment Successful!</h1>
         <p className={styles.message}>
-          Thank you! Your payment of Rs.{" "}
-          {orderDetails?.PaymentType === "0"
-            ? orderDetails?.FinalPrice
-            : orderDetails?.PaymentType === "1"
-            ? orderDetails?.ActualPayment + orderDetails?.walletAmount + orderDetails?.CouponPrice || orderDetails?.walletAmount + orderDetails?.CouponPrice
-            : orderDetails?.cod_advance_amt}{" "}
-          has been received.
+          Your order has been placed successfully.
         </p>
-
-        {orderDetails?.PaymentId !== "0" && (
-          <p style={{ fontSize: 13 }}>
-            <strong>Transaction ID:</strong> {orderDetails?.PaymentId}
-          </p>
-        )}
 
         <div className={styles.paymentDetails}>
           <div className={styles.detailRow}>
@@ -90,69 +77,33 @@ function ThankYou() {
             <span>Order ID:</span>
             <span>{orderDetails?.orderId}</span>
           </div>
-        
+
           <div className={styles.detailRow}>
-            <span>Total Amount:</span>
-            <span>
-              £ {orderDetails?.FinalPrice + orderDetails?.CouponPrice}{" "}
-            </span>
+            <span>Sub Total Amount:</span>
+            <span>£ {orderDetails?.OriginalPrice}</span>
           </div>
 
-
-          {orderDetails?.cod_advance_amt > 0 && (
-            <div className={styles.detailRow}>
-              <span>COD advance amount:</span>
-              <span>£ {orderDetails?.cod_advance_amt}</span>
-            </div>
-          )}
+          <div className={styles.detailRow}>
+            <span>Shiping Charges:</span>
+            <span>+ £{orderDetails?.Shipping_Charge}</span>
+          </div>
 
           {orderDetails?.CouponPrice > 0 && (
             <div className={styles.detailRow}>
               <span>Coupon Amount:</span>
-              <span>£ {orderDetails?.CouponPrice}</span>
+              <span>- £{orderDetails?.CouponPrice}</span>
             </div>
           )}
 
-          {orderDetails?.walletAmount > 0 && (
             <div className={styles.detailRow}>
-              <span>Wallet Amount:</span>
-              <span>£ {orderDetails?.walletAmount}</span>
+              <span>Toatl Amount:</span>
+              <span>£{orderDetails?.OriginalPrice + orderDetails?.Shipping_Charge - orderDetails?.CouponPrice}</span>
             </div>
-          )}
+          
 
-         
-
-          {orderDetails?.PaymentType != "0" &&
-            orderDetails?.ActualPayment != 0 &&
-            orderDetails?.FinalAdavnceCodPrice != 0 && (
-              <div className={styles.detailRow}>
-                <span>Online Paid:</span>
-                <span>
-                  £{" "}
-                  {orderDetails?.cod_advance_amt
-                    ? orderDetails?.FinalAdavnceCodPrice
-                    : orderDetails?.ActualPayment}
-                </span>
-              </div>
-            )}
-
-          <div className={styles.detailRow}>
-            <span>Payment Type:</span>
-            <span>
-              {orderDetails?.PaymentType === "0"
-                ? "Wallet"
-                : orderDetails?.PaymentType === "1"
-                ? "Online"
-                : "COD"}
-            </span>
-          </div>
           <div className={styles.detailRow}>
             <span>Payment Status:</span>
-            <span>
-              {orderDetails?.cod_status
-                ? orderDetails?.cod_status
-                : orderDetails?.payment_status}
-            </span>
+            <span>{orderDetails?.payment_status}</span>
           </div>
         </div>
 
@@ -170,7 +121,7 @@ function ThankYou() {
         </button>
 
         <p className={styles.contact}>
-          Please email to budaiexclusive@gmail.com for any queries.
+          Please email to xclusiveDimonds@gmail.com for any queries.
         </p>
       </div>
     </div>

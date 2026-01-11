@@ -12,6 +12,7 @@ const EditVariationSize = ({
   const [size, setSize] = useState(selectedSizeData?.Size_Name || "");
   const [stock, setStock] = useState(selectedSizeData?.Size_Stock || "");
   const [price, setPrice] = useState(selectedSizeData?.Size_Price || "");
+  const [purity, setPurity] = useState(selectedSizeData?.Size_purity || "");
 
   const handleUpdateSize = async (e) => {
     e.preventDefault();
@@ -24,6 +25,7 @@ const EditVariationSize = ({
           Size_Name: size,
           Size_Stock: stock,
           Size_Price: price,
+          Size_purity: purity,
         },
         {
           headers: {
@@ -37,6 +39,7 @@ const EditVariationSize = ({
           Size_Name: size,
           Size_Stock: stock,
           Size_Price: price,
+          Size_purity: purity,
         });
         handleCloseModal();
       } else {
@@ -66,43 +69,78 @@ const EditVariationSize = ({
                     </div>
                     <form onSubmit={handleUpdateSize}>
                       <div className="mb-3 row">
-                        <label
+                        {/* <label
                           htmlFor="example-text-input"
                           className="col-md-2 col-form-label"
                         >
                           Size:
-                        </label>
+                        </label> */}
                         <div className="col-md-3">
+                          <label
+                            htmlFor="size"
+                            className="col-form-label"
+                          >
+                            Size:
+                          </label>
                           <input
                             required
                             className="form-control"
-                            id="subcategory-select"
+                            id="size"
                             value={size}
                             onChange={(e) => setSize(e.target.value)}
                           />
                         </div>
                         <div className="col-md-3">
+                          <label
+                            htmlFor="stock"
+                            className="col-form-label"
+                          >
+                            Stock:
+                          </label>
                           <input
                             min="0"
                             required
                             className="form-control"
                             type="number"
-                            id="example-number-input"
+                            id="stock"
                             value={stock}
                             placeholder="Add Stock"
                             onChange={(e) => setStock(e.target.value)}
                           />
                         </div>
                         <div className="col-md-3">
+                           <label
+                            htmlFor="price"
+                            className="col-form-label"
+                          >
+                            Price:
+                          </label>
                           <input
                             min="0"
                             required
                             className="form-control"
                             type="number"
-                            id="example-number-input"
+                            id="price"
                             value={price}
                             placeholder="Add Price"
                             onChange={(e) => setPrice(e.target.value)}
+                          />
+                        </div>
+                        <div className="col-md-3">
+                            <label
+                            htmlFor="metal-purity"
+                            className="col-form-label"
+                          >
+                            Metal PUrity:
+                          </label>
+                          <input
+                            required
+                            className="form-control"
+                            type="text"
+                            id="metal-purity"
+                            value={purity}
+                            placeholder="Add Metal Purity"
+                            onChange={(e) => setPurity(e.target.value)}
                           />
                         </div>
                       </div>

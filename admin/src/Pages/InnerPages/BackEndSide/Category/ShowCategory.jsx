@@ -474,6 +474,15 @@ const ShowCategory = () => {
                     </div>
                   )}
                 </div>
+
+                <a
+                  href="/categories.xlsx"
+                  className="btn btn-primary waves-effect waves-light"
+                  download
+                >
+                  Export Category Template
+                  <i className="fas fa-download ms-2"></i>
+                </a>
               </div>
               <div className="searchContainer mb-3">
                 <div className="searchBarcontainer">

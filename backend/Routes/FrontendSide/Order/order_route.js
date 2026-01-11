@@ -11,7 +11,6 @@ const checkAdminRole = require("../../../Middleware/adminMiddleWares");
 const moment = require("moment-timezone");
 const order_counter_model = require("../../../Models/BackendSide/order_counter_model");
 const jwt = require("jsonwebtoken");
-const user_model = require("../../../Models/FrontendSide/user_model");
 const { transporter } = require("../../../utils/mailTransporter");
 
 const sendQuotationEmail = async ({
@@ -20,41 +19,13 @@ const sendQuotationEmail = async ({
   products,
   subtotal,
   tax,
+  coupon,
   deliveryCharges,
   total,
   orderId,
-  userId, // optional
+  userId,
 }) => {
   try {
-    const attachments = [];
-    const cidMap = await Promise.all(
-      products.map(async (item, i) => {
-        try {
-          const imagePath = item?.product?.Product_Images?.[0]?.path;
-          if (!imagePath) return null;
-
-          const response = await axios.get(imagePath, {
-            responseType: "arraybuffer",
-            timeout: 5000,
-          });
-
-          const ext = path.extname(imagePath) || ".jpg";
-          const cid = `product-${i}@quote`;
-
-          attachments.push({
-            filename: `product-${i}${ext}`,
-            content: Buffer.from(response.data, "binary"),
-            cid,
-          });
-
-          return cid;
-        } catch (err) {
-          console.warn("Image load failed:", err.message);
-          return null;
-        }
-      })
-    );
-
     /* ---------------- CONFIRM ORDER LINK ---------------- */
     let frontendUrl = process.env.frontendUrl;
     let confirmOrderUrl = frontendUrl;
@@ -71,14 +42,10 @@ const sendQuotationEmail = async ({
     /* ---------------- PRODUCT TABLE ---------------- */
     const productRows = products
       .map((item, i) => {
-        const cid = cidMap[i];
         return `
 <tr>
-  <td style="border:1px solid #ddd;padding:8px;text-align:center">
-    ${cid ? `<img src="cid:${cid}" width="80" />` : "N/A"}
-  </td>
   <td style="border:1px solid #ddd;padding:8px">
-    ${item.product?.Product_Name || "N/A"}
+    ${item.product?.product || "N/A"}
   </td>
   <td style="border:1px solid #ddd;padding:8px">
     ${item.product?.SKU_Code || ""}
@@ -107,7 +74,6 @@ const sendQuotationEmail = async ({
 <table style="border-collapse:collapse;width:100%">
   <thead>
     <tr>
-      <th style="border:1px solid #ddd;padding:8px">Image</th>
       <th style="border:1px solid #ddd;padding:8px">Product</th>
       <th style="border:1px solid #ddd;padding:8px">SKU</th>
       <th style="border:1px solid #ddd;padding:8px">Qty</th>
@@ -122,9 +88,10 @@ const sendQuotationEmail = async ({
 
 <p>
 <strong>Subtotal:</strong> £${subtotal.toFixed(2)}<br/>
-<strong>VAT:</strong> £${tax.toFixed(2)}<br/>
+<strong>Tax:</strong> £${tax.toFixed(2)}<br/>
+<strong>Coupon Price:</strong> £${coupon.toFixed(2)}<br/>
 <strong>Delivery:</strong> £${deliveryCharges.toFixed(2)}<br/>
-<strong>Total Payable:</strong> £${total.toFixed(2)}
+<strong>Total Payable:</strong> £${(subtotal + deliveryCharges - coupon).toFixed(2)}
 </p>
 
 ${
@@ -139,14 +106,14 @@ Confirm Your Order
 }
 
 <p>
-Thank you for choosing <b>Workwear</b>.<br/>
+Thank you for choosing <b>Xclusive Diamonds</b>.<br/>
 If you have any questions, just reply to this email.
 </p>
 
 <p>
-<b>Workwear Team</b><br/>
-📞 +44 17996 11006<br/>
-✉️ hello@work-safety.co.uk
+<b>Xclusive Diamonds Team</b><br/>
+📞 +44 11111 88888<br/>
+✉️ hello@xclusive-diamonds<.co.uk
 </p>
 `;
 
@@ -191,19 +158,17 @@ async function sendOrderCancelledEmail(order) {
   });
 }
 
-async function sendOrderEmails(orderId, userId) {
-  const order = await Order.findById(orderId).populate("userId");
-  const user = await user_model.findById(order.userId);
-
-  console.log("details ==>", order, user);
+async function sendOrderEmails(orderId, user) {
+  const order = await Order.findById(orderId);
 
   // Send to User
   await sendQuotationEmail({
-    email: user.email,
-    firstName: user.name,
+    email: user.User_Email,
+    firstName: user.User_Name,
     products: order.cartData,
     subtotal: order.OriginalPrice,
-    tax: order.DiscountPrice,
+    coupon: order.CouponPrice,
+    tax: order.tax | 0,
     deliveryCharges: order.Shipping_Charge,
     total: order.FinalPrice,
     orderId: order.orderId,
@@ -212,11 +177,12 @@ async function sendOrderEmails(orderId, userId) {
 
   // Send to Admin
   await sendQuotationEmail({
-    email: process.env.ADMIN_EMAIL,
+    email: process.env.SMTP_FROM_EMAIL,
     firstName: "Admin",
     products: order.cartData,
     subtotal: order.OriginalPrice,
-    tax: order.DiscountPrice,
+    coupon: order.CouponPrice,
+    tax: order.tax | 0,
     deliveryCharges: order.Shipping_Charge,
     total: order.FinalPrice,
     orderId: order.orderId,
@@ -415,8 +381,10 @@ route.post("/add", authMiddleware, async (req, res) => {
       reason: req.body.reason,
     });
 
-    // await Cart.deleteMany({ userId });
-    await sendOrderEmails(order._id, userId);
+    const user = await User.findById(userId);
+
+    await sendOrderEmails(order._id, user);
+    await Cart.deleteMany({ userId });
 
     return res.json({
       type: "success",

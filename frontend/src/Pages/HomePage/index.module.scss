@@ -554,14 +554,6 @@
     }
   }
 
-  .sectionTitle {
-    text-align: center;
-    padding-bottom: 50px;
-    font-size: 28px;
-    font-weight: 600;
-    letter-spacing: 1px;
-  }
-
   /* Card */
   .specBox {
     min-height: 220px;
@@ -592,51 +584,10 @@
     font-weight: 500;
     margin-bottom: 8px;
     color: #000;
+    font-family: "Playfair Display", serif !important;
   }
 
-  /* Product Count */
-  .productCount {
-    font-size: 14px;
-    color: #777;
-    margin-bottom: 20px;
-  }
-
-  /* Explore Button */
-  .exploreBtn {
-    background: transparent;
-    border: 1px solid #c9a24d; /* gold */
-    color: #c9a24d;
-
-    padding: 8px 22px;
-    border-radius: 20px;
-    font-size: 14px;
-    font-weight: 500;
-    letter-spacing: 0.4px;
-
-    transition: all 0.3s ease;
-  }
-
-  .exploreBtn:hover {
-    background: #c9a24d;
-    color: #fff;
-  }
-
-  /* Luxury Backgrounds */
-  .bg0 {
-    background: #fbf9f6;
-  }
-  .bg1 {
-    background: #f6f1ee;
-  }
-  .bg2 {
-    background: #f2f2f2;
-  }
-  .bg3 {
-    background: #f5efe6;
-  }
-  .bg4 {
-    background: #eef2f5;
-  }
+  
 }
 
 .capetalizeText {
@@ -740,5 +691,448 @@
       text-decoration: line-through;
       color: #998a85;
     }
+  }
+}
+
+.Catagory {
+  height: 100px;
+  width: 100px;
+  border-radius: 50%;
+  background-color: #f5f2eb;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 10px;
+  flex-direction: column;
+}
+
+.Catagory img {
+  width: 80px;
+  height: auto;
+}
+
+/* Container spacing */
+.carouselItemWrapper {
+  padding: 20px 12px;
+}
+
+.darkCard {
+  position: relative;
+  height: 250px;
+  border-radius: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  cursor: pointer;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  // box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+  transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+  margin: 0 10px;
+}
+
+/* Layer 1: Fixed Background Shapes */
+.shapeOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  /* Use a subtle geometric SVG or pattern here */
+  background-image: url("data:image/svg+xml,%3Csvg width='200' height='200' viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M40 40L160 160M160 40L40 160' stroke='white' stroke-opacity='0.05' stroke-width='2'/%3E%3C/svg%3E");
+  background-attachment: fixed; /* Keeps pattern stationary while scrolling */
+  opacity: 0.5;
+}
+
+/* Layer 2: Glass Effect Overlay */
+.glassTexture {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0) 0%,
+    rgba(0, 0, 0, 0.8) 100%
+  );
+  backdrop-filter: blur(2px);
+}
+
+/* Layer 3: Content */
+.contentLayer {
+  position: relative;
+  z-index: 3;
+  padding: 30px;
+  transform: translateY(10px);
+  transition: transform 0.4s ease;
+}
+
+.darkCard:hover .contentLayer {
+  transform: translateY(0px);
+}
+
+.topBadge {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: rgba(255, 255, 255, 0.5);
+  display: block;
+  margin-bottom: 8px;
+}
+
+.premiumTitle {
+  font-size: 24px;
+  font-weight: 700;
+  color: #fff;
+  margin: 0;
+      font-family: "Playfair Display", serif !important;
+
+}
+
+.itemCount {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.6);
+  margin-top: 5px;
+}
+
+/* Premium Button with Glass effect */
+.premiumBtn {
+  margin-top: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  padding: 10px 24px;
+  border-radius: 50px;
+  font-size: 14px;
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+}
+
+.darkCard:hover .premiumBtn {
+  background: #fff;
+  color: #000;
+}
+
+/* Dark Gradient Variations */
+.gradient0 {
+  background: linear-gradient(135deg, #1a1a1a 0%, #000000 100%);
+}
+.gradient1 {
+  background: linear-gradient(135deg, #492b18 0%, #000000 100%);
+}
+.gradient2 {
+  background: linear-gradient(135deg, #1a1a1a 0%, #000000 100%);
+}
+.gradient3 {
+  background: linear-gradient(135deg, #492b18 0%, #000000 100%);
+}
+
+/* Hover Effects */
+.darkCard:hover {
+  transform: scale(1.02);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.aboutSection {
+  padding: 50px 0;
+  background-color: #fcfaf8; /* Nude/Champagne base */
+  overflow: hidden;
+}
+
+.container {
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+/* Image Composition */
+.imageCompositor {
+  position: relative;
+  display: flex;
+  justify-content: center;
+}
+
+.mainImageWrapper {
+  width: 100%;
+  border-radius: 50% 50% 0 0; /* Modern Arch Shape */
+  overflow: hidden;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.05);
+}
+
+.mainImage {
+  width: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.floatingBadge {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  background: #492b18;
+  color: #fff;
+  padding: 15px;
+  border-radius: 50%;
+  width: 70px;
+  height: 70px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.badgeYear {
+  font-size: 15px;
+  color: #d4c0ab;
+}
+.badgeDate {
+  font-size: 14px;
+  font-weight: 700;
+  color: #d4c0ab;
+}
+
+/* Content Styling */
+.overline {
+  text-transform: uppercase;
+  letter-spacing: 4px;
+  color: #a68e74;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.aboutTitle {
+  font-family: "Playfair Display", serif !important;
+  font-size: 42px !important;
+  color: #1a1a1a !important;
+  margin-top: 10px !important;
+}
+
+.sectionTitle {
+  text-align: center;
+  font-family: "Playfair Display", serif !important;
+  font-size: 42px !important;
+  color: #1a1a1a !important;
+}
+
+.goldText {
+  color: #492b18;
+}
+
+.description {
+  font-size: 16px;
+  line-height: 1.8;
+  color: #666;
+  max-width: 500px;
+}
+
+/* Stats Section */
+.statsRow {
+  display: flex;
+  gap: 40px;
+  margin: 20px 0;
+}
+
+.statNum {
+  margin: 0 !important;
+  font-family: "Playfair Display", serif !important;
+  color: #492b18 !important;
+}
+
+.statLabel {
+  font-size: 12px;
+  text-transform: uppercase;
+  color: #a68e74;
+  letter-spacing: 1px;
+}
+
+/* Button Styling */
+.luxuryButton {
+  height: auto !important;
+  padding: 15px 40px !important;
+  background: #492b18 !important;
+  color: #fff !important;
+  border: none !important;
+  border-radius: 0 !important; /* Elegant Sharp Corners */
+  font-size: 14px !important;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  transition: all 0.3s ease !important;
+}
+
+.luxuryButton:hover {
+  background: #c9a24d !important;
+  transform: translateY(-3px);
+  box-shadow: 0 10px 20px rgba(201, 162, 77, 0.3);
+}
+
+/* Responsive Fix */
+@media (max-width: 991px) {
+  .mainImageWrapper {
+    width: 100%;
+    height: 400px;
+  }
+  .mainImage {
+    height: 100%;
+  }
+  .accentImageWrapper {
+    display: none;
+  } /* Simplify for mobile */
+}
+
+.offer{
+  font-size: 48px;
+    font-family: "Playfair Display", serif !important;
+  color: #492b18 !important;
+}
+
+
+.parallaxContainer {
+  position: relative;
+  height: 500px; /* Adjust height as needed */
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  
+  /* The Parallax Magic */
+  background-image: url('../../Assets/PNG/cta.jpg'); /* High-res diamond image */
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed; /* This makes it stay in place */
+  
+  overflow: hidden;
+}
+
+.darkOverlay {
+  position: absolute;
+  inset: 0;
+  /* Soft dark/nude gradient to make white text pop */
+  background: linear-gradient(
+    to bottom, 
+    rgba(26, 26, 26, 0.4), 
+    rgba(61, 52, 45, 0.6)
+  );
+  z-index: 1;
+}
+
+.centerContent {
+  position: relative;
+  z-index: 2;
+  padding: 0 20px;
+  max-width: 800px;
+}
+
+.miniTitle {
+  display: block;
+  color: #d4c0ab; /* Nude/Gold color */
+  text-transform: uppercase;
+  letter-spacing: 5px;
+  font-size: 14px;
+  margin-bottom: 15px;
+}
+
+.mainHeading {
+  color: #ffffff !important;
+  font-family: 'Playfair Display', serif !important; /* Luxury Serif */
+  font-size: 48px !important;
+  font-weight: 500 !important;
+  margin-bottom: 20px !important;
+  line-height: 1.2 !important;
+}
+
+.tagline {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 18px;
+  font-style: italic;
+  margin-bottom: 35px;
+  letter-spacing: 0.5px;
+  font-weight: 300;
+}
+
+.shopNowBtn:hover {
+  background: #d4c0ab !important; /* Nude hover */
+  color: #fff !important;
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+}
+
+/* Fix for mobile - Parallax often feels jittery on phones */
+@media (max-width: 768px) {
+  .parallaxContainer {
+    background-attachment: scroll; /* Disables fixed on mobile for performance */
+    height: 400px;
+  }
+  .mainHeading {
+    font-size: 32px !important;
+  }
+}
+
+.featureSection {
+  padding: 30px 0;
+  background-color: #ffffff;
+}
+
+
+.featureBox {
+  text-align: center;
+  padding: 20px;
+  transition: all 0.4s ease;
+  border-radius: 20px;
+  background: transparent;
+   border: 1px solid #c7c1c1;
+}
+
+.featureBox:hover {
+  background: #fdfcfb; /* Very light nude tint */
+  transform: translateY(-5px);
+}
+
+.iconWrapper {
+  font-size: 32px;
+  color: #a68e74; /* Your aesthetic nude/gold color */
+  margin-bottom: 20px;
+  display: inline-block;
+  transition: transform 0.3s ease;
+}
+
+.featureBox:hover .iconWrapper {
+  transform: scale(1.1);
+  color: #3d342d; /* Darker nude on hover */
+}
+
+.featureTitle {
+  font-family: 'Playfair Display', serif !important;
+  font-size: 18px !important;
+  color: #1a1a1a !important;
+  margin-bottom: 8px !important;
+  letter-spacing: 0.5px;
+}
+
+.featureDesc {
+  font-size: 14px;
+  color: #8c7e71;
+  line-height: 1.5;
+  font-weight: 300;
+  display: block;
+}
+
+/* Optional: Vertical divider lines between items for Desktop */
+@media (min-width: 992px) {
+  .featureBox {
+    position: relative;
+  }
+  /* Adds a subtle line between columns */
+  .featureBox:not(:last-child)::after {
+    content: "";
+    position: absolute;
+    right: -16px;
+    top: 20%;
+    height: 60%;
+    width: 1px;
+    background: radial-gradient(circle, #e0e0e0 0%, rgba(224, 224, 224, 0) 100%);
   }
 }

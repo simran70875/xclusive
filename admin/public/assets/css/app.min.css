@@ -5534,7 +5534,7 @@ table.dataTable.dtr-inline.collapsed>tbody>tr>td.dtr-control:before {
 }
 
 .model-card {
-    height: 100% !important;
+    height: 550px !important;
     width: 700px;
     overflow: scroll;
 }

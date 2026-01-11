@@ -16,6 +16,9 @@ import ImageModel from "../../../../Components/ImageComp/ImageModel";
 let url = process.env.REACT_APP_API_URL;
 
 const ShowUser = () => {
+  useEffect(() => {
+    Modal.setAppElement(document.body); // Set the appElement to document.body
+  }, []);
   const [userData, setUserData] = useState([]);
   const [userAllData, setUserAllData] = useState([]);
   const userName = "";
@@ -67,6 +70,15 @@ const ShowUser = () => {
 
   const columns = [
     {
+      field: "createdAt",
+      flex: 1,
+      headerName: "Created At",
+      renderCell: (params) => {
+        if (!params.value) return "";
+        return new Date(params.value).toLocaleDateString("en-IN");
+      },
+    },
+    {
       field: "User_Image",
       headerName: "Image",
       renderCell: (params) => (
@@ -92,11 +104,11 @@ const ShowUser = () => {
       sortable: false,
       filterable: false,
     },
-    {
-      field: "_id",
-      flex: 2,
-      headerName: "Id",
-    },
+    // {
+    //   field: "_id",
+    //   flex: 2,
+    //   headerName: "Id",
+    // },
     {
       field: "User_Name",
       headerName: "Name",
@@ -156,11 +168,7 @@ const ShowUser = () => {
       renderCell: (params) => (
         <div>
           {params.value ? (
-            <label
-              style={{ color: "green" }}
-            >
-              Approved
-            </label>
+            <label style={{ color: "green" }}>Approved</label>
           ) : (
             <button onClick={() => approveAccount(params.row)}>
               Approve Account
@@ -174,10 +182,10 @@ const ShowUser = () => {
     },
     {
       field: "action",
-      headerName: "Action",
-      flex: 1,
+      headerName: "Actions",
+      flex: 2,
       renderCell: (params) => (
-        <Stack direction="row">
+        <Stack direction="row" gap={1}>
           <IconButton
             aria-label="delete"
             onClick={() => handleUserDelete(params.row._id)}
@@ -190,11 +198,49 @@ const ShowUser = () => {
           >
             <i className="fas fa-pencil-alt font-size-16 font-Icon-Up"></i>
           </IconButton>
+
+          <button
+            style={{
+              height:35
+            }}
+            className="btn btn-primary waves-effect waves-light"
+            onClick={() => handleMoreDeatails(params.row)}
+          >
+            More Details
+          </button>
         </Stack>
       ),
       filterable: false,
       sortable: false,
       hide: false,
+    },
+
+    {
+      field: "Admin_Remarks",
+      headerName: "Admin Reamrks",
+      width:250,
+      renderCell:(params) => {
+        return (
+          <div style={{
+            flexDirection:"column",
+            margin:10
+          }}>
+            <p style={{
+              margin:0,
+              padding:0
+            }}>
+              { new Date(params.row.Admin_Remarks_At).toLocaleDateString()}
+            </p>
+            <p style={{
+              margin:0,
+              padding:0
+            }}>
+              {params.row.Admin_Remarks}
+            </p>
+            
+          </div>
+        )
+      }
     },
   ];
   const adminToken = localStorage.getItem("token");
@@ -366,6 +412,51 @@ const ShowUser = () => {
     }
   };
 
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+  const [remarks, setRemarks] = useState("");
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [sending, setSending] = useState(false);
+
+  const handleMoreDeatails = (user) => {
+    console.log(user);
+    setSelectedUser(user);
+    setRemarks("");
+    setIsDetailsModalOpen(true);
+  };
+
+  const sendMoreDetailsRequest = async () => {
+    if (!remarks.trim()) {
+      Swal.fire("Required", "Please enter remarks", "warning");
+      return;
+    }
+
+    try {
+      setSending(true);
+      const adminToken = localStorage.getItem("token");
+
+      await axios.post(
+        `${url}/user/needMoreDetails/byAdmin/${selectedUser?._id}`,
+        {
+          userId: selectedUser?._id,
+          remarks: remarks,
+        },
+        {
+          headers: {
+            Authorization: `${adminToken}`,
+          },
+        }
+      );
+
+      Swal.fire("Success", "Request sent to retailer", "success");
+      setIsDetailsModalOpen(false);
+    } catch (error) {
+      console.log(error);
+      Swal.fire("Error", "Something went wrong", "error");
+    } finally {
+      setSending(false);
+    }
+  };
+
   return (
     <>
       <div className="main-content">
@@ -391,6 +482,7 @@ const ShowUser = () => {
               <div className="col-12">
                 <div className="datagrid-container">
                   <DataGrid
+                    getRowHeight={() => "auto"}
                     style={{ textTransform: "capitalize", fontSize: 13 }}
                     rows={searchQuery === "" ? userData : handleFilter()} // Ensure this returns an array of valid rows
                     columns={columns} // Ensure columns are defined correctly
@@ -444,6 +536,44 @@ const ShowUser = () => {
           onClose={() => setIsModalOpenforImage(false)}
           imageURL={selectedImage}
         />
+      </Modal>
+      <Modal
+        className="main-content dark"
+        isOpen={isDetailsModalOpen}
+        onRequestClose={() => setIsDetailsModalOpen(false)}
+      >
+        <div className="container p-5">
+          <h4 className="mb-3">Need More Details</h4>
+
+          <div className="form-group mb-3">
+            <label>Remarks for Retailer</label>
+            <textarea
+              className="form-control"
+              rows={4}
+              placeholder="Enter remarks..."
+              value={remarks}
+              onChange={(e) => setRemarks(e.target.value)}
+            />
+          </div>
+
+          <div className="d-flex justify-content-end gap-2">
+            <button
+              className="btn btn-secondary"
+              onClick={() => setIsDetailsModalOpen(false)}
+              disabled={sending}
+            >
+              Cancel
+            </button>
+
+            <button
+              className="btn btn-primary"
+              onClick={sendMoreDetailsRequest}
+              disabled={sending}
+            >
+              {sending ? "Sending..." : "Send"}
+            </button>
+          </div>
+        </div>
       </Modal>
     </>
   );

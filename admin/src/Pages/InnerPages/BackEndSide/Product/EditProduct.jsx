@@ -26,9 +26,6 @@ const EditProduct = () => {
   const [data, setData] = useState([]);
   const [selectedBrand, setSelectedBrand] = useState("");
   const [selectedCollection, setSelectedCollection] = useState("");
-  const [originalPrice, setOriginalPrice] = useState(0);
-  const [discountPrice, setDiscountPrice] = useState(0);
-  const [maxDisPrice, setMaxDiscPrice] = useState(0);
   const [description, setDescription] = useState("");
   const [productAddStatus, setProductAddStatus] = useState();
   const [statusMessage, setStatusMessage] = useState("");
@@ -56,9 +53,6 @@ const EditProduct = () => {
   useEffect(() => {
     setProductName(productData?.Product_Name);
     setSKUCode(productData?.SKU_Code);
-    setOriginalPrice(productData?.Product_Ori_Price || 0);
-    setDiscountPrice(productData?.Product_Dis_Price || 0);
-    setMaxDiscPrice(productData?.Max_Dis_Price || 0);
     setDescription(productData?.Description || "");
 
     if (Array.isArray(productData?.Category)) {
@@ -69,10 +63,9 @@ const EditProduct = () => {
       setSelectedCategories(selectedCategoriesIds);
     }
 
-    setSelectedBrand({
-      dataId: productData?.Brand_Name?._id,
-      label: productData?.Brand?.Brand_Name,
-    });
+    setSelectedBrand(
+      brandOptions?.find((b) => b.dataId === productData?.Brand_Name?._id)
+    );
 
     setSelectedCollection({
       dataId: productData?.Collections?._id,
@@ -82,55 +75,65 @@ const EditProduct = () => {
     setPreviewImages(productData?.Product_Images || []);
   }, [productData]);
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const formData = new FormData();
-    formData.append("Product_Name", productName);
-    formData.append("SKU_Code", SKUCode);
-
-    // 🔥 send NEW images (if any)
-    if (productImage?.length > 0) {
-      productImage.forEach((img) => {
-        formData.append("images", img);
-      });
-    }
-
-    // 🔥 send remaining OLD images as JSON
-    formData.append("existingImages", JSON.stringify(previewImages));
-
-    formData.append(
-      "Category",
-      selectedCategories.map((c) => c.value).join(",")
-    );
-
-    if (selectedBrand?.dataId) {
-      formData.append("Brand_Name", selectedBrand?.dataId);
-    }
-    if (selectedCollection?.dataId) {
-      formData.append("Collection_Name", selectedCollection?.dataId);
-    }
-
-    formData.append("Product_Dis_Price", discountPrice);
-    formData.append("Product_Ori_Price", originalPrice);
-    formData.append("Max_Dis_Price", maxDisPrice);
-    formData.append("Description", description);
+    if (isSubmitting) return;
+    setIsSubmitting(true);
 
     try {
+      const formData = new FormData();
+
+      formData.append("Product_Name", productName);
+      formData.append("SKU_Code", SKUCode.trim().toUpperCase());
+
+      /* ---------- NEW IMAGES ---------- */
+      productImage?.forEach((img) => {
+        formData.append("images", img);
+      });
+
+      /* ---------- OLD IMAGES ---------- */
+      formData.append("existingImages", JSON.stringify(previewImages));
+
+      /* ---------- CATEGORY ---------- */
+      selectedCategories.forEach((cat) => {
+        formData.append("Category[]", cat.value);
+      });
+
+      if (selectedBrand?.dataId) {
+        formData.append("Brand_Name", selectedBrand.dataId);
+      }
+
+      if (selectedCollection?.dataId) {
+        formData.append("Collections", selectedCollection.dataId);
+      }
+
+      formData.append("Description", description);
+
       const response = await axios.patch(
         `${url}/product/update/${selectedProductData?._id}`,
         formData,
-        { headers: { Authorization: adminToken } }
+        {
+          headers: {
+            Authorization: adminToken,
+            "Content-Type": "multipart/form-data",
+          },
+        }
       );
 
       if (response.data.type === "success") {
         setProductAddStatus("success");
         setStatusMessage("Product updated successfully");
-        setTimeout(() => Navigate("/showProduct"), 900);
+        Navigate("/showProduct");
       }
     } catch (err) {
+      console.error(err);
       setProductAddStatus("error");
       setStatusMessage("Product not updated!");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -154,14 +157,12 @@ const EditProduct = () => {
             Authorization: `${adminToken}`,
           },
         });
-        const options = categoryResponse?.data?.category_data?.map(
-          (option) => ({
-            value: option._id,
-            label:
-              option.Category_Name.charAt(0).toUpperCase() +
-              option.Category_Name.slice(1),
-          })
-        );
+        const options = categoryResponse?.data?.category?.map((option) => ({
+          value: option._id,
+          label:
+            option.Category_Name.charAt(0).toUpperCase() +
+            option.Category_Name.slice(1),
+        }));
         setCategoryOptions(options);
       } catch (error) {
         console.error("Failed to fetch categories:", error);
@@ -180,12 +181,12 @@ const EditProduct = () => {
             Authorization: `${adminToken}`,
           },
         });
-        setData(Response?.data?.dataType);
+        console.log("Response Data ==>", Response?.data);
+        setData(Response?.data?.data);
       } catch (error) {
         console.error("Failed to fetch categories:", error);
       }
     }
-
     fetchData();
   }, []);
 
@@ -194,7 +195,7 @@ const EditProduct = () => {
   const collectionsData = data?.filter(
     (option) => option?.Data_Type === "Collection"
   );
-
+  
   const brandOptions = brandData?.map((option) => {
     return {
       dataId: option?._id,
@@ -349,7 +350,6 @@ const EditProduct = () => {
                             }}
                             options={categoryOptions}
                             styles={customStyles}
-                            isMulti // Enable multi-select
                           />
                         </div>
                       </div>
@@ -363,7 +363,6 @@ const EditProduct = () => {
                         </label>
                         <div className="col-md-10">
                           <Select
-                            required
                             value={selectedBrand}
                             onChange={(e) => setSelectedBrand(e)}
                             options={brandOptions}
@@ -381,77 +380,10 @@ const EditProduct = () => {
                         </label>
                         <div className="col-md-10">
                           <Select
-                            required
                             value={selectedCollection}
                             onChange={(e) => setSelectedCollection(e)}
                             options={collectionOptions}
                             styles={customStyles}
-                          />
-                        </div>
-                      </div>
-
-                      <div className="mb-3 row">
-                        <label
-                          htmlFor="example-text-input"
-                          className="col-md-2 col-form-label"
-                        >
-                          Original Price:
-                        </label>
-                        <div className="col-md-10">
-                          <input
-                            min="0"
-                            required
-                            className="form-control"
-                            type="number"
-                            id="example-number-input"
-                            value={originalPrice}
-                            onChange={(e) => {
-                              setOriginalPrice(e.target.value);
-                            }}
-                          />
-                        </div>
-                      </div>
-
-                      <div className="mb-3 row">
-                        <label
-                          htmlFor="example-text-input"
-                          className="col-md-2 col-form-label"
-                        >
-                          Discount Price:
-                        </label>
-                        <div className="col-md-10">
-                          <input
-                            min="0"
-                            required
-                            className="form-control"
-                            type="number"
-                            id="example-number-input"
-                            value={discountPrice}
-                            onChange={(e) => {
-                              setDiscountPrice(e.target.value);
-                            }}
-                          />
-                        </div>
-                      </div>
-
-                      <div className="mb-3 row">
-                        <label
-                          htmlFor="example-text-input"
-                          className="col-md-2 col-form-label"
-                        >
-                          Max Selling Price (MSP):
-                        </label>
-                        <div className="col-md-10">
-                          <input
-                            min="0"
-                            required
-                            className="form-control"
-                            type="number"
-                            id="example-number-input"
-                            value={maxDisPrice}
-                            onChange={(e) => {
-                              setMaxDiscPrice(e.target.value);
-                            }}
                           />
                         </div>
                       </div>

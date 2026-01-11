@@ -1,0 +1,20 @@
+Category_Name,Parent_Category,Category_Label,Category_Image,Category_Sec_Image,Category_Status,Category_Feature
+Pendant,,Main,C:/Users/DELL/OneDrive/Desktop/cat-5.png,,TRUE,TRUE
+Alphabet Pendant,Pendant,Sub Category,C:/Users/DELL/OneDrive/Desktop/cat-5.png,,TRUE,TRUE
+Letter Pendant,Alphabet Pendant,Sub Sub Category,C:/Users/DELL/OneDrive/Desktop/cat-5.png,,TRUE,FALSE
+Name Pendant,Alphabet Pendant,Sub Sub Category,C:/Users/DELL/OneDrive/Desktop/cat-5.png,,TRUE,FALSE
+Heart Pendant,Pendant,Sub Category,C:/Users/DELL/OneDrive/Desktop/cat-5.png,,TRUE,TRUE
+Love Heart Pendant,Heart Pendant,Sub Sub Category,C:/Users/DELL/OneDrive/Desktop/cat-5.png,,TRUE,FALSE
+Diamond Heart Pendant,Heart Pendant,Sub Sub Category,C:/Users/DELL/OneDrive/Desktop/cat-5.png,,TRUE,FALSE
+Religious Pendant,Pendant,Sub Category,C:/Users/DELL/OneDrive/Desktop/cat-5.png,,TRUE,TRUE
+Cross Pendant,Religious Pendant,Sub Sub Category,C:/Users/DELL/OneDrive/Desktop/cat-5.png,,TRUE,FALSE
+Om Pendant,Religious Pendant,Sub Sub Category,C:/Users/DELL/OneDrive/Desktop/cat-5.png,,TRUE,FALSE
+Picture Pendant,Pendant,Sub Category,C:/Users/DELL/OneDrive/Desktop/cat-5.png,,TRUE,TRUE
+Custom Picture Pendant,Picture Pendant,Sub Sub Category,C:/Users/DELL/OneDrive/Desktop/cat-5.png,,TRUE,FALSE
+Other Pendant,Pendant,Sub Category,C:/Users/DELL/OneDrive/Desktop/cat-5.png,,TRUE,FALSE
+,,,,,,
+,,,,,,
+,,,,,,
+,,,,,,
+,,,,,,
+,,,,,,

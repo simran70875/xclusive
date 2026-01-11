@@ -3,7 +3,7 @@ const route = express.Router();
 const multer = require("multer");
 const Category = require("../../../Models/BackendSide/category_model");
 const fs = require("fs");
-const csv = require('csv-parser');
+const csv = require("csv-parser");
 const checkAdminOrRole2 = require("../../../Middleware/checkAdminOrRole2");
 const path = require("path");
 
@@ -31,14 +31,13 @@ const storage = multer.diskStorage({
 // Configure multer to handle multiple files
 const upload = multer({ storage: storage });
 
-
 const storage_csv = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, './imageUploads/backend/category'); // Specify the directory to store uploaded files
+    cb(null, "./imageUploads/backend/category"); // Specify the directory to store uploaded files
   },
   filename: (req, file, cb) => {
     cb(null, `${Date.now()}-${file.originalname}`); // Unique filename
-  }
+  },
 });
 
 const uploadcsv = multer({ storage: storage_csv });
@@ -47,8 +46,8 @@ function copyLocalImage(localPath, destFolder) {
   // if no image in CSV
   if (!localPath || localPath.trim() === "") return null;
 
-  const originalname = path.basename(localPath);      // ex = cat1.jpg
-  const filename = Date.now() + "-" + originalname;   // unique file name
+  const originalname = path.basename(localPath); // ex = cat1.jpg
+  const filename = Date.now() + "-" + originalname; // unique file name
   const destPath = path.join(destFolder, filename);
 
   try {
@@ -58,7 +57,7 @@ function copyLocalImage(localPath, destFolder) {
     return {
       filename,
       path: destPath,
-      originalname
+      originalname,
     };
   } catch (error) {
     console.log("Error copying:", localPath, error);
@@ -70,15 +69,12 @@ const normalize = (val = "") => val.trim().toLowerCase();
 
 function buildTree(categories, parentId = null) {
   return categories
-    .filter(cat =>
-      String(cat.Parent_Category || null) === String(parentId)
-    )
-    .map(cat => ({
+    .filter((cat) => String(cat.Parent_Category || null) === String(parentId))
+    .map((cat) => ({
       ...cat.toObject(),
-      children: buildTree(categories, cat._id)
+      children: buildTree(categories, cat._id),
     }));
 }
-
 
 // import categories from csv file
 route.post(
@@ -87,7 +83,9 @@ route.post(
   uploadcsv.single("csvFile"),
   async (req, res) => {
     if (!req.file) {
-      return res.status(400).json({ type: "error", message: "No file uploaded." });
+      return res
+        .status(400)
+        .json({ type: "error", message: "No file uploaded." });
     }
 
     const results = [];
@@ -111,7 +109,8 @@ route.post(
 
             if (parentName) {
               const parent = await Category.findOne({
-                Category_Name: parentName
+                Category_Name: parentName,
+                Parent_Category: parentCategoryId || null,
               });
 
               if (!parent) {
@@ -126,7 +125,7 @@ route.post(
             // prevent duplicate under same parent
             const exists = await Category.findOne({
               Category_Name: categoryName,
-              Parent_Category: parentCategoryId
+              Parent_Category: parentCategoryId,
             });
 
             if (exists) {
@@ -135,8 +134,14 @@ route.post(
               continue;
             }
 
-            const categoryImageObj = copyLocalImage(item.Category_Image, uploadFolder);
-            const categorySecImageObj = copyLocalImage(item.Category_Sec_Image, uploadFolder);
+            const categoryImageObj = copyLocalImage(
+              item.Category_Image,
+              uploadFolder
+            );
+            const categorySecImageObj = copyLocalImage(
+              item.Category_Sec_Image,
+              uploadFolder
+            );
 
             await Category.create({
               Category_Name: categoryName,
@@ -145,7 +150,7 @@ route.post(
               Category_Status: item.Category_Status !== "false",
               Category_Feature: item.Category_Feature === "true",
               Category_Image: categoryImageObj,
-              Category_Sec_Image: categorySecImageObj
+              Category_Sec_Image: categorySecImageObj,
             });
 
             inserted++;
@@ -158,13 +163,13 @@ route.post(
             message: "CSV processed",
             inserted,
             skipped,
-            skippedNames
+            skippedNames,
           });
         } catch (err) {
           console.error(err);
           return res.status(500).json({
             type: "error",
-            message: "Error while processing CSV"
+            message: "Error while processing CSV",
           });
         }
       });
@@ -172,10 +177,12 @@ route.post(
 );
 
 // Create Category
-route.post("/add", checkAdminOrRole2,
+route.post(
+  "/add",
+  checkAdminOrRole2,
   upload.fields([
     { name: "image", maxCount: 1 },
-    { name: "secImage", maxCount: 1 }
+    { name: "secImage", maxCount: 1 },
   ]),
   async (req, res) => {
     try {
@@ -188,14 +195,14 @@ route.post("/add", checkAdminOrRole2,
         const parent = await Category.findOne({
           $or: [
             { _id: parentValue },
-            { Category_Name: normalize(parentValue) }
-          ]
+            { Category_Name: normalize(parentValue) },
+          ],
         });
 
         if (!parent) {
           return res.status(400).json({
             type: "error",
-            message: "Parent category not found"
+            message: "Parent category not found",
           });
         }
 
@@ -205,7 +212,7 @@ route.post("/add", checkAdminOrRole2,
       // prevent duplicate under same parent
       const existingCategory = await Category.findOne({
         Category_Name: categoryName,
-        Parent_Category: parentCategoryId
+        Parent_Category: parentCategoryId,
       });
 
       if (existingCategory) {
@@ -217,7 +224,7 @@ route.post("/add", checkAdminOrRole2,
       const category = new Category({
         Category_Name: categoryName,
         Parent_Category: parentCategoryId,
-        Category_Label: req.body.Category_Label
+        Category_Label: req.body.Category_Label,
       });
 
       if (req.files?.image) {
@@ -225,7 +232,7 @@ route.post("/add", checkAdminOrRole2,
         category.Category_Image = {
           filename: file.filename,
           path: file.path,
-          originalname: file.originalname
+          originalname: file.originalname,
         };
       }
 
@@ -234,7 +241,7 @@ route.post("/add", checkAdminOrRole2,
         category.Category_Sec_Image = {
           filename: file.filename,
           path: file.path,
-          originalname: file.originalname
+          originalname: file.originalname,
         };
       }
 
@@ -242,13 +249,13 @@ route.post("/add", checkAdminOrRole2,
 
       res.status(200).json({
         type: "success",
-        message: "Category added successfully"
+        message: "Category added successfully",
       });
     } catch (error) {
       console.error(error);
       res.status(500).json({
         type: "error",
-        message: "Server Error"
+        message: "Server Error",
       });
     }
   }
@@ -257,14 +264,23 @@ route.post("/add", checkAdminOrRole2,
 // get all category
 route.get("/get", async (req, res) => {
   try {
-    const category = await Category.find().populate("Parent_Category", "Category_Name").sort({ createdAt: -1 });
+    const category = await Category.find()
+      .populate("Parent_Category", "Category_Name")
+      .sort({ createdAt: -1 });
     if (category) {
       // for data table (admin)
       const result = category.map((category) => ({
         _id: category._id,
         Category_Name: category.Category_Name,
-        Category_Image: `${process.env.IP_ADDRESS}/${category.Category_Image?.path?.replace(/\\/g, "/")}` || "",
-        Category_Sec_Image: `${process.env.IP_ADDRESS}/${category.Category_Sec_Image?.path?.replace(/\\/g, "/")}` || "",
+        Category_Image:
+          `${process.env.IP_ADDRESS}/${category.Category_Image?.path?.replace(
+            /\\/g,
+            "/"
+          )}` || "",
+        Category_Sec_Image:
+          `${
+            process.env.IP_ADDRESS
+          }/${category.Category_Sec_Image?.path?.replace(/\\/g, "/")}` || "",
         Parent_Category: category.Parent_Category,
         Category_Label: category.Category_Label,
         Category_Status: category.Category_Status,
@@ -272,7 +288,9 @@ route.get("/get", async (req, res) => {
       }));
 
       // for show frontend side
-      const allCategories = await Category.find({ Category_Status: true }).sort({ createdAt: -1, });
+      const allCategories = await Category.find({ Category_Status: true }).sort(
+        { createdAt: -1 }
+      );
       const categories = buildTree(allCategories);
 
       res.status(200).json({
@@ -281,7 +299,6 @@ route.get("/get", async (req, res) => {
         category: result || [],
         category_data: categories || [],
       });
-
     } else {
       res.status(404).json({
         type: "warning",
@@ -306,30 +323,28 @@ route.get("/get/:id", checkAdminOrRole2, async (req, res) => {
       Category_Status: true,
     });
     if (!category) {
-      res
-        .status(404)
-        .json({
-          type: "warning",
-          message: " No category Found!",
-          category: [],
-        });
+      res.status(404).json({
+        type: "warning",
+        message: " No category Found!",
+        category: [],
+      });
     } else {
       const result = {
         _id: category?._id,
         Category_Name: category.Category_Name,
-        Category_Image: `${process.env.IP_ADDRESS
-          }/${category.Category_Image?.path?.replace(/\\/g, "/")}`,
-        Category_Sec_Image: `${process.env.IP_ADDRESS
-          }/${category.Category_Sec_Image?.path?.replace(/\\/g, "/")}`,
+        Category_Image: `${
+          process.env.IP_ADDRESS
+        }/${category.Category_Image?.path?.replace(/\\/g, "/")}`,
+        Category_Sec_Image: `${
+          process.env.IP_ADDRESS
+        }/${category.Category_Sec_Image?.path?.replace(/\\/g, "/")}`,
         Category_Label: category.Category_Label,
       };
-      res
-        .status(200)
-        .json({
-          type: "success",
-          message: "Category found successfully!",
-          category: result || [],
-        });
+      res.status(200).json({
+        type: "success",
+        message: "Category found successfully!",
+        category: result || [],
+      });
     }
   } catch (error) {
     res
@@ -344,13 +359,11 @@ route.get("/mob/featurelist/get", async (req, res) => {
   try {
     const category = await Category.find({ Category_Feature: true });
     if (!category) {
-      res
-        .status(404)
-        .json({
-          type: "success",
-          message: " No Category Found!",
-          category: [],
-        });
+      res.status(404).json({
+        type: "success",
+        message: " No Category Found!",
+        category: [],
+      });
     } else {
       const result = category.map((category) => ({
         category_id: category._id,
@@ -361,17 +374,16 @@ route.get("/mob/featurelist/get", async (req, res) => {
             "/"
           )}` || "",
         Category_Sec_Image:
-          `${process.env.IP_ADDRESS
+          `${
+            process.env.IP_ADDRESS
           }/${category.Category_Sec_Image?.path?.replace(/\\/g, "/")}` || "",
         category_Status: category.Category_Status,
       }));
-      res
-        .status(200)
-        .json({
-          type: "success",
-          message: " Category found successfully!",
-          category: result,
-        });
+      res.status(200).json({
+        type: "success",
+        message: " Category found successfully!",
+        category: result,
+      });
     }
   } catch (error) {
     res
@@ -402,17 +414,16 @@ route.get("/mob/get/:id", async (req, res) => {
             "/"
           )}` || "",
         Category_Sec_Image:
-          `${process.env.IP_ADDRESS
+          `${
+            process.env.IP_ADDRESS
           }/${category.Category_Sec_Image?.path?.replace(/\\/g, "/")}` || "",
         category_Status: category.Category_Status,
       };
-      res
-        .status(200)
-        .json({
-          type: "success",
-          message: " Category found successfully!",
-          category: result,
-        });
+      res.status(200).json({
+        type: "success",
+        message: " Category found successfully!",
+        category: result,
+      });
     }
   } catch (error) {
     res
@@ -443,12 +454,10 @@ route.delete("/delete", checkAdminOrRole2, async (req, res) => {
     }
 
     await Category.deleteMany();
-    res
-      .status(200)
-      .json({
-        type: "success",
-        message: "All Categories deleted successfully!",
-      });
+    res.status(200).json({
+      type: "success",
+      message: "All Categories deleted successfully!",
+    });
   } catch (error) {
     res
       .status(500)
@@ -478,12 +487,10 @@ route.delete("/deletes", checkAdminOrRole2, async (req, res) => {
     }
 
     await Category.deleteMany({ _id: { $in: ids } });
-    res
-      .status(200)
-      .json({
-        type: "success",
-        message: "All Categories deleted successfully!",
-      });
+    res.status(200).json({
+      type: "success",
+      message: "All Categories deleted successfully!",
+    });
   } catch (error) {
     res
       .status(500)
@@ -534,12 +541,10 @@ route.patch("/update/status/:id", checkAdminOrRole2, async (req, res) => {
     newCategory.Category_Status = await Category_Status;
 
     await newCategory.save();
-    res
-      .status(200)
-      .json({
-        type: "success",
-        message: "Category Status update successfully!",
-      });
+    res.status(200).json({
+      type: "success",
+      message: "Category Status update successfully!",
+    });
   } catch (error) {
     res
       .status(500)
@@ -557,12 +562,10 @@ route.patch("/update/feature/:id", checkAdminOrRole2, async (req, res) => {
     newCategory.Category_Feature = await Category_Feature;
 
     await newCategory.save();
-    res
-      .status(200)
-      .json({
-        type: "success",
-        message: "Category Feature Status update successfully!",
-      });
+    res.status(200).json({
+      type: "success",
+      message: "Category Feature Status update successfully!",
+    });
   } catch (error) {
     res
       .status(500)
@@ -606,12 +609,12 @@ route.patch(
           if (req.files && req.files.image) {
             try {
               fs.unlinkSync(req.files.image[0]?.path);
-            } catch (err) { }
+            } catch (err) {}
           }
           if (req.files && req.files.secondaryImage) {
             try {
               fs.unlinkSync(req.files.secondaryImage[0]?.path);
-            } catch (err) { }
+            } catch (err) {}
           }
           return res
             .status(404)

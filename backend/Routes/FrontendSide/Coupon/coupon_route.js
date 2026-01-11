@@ -289,17 +289,14 @@ route.get("/get/all/forordertime", authMiddleWare, async (req, res) => {
           (item) => item.userId.toString() === userId.toString()
         );
         if (
-          !userCouponUsage ||
-          userCouponUsage.usageCount < coupon.usageLimits
+          !userCouponUsage || userCouponUsage.usageCount < coupon.usageLimits
         ) {
           return coupon;
         }
       })
     );
 
-    const filteredCoupons = validCoupons.filter(
-      (coupon) => coupon !== undefined
-    );
+    const filteredCoupons = validCoupons.filter((coupon) => coupon !== undefined);
 
     if (filteredCoupons.length === 0) {
       return res.status(200).json({

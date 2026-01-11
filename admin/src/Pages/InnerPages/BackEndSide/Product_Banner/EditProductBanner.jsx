@@ -16,7 +16,7 @@ const EditProductBanner = () => {
 
     const [bannerName, setBannerName] = useState(selectedBannerData?.Banner_Name);
     const [bannerImage, setBannerImage] = useState(null);
-    const [previewImage, setPreviewImage] = useState(selectedBannerData?.Banner_Image)
+    const [previewImage, setPreviewImage] = useState(selectedBannerData?.banner_Image)
     const [sequence, setSequence] = useState(selectedBannerData?.Banner_Sequence);
     const [productData, setProductData] = useState([])
     const [SelectedProduct, setSelectedProduct] = useState(selectedBannerData?.ProductId)
@@ -218,8 +218,8 @@ const EditProductBanner = () => {
                                                             type="image"
                                                             src={bannerImage ? URL.createObjectURL(bannerImage) : `${previewImage}`}
                                                             alt="user image"
-                                                            height={100}
-                                                            width={100}
+                                                            height={"auto"}
+                                                            width={200}
                                                         />
                                                     </div>
                                                 </div>

@@ -59,24 +59,15 @@ const AddProduct = () => {
           formData.append("images", img);
         });
 
-        const selectedCategoryIds = selectedCategories.map(
-          (category) => category.value
-        );
-        formData.append("Category", selectedCategoryIds);
-
-
-        console.log("selectedCollection ==>", selectedCollection);
+        console.log("selectedCategories ==>", selectedCategories);
+        formData.append("Category", selectedCategories.value);
 
         if (selectedBrand?.dataId) {
           formData.append("Brand_Name", selectedBrand?.dataId);
         }
-        
 
         formData.append("Collection_Name", selectedCollection?.dataId);
 
-        // formData.append("Product_Dis_Price", discountPrice);
-        // formData.append("Product_Ori_Price", originalPrice);
-        // formData.append("Max_Dis_Price", maxDisPrice);
         formData.append("Description", description);
 
         try {
@@ -371,7 +362,6 @@ const AddProduct = () => {
                             value={selectedCategories}
                             onChange={handleCategoryChange}
                             options={categoryOptions}
-                            isMulti
                             placeholder="Select Categories"
                             className="w-full md:w-20rem"
                           />
