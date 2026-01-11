@@ -1,6 +1,9 @@
 const express = require("express");
 const route = express.Router();
-const { Variation } = require("../../../Models/BackendSide/product_model");
+const {
+  Variation,
+  Product,
+} = require("../../../Models/BackendSide/product_model");
 const Order = require("../../../Models/FrontendSide/order_model");
 const Cart = require("../../../Models/FrontendSide/cart_model");
 const User = require("../../../Models/FrontendSide/user_model");
@@ -13,123 +16,215 @@ const order_counter_model = require("../../../Models/BackendSide/order_counter_m
 const jwt = require("jsonwebtoken");
 const { transporter } = require("../../../utils/mailTransporter");
 
-const sendQuotationEmail = async ({
+async function enrichCartProducts(cartData = []) {
+  return Promise.all(
+    cartData.map(async (item) => {
+      const product = await Product.findById(item.product).lean();
+      const variation = await Variation.findById(item.variation).lean();
+
+      // find exact size + purity inside variation
+      let matchedSize = null;
+
+      if (variation?.Variation_Size?.length) {
+        matchedSize = variation.Variation_Size.find(
+          (s) => s.Size_Name === item.SizeName && s.Size_purity === item.purity
+        );
+      }
+
+      return {
+        productName: product?.Product_Name || "N/A",
+        sku: product?.SKU_Code || "-",
+        variationName: variation?.Variation_Name || "-",
+        size: item.SizeName || "-",
+        purity: item.purity || "-",
+        quantity: item.Quantity,
+        unitPrice: item.price,
+        totalPrice: item.totalPrice || item.price * item.Quantity,
+      };
+    })
+  );
+}
+
+const sendCustomerQuotationEmail = async ({
   email,
   firstName,
-  products,
+  products, // raw cartData
   subtotal,
   tax,
   coupon,
   deliveryCharges,
-  total,
   orderId,
   userId,
 }) => {
-  try {
-    /* ---------------- CONFIRM ORDER LINK ---------------- */
-    let frontendUrl = process.env.frontendUrl;
-    let confirmOrderUrl = frontendUrl;
+  let frontendUrl = process.env.frontendUrl;
+  let confirmOrderUrl = frontendUrl;
 
-    if (userId) {
-      const token = jwt.sign({ userId, orderId }, process.env.JWT_TOKEN, {
-        expiresIn: "48h",
-        audience: "order-confirm",
-      });
+  if (userId) {
+    const token = jwt.sign({ userId, orderId }, process.env.JWT_TOKEN, {
+      expiresIn: "48h",
+      audience: "order-confirm",
+    });
+    confirmOrderUrl = `${frontendUrl}/confirm-order/${token}`;
+  }
 
-      confirmOrderUrl = `${frontendUrl}/confirm-order/${token}`;
-    }
+  /* ---------------- ENRICH CART DATA ---------------- */
+  const detailedProducts = await enrichCartProducts(products);
 
-    /* ---------------- PRODUCT TABLE ---------------- */
-    const productRows = products
-      .map((item, i) => {
-        return `
+  /* ---------------- PRODUCT TABLE ---------------- */
+  const productRows = detailedProducts
+    .map(
+      (item) => `
 <tr>
-  <td style="border:1px solid #ddd;padding:8px">
-    ${item.product?.product || "N/A"}
-  </td>
-  <td style="border:1px solid #ddd;padding:8px">
-    ${item.product?.SKU_Code || ""}
-  </td>
-  <td style="border:1px solid #ddd;padding:8px;text-align:center">
-    ${item.Quantity}
-  </td>
-  <td style="border:1px solid #ddd;padding:8px;text-align:right">
-     £${Number(item.price || 0).toFixed(2)}
-  </td>
-  <td style="border:1px solid #ddd;padding:8px;text-align:right">
-    £${Number(item.price * item.Quantity || 0).toFixed(2)}
-  </td>
-</tr>`;
-      })
-      .join("");
+  <td>${item.productName}</td>
+  <td>${item.sku}</td>
+  <td>${item.variationName}</td>
+  <td>${item.size}</td>
+  <td>${item.purity}</td>
+  <td style="text-align:center">${item.quantity}</td>
+  <td style="text-align:right">£${item.unitPrice.toFixed(2)}</td>
+  <td style="text-align:right">£${item.totalPrice.toFixed(2)}</td>
+</tr>`
+    )
+    .join("");
 
-    /* ---------------- EMAIL HTML ---------------- */
-    const mailHtml = `
+  const html = `
 <p>Hi ${firstName || "Customer"},</p>
 
-<p>Thank you for reaching out to us – we’re delighted to support your order.</p>
+<p>Thank you for choosing <b>Xclusive Diamonds</b>. Please review your order details below:</p>
 
 <h3>🛒 Order Summary</h3>
 
-<table style="border-collapse:collapse;width:100%">
-  <thead>
-    <tr>
-      <th style="border:1px solid #ddd;padding:8px">Product</th>
-      <th style="border:1px solid #ddd;padding:8px">SKU</th>
-      <th style="border:1px solid #ddd;padding:8px">Qty</th>
-      <th style="border:1px solid #ddd;padding:8px">Unit</th>
-      <th style="border:1px solid #ddd;padding:8px">Total</th>
-    </tr>
-  </thead>
-  <tbody>
-    ${productRows}
-  </tbody>
+<table style="border-collapse:collapse;width:100%" border="1" cellpadding="8">
+<tr>
+  <th>Product</th>
+  <th>SKU</th>
+  <th>Color</th>
+  <th>Size</th>
+  <th>Purity</th>
+  <th>Qty</th>
+  <th>Unit</th>
+  <th>Total</th>
+</tr>
+${productRows}
 </table>
 
 <p>
 <strong>Subtotal:</strong> £${subtotal.toFixed(2)}<br/>
-<strong>Tax:</strong> £${tax.toFixed(2)}<br/>
-<strong>Coupon Price:</strong> £${coupon.toFixed(2)}<br/>
-<strong>Delivery:</strong> £${deliveryCharges.toFixed(2)}<br/>
-<strong>Total Payable:</strong> £${(subtotal + deliveryCharges - coupon).toFixed(2)}
+<strong>Tax:</strong> £${(tax || 0).toFixed(2)}<br/>
+<strong>Coupon:</strong> £${(coupon || 0).toFixed(2)}<br/>
+<strong>Delivery:</strong> £${(deliveryCharges || 0).toFixed(2)}<br/>
+<strong>Total Payable:</strong>
+<b>£${(subtotal + deliveryCharges - coupon).toFixed(2)}</b>
 </p>
 
-${
-  userId
-    ? `
 <p>
 👉 <a href="${confirmOrderUrl}" target="_blank">
 Confirm Your Order
 </a>
-</p>`
-    : ""
-}
-
-<p>
-Thank you for choosing <b>Xclusive Diamonds</b>.<br/>
-If you have any questions, just reply to this email.
 </p>
 
 <p>
-<b>Xclusive Diamonds Team</b><br/>
-📞 +44 11111 88888<br/>
-✉️ hello@xclusive-diamonds<.co.uk
+Regards,<br/>
+<b>Xclusive Diamonds Team</b>
 </p>
 `;
 
-    await transporter.sendMail({
-      from: process.env.SMTP_FROM_EMAIL,
-      to: email,
-      subject: `Order Confirmation – ${orderId}`,
-      html: mailHtml,
-      attachments,
-    });
+  await transporter.sendMail({
+    from: process.env.SMTP_FROM_EMAIL,
+    to: email,
+    subject: `Order Confirmation – ${orderId}`,
+    html,
+  });
+};
 
-    return true;
-  } catch (error) {
-    console.error("sendQuotationEmail error:", error);
-    throw error;
-  }
+const sendAdminOrderEmail = async ({ order, user }) => {
+  /* ---------------- ENRICH CART DATA ---------------- */
+  const detailedProducts = await enrichCartProducts(order.cartData);
+
+  /* ---------------- PRODUCT TABLE ---------------- */
+  const productRows = detailedProducts
+    .map(
+      (item, index) => `
+<tr>
+  <td style="border:1px solid #ddd;padding:8px">${index + 1}</td>
+  <td style="border:1px solid #ddd;padding:8px">${item.productName}</td>
+  <td style="border:1px solid #ddd;padding:8px">${item.sku}</td>
+  <td style="border:1px solid #ddd;padding:8px">${item.variationName}</td>
+  <td style="border:1px solid #ddd;padding:8px">${item.size}</td>
+  <td style="border:1px solid #ddd;padding:8px">${item.purity}</td>
+  <td style="border:1px solid #ddd;padding:8px;text-align:center">${
+    item.quantity
+  }</td>
+  <td style="border:1px solid #ddd;padding:8px;text-align:right">£${item.unitPrice.toFixed(
+    2
+  )}</td>
+  <td style="border:1px solid #ddd;padding:8px;text-align:right">£${item.totalPrice.toFixed(
+    2
+  )}</td>
+</tr>`
+    )
+    .join("");
+
+  /* ---------------- EMAIL HTML ---------------- */
+  const html = `
+<h2>🛎️ New Order Received</h2>
+
+<h3>Order Information</h3>
+<p>
+<b>Order ID:</b> ${order.orderId}<br/>
+<b>DB Order ID:</b> ${order._id}<br/>
+<b>Payment Mode:</b> ${order.payment_mode}<br/>
+<b>Payment Status:</b> ${order.payment_status}<br/>
+<b>Order Status:</b> ${order.order_status}
+</p>
+
+<h3>Customer Details</h3>
+<p>
+<b>Name:</b> ${user.User_Name}<br/>
+<b>Email:</b> ${user.User_Email}<br/>
+<b>User ID:</b> ${user._id}
+</p>
+
+<h3>Product & Variation Details</h3>
+
+<table style="border-collapse:collapse;width:100%" cellpadding="8" border="1">
+<thead>
+<tr>
+  <th>#</th>
+  <th>Product</th>
+  <th>SKU</th>
+  <th>Color</th>
+  <th>Size</th>
+  <th>Purity</th>
+  <th>Qty</th>
+  <th>Unit Price</th>
+  <th>Total</th>
+</tr>
+</thead>
+<tbody>
+${productRows}
+</tbody>
+</table>
+
+<h3>Price Breakdown</h3>
+<p>
+<b>Subtotal:</b> £${order.OriginalPrice.toFixed(2)}<br/>
+<b>Coupon Discount:</b> £${order.CouponPrice.toFixed(2)}<br/>
+<b>Shipping:</b> £${order.Shipping_Charge.toFixed(2)}<br/>
+<b>Final Price:</b> £${order.FinalPrice.toFixed(2)}
+</p>
+
+<p style="color:#888;font-size:12px">
+⚠️ Internal admin notification only
+</p>
+`;
+
+  await transporter.sendMail({
+    from: process.env.SMTP_FROM_EMAIL,
+    to: process.env.SMTP_FROM_EMAIL,
+    subject: `🛎️ New Order Received – ${order.orderId}`,
+    html,
+  });
 };
 
 async function sendOrderCancelledEmail(order) {
@@ -161,32 +256,19 @@ async function sendOrderCancelledEmail(order) {
 async function sendOrderEmails(orderId, user) {
   const order = await Order.findById(orderId);
 
-  // Send to User
-  await sendQuotationEmail({
+  await sendCustomerQuotationEmail({
     email: user.User_Email,
     firstName: user.User_Name,
     products: order.cartData,
     subtotal: order.OriginalPrice,
     coupon: order.CouponPrice,
-    tax: order.tax | 0,
+    tax: order.tax || 0,
     deliveryCharges: order.Shipping_Charge,
-    total: order.FinalPrice,
     orderId: order.orderId,
     userId: user._id,
   });
 
-  // Send to Admin
-  await sendQuotationEmail({
-    email: process.env.SMTP_FROM_EMAIL,
-    firstName: "Admin",
-    products: order.cartData,
-    subtotal: order.OriginalPrice,
-    coupon: order.CouponPrice,
-    tax: order.tax | 0,
-    deliveryCharges: order.Shipping_Charge,
-    total: order.FinalPrice,
-    orderId: order.orderId,
-  });
+  await sendAdminOrderEmail({ order, user });
 }
 
 // function for get cart data for user
@@ -775,7 +857,6 @@ route.get("/get/all", async (req, res) => {
       .skip((pageNumber - 1) * limit)
       .limit(limit);
 
-    console.log("orders ==> ", orders);
     /* ---------------- RESPONSE MAPPING ---------------- */
     const modifiedOrders = orders.map((order) => ({
       ...order.toObject(),
@@ -1308,66 +1389,60 @@ route.delete("/delete", checkAdminOrRole1, async (req, res) => {
 // };
 
 // update the orderType by admin
-route.put("/update/type/:id", checkAdminOrRole1, async (req, res) => {
-  const id = req.params.id;
-  console.log("id == ", id);
+route.put("/update/type/:id", async (req, res) => {
+  const orderId = req.params.id;
+
+  const {
+    order_status,
+    reason,
+    trackingId,
+
+    // 🔥 payment fields
+    payment_status,
+    payment_mode,
+    PaymentId,
+  } = req.body;
+
+  console.log("update order", req.body)
 
   try {
-    const { orderType, UserName, trackingId, payment_status } = req.body;
-    let newType = await Order.findByIdAndUpdate(id);
-    console.log(
-      "newType ==> ",
-      orderType,
-      UserName,
-      trackingId,
-      payment_status
+    const updateData = {
+      order_status,
+      reason,
+      tracking_id: trackingId,
+
+      payment_status,
+      payment_mode,
+      PaymentId,
+    };
+
+    // Remove undefined values
+    Object.keys(updateData).forEach(
+      (key) => updateData[key] === undefined && delete updateData[key]
     );
 
-    if (orderType !== undefined) {
-      let oldOrder = await Order.findById(id);
-      newType.OrderType = await orderType;
-      newType.tracking_id = await trackingId;
-      newType.payment_status = (await payment_status)
-        ? payment_status
-        : newType.payment_status;
+    const updatedOrder = await Order.findByIdAndUpdate(orderId, updateData, {
+      new: true,
+    });
 
-      if (orderType === "2") {
-        // await pushOrderIntoShipRocket(id)
-      }
-
-      if (orderType === "2" && oldOrder?.processed === false) {
-        await processOrderResponse(id, UserName);
-        oldOrder.processed = true;
-        await oldOrder.save();
-      }
-
-      if (orderType === "7") {
-        await processOrderResponseinReturn(id, UserName);
-      }
-
-      // const ordersToProcess = await Order.find({
-      //     OrderType: '2',
-      //     processed: false,
-      // });
-
-      await notifyUserOfOrderStatusChange(id, orderType);
-
-      await newType.save();
-      return res
-        .status(200)
-        .json({ type: "success", message: "OrderType update Successfully!" });
-    } else {
-      newType.tracking_id = await trackingId;
-      await newType.save();
-      return res
-        .status(200)
-        .json({ type: "success", message: "OrderType update Successfully!" });
+    if (!updatedOrder) {
+      return res.status(404).json({
+        type: "error",
+        message: "Order not found",
+      });
     }
+
+    return res.status(200).json({
+      type: "success",
+      message: "Order updated successfully",
+      order: updatedOrder,
+    });
   } catch (error) {
-    console.log(error);
-    return res
-      .status(500)
-      .json({ type: "error", message: "Server Error!", errorMessage: error });
+    console.error(error);
+    return res.status(500).json({
+      type: "error",
+      message: "Server error",
+    });
   }
 });
 

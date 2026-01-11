@@ -9,81 +9,93 @@ const ShowOrderDetails = () => {
   const selectOrderId = useSelector((state) => state?.OrderDataChange?.payload);
   const navigate = useNavigate();
   const [orderDetails, setOrderDetails] = useState([]);
+
   const [addressDetails, setAddressDetails] = useState([]);
   const [productDetails, setProductDetails] = useState([]);
   const [couponDetails, setCouponDetails] = useState([]);
-  const [orderType, setOrderType] = useState();
+  const [OrderStatus, setOrderStatus] = useState();
   const [tracking_id, setTracking_id] = useState();
+
+  const [reason, setReason] = useState(orderDetails?.reason);
+  const [paymentStatus, setPaymentStatus] = useState(
+    orderDetails?.payment_status || "Unpaid"
+  );
+  const [paymentId, setPaymentId] = useState(orderDetails?.PaymentId || "");
+  const [paymentType, setPaymentType] = useState(
+    orderDetails?.payment_mode || "COD"
+  );
 
   useEffect(() => {
     async function getOrderDetails() {
       try {
-        let response = await axios.get(
+        const response = await axios.get(
           `${url}/order/get/single/${selectOrderId}`,
           {
-            headers: {
-              Authorization: `${adminToken}`,
-            },
+            headers: { Authorization: adminToken },
           }
         );
-        setOrderDetails(response?.data?.order);
-        setAddressDetails(orderDetails.Address);
-        setProductDetails(orderDetails?.cartData);
-        setCouponDetails(orderDetails?.Coupon);
+
+        const order = response?.data?.order;
+
+        setOrderDetails(order);
+        setAddressDetails(order?.Address);
+        setProductDetails(order?.cartData);
+        setCouponDetails(order?.Coupon);
+
+        // ✅ sync editable fields ONCE
+        setOrderStatus(order?.order_status);
+        setPaymentStatus(order?.payment_status);
+        setPaymentType(order?.payment_mode);
+        setPaymentId(order?.PaymentId || "");
+        setReason(order?.reason || "");
       } catch (error) {
         console.log(error);
       }
     }
 
-    getOrderDetails();
-  }, [
-    adminToken,
-    productDetails,
-    selectOrderId,
-    orderDetails,
-    addressDetails,
-    couponDetails,
-  ]);
+    if (selectOrderId) {
+      getOrderDetails();
+    }
+  }, [selectOrderId, adminToken]);
 
-  // for create orderType
-  const createOrderType = [
+  // for create OrderStatus
+  const createOrderStatus = [
     "Pending",
     "Accepted",
     "Pick Up",
     "Rejected",
     "Delivered",
-    // "Cancelled",
+    "Cancelled",
     "Returned",
   ];
 
-  // for update orderType
-  const handleUpdateOrderType = async () => {
-    let paymentStatus;
-
-    if (orderType === "5" && orderDetails?.cod_status === "Paid") {
-      paymentStatus = "Paid";
-    }
-
-    console.log("orderType", orderType, paymentStatus);
+  // for update OrderStatus
+  const handleUpdateOrderStatus = async () => {
     const data = {
-      orderType: orderType,
-      UserName: orderDetails?.User_Name,
+      order_status: OrderStatus,
+      reason,
       trackingId: tracking_id,
+
+      // 🔥 NEW PAYMENT FIELDS
       payment_status: paymentStatus,
+      payment_mode: paymentType,
+      PaymentId: paymentId,
     };
 
-    const urlApi = `${url}/order/update/type/${selectOrderId}`;
-    console.log("data ==>", data, urlApi);
-    let response = await axios.put(urlApi, data, {
-      headers: {
-        Authorization: `${adminToken}`,
-      },
-    });
-    console.log("response ==>", response);
-    if (response?.data?.type === "success") {
-      navigate("/showOrders");
-    } else {
-      console.log(`error`);
+    try {
+      const response = await axios.put(
+        `${url}/order/update/type/${selectOrderId}`,
+        data,
+        {
+          headers: { Authorization: adminToken },
+        }
+      );
+
+      if (response?.data?.type === "success") {
+        navigate("/showOrders");
+      }
+    } catch (error) {
+      console.error(error);
     }
   };
 
@@ -334,11 +346,9 @@ const ShowOrderDetails = () => {
                                     </td>
                                     <td>{product?.SizeName}</td>
                                     <td>{product?.Quantity}</td>
-                                    <td>£ {product?.discountPrice}</td>
+                                    <td>£ {product?.price}</td>
                                     <td>
-                                      £{" "}
-                                      {product?.Quantity *
-                                        product?.discountPrice}
+                                      £ {product?.Quantity * product?.price}
                                     </td>
                                   </tr>
                                 );
@@ -356,42 +366,20 @@ const ShowOrderDetails = () => {
                             <tr>
                               <th>Total Amount</th>
                               <th>Shipping Charges</th>
-                              <th>Final Amount</th>
                               {couponDetails?.couponCode && (
                                 <th>Coupon Details</th>
                               )}
-                              {orderDetails?.cod_advance_amt && (
-                                <th>Charge in COD</th>
-                              )}
-
-                              {orderDetails?.wallet == true && (
-                                <th>Wallet Amount</th>
-                              )}
-                              {orderDetails?.PaymentType != "Wallet" && (
-                                <th>Online Paid Amount</th>
-                              )}
-
-                              {orderDetails?.PaymentType ==
-                                "Cash On Delivery" && <th>Pending Amount</th>}
+                              <th>Final Amount</th>
 
                               <th>Payment Status</th>
                             </tr>
                             <tr>
                               <td>
-                                <b>£ {orderDetails?.DiscountPrice}/-</b>
+                                <b>£ {orderDetails?.OriginalPrice}/-</b>
                               </td>
                               <td>
-                                <b>£ {orderDetails?.Shipping_Charge}/-</b>
+                                <b> + £ {orderDetails?.Shipping_Charge}/-</b>
                               </td>
-                              <td>
-                                <b>
-                                  £{" "}
-                                  {orderDetails?.FinalPrice +
-                                    orderDetails?.CouponPrice}
-                                  /-
-                                </b>
-                              </td>
-
                               {couponDetails?.couponCode && (
                                 <td>
                                   <>
@@ -400,48 +388,16 @@ const ShowOrderDetails = () => {
                                   </>
                                 </td>
                               )}
-
-                              {orderDetails?.cod_advance_amt > 0 && (
-                                <td>£ {orderDetails?.cod_advance_amt}/-</td>
-                              )}
-
-                              {orderDetails?.wallet == true && (
-                                <td>£{orderDetails?.walletAmount}</td>
-                              )}
-
-                              {orderDetails?.PaymentType != "Wallet" && (
-                                <th>
-                                  £
-                                  {orderDetails?.PaymentType == "Online Payment"
-                                    ? orderDetails?.ActualPayment
-                                    : orderDetails?.FinalAdavnceCodPrice}
-                                </th>
-                              )}
-
-                              {orderDetails?.PaymentType ==
-                                "Cash On Delivery" && (
-                                <td>
-                                  <b>
-                                    £{" "}
-                                    {orderDetails?.FinalPrice -
-                                      orderDetails?.cod_advance_amt}
-                                    /-
-                                  </b>
-                                </td>
-                              )}
+                              <td>
+                                <b>
+                                  £{" "}
+                                  {orderDetails?.OriginalPrice -
+                                    orderDetails?.CouponPrice}
+                                  /-
+                                </b>
+                              </td>
 
                               <td>
-                                {orderDetails?.PaymentType ===
-                                  "Cash On Delivery" && (
-                                  <>
-                                    <b>
-                                      COD Payment Status :{" "}
-                                      {orderDetails?.cod_status}
-                                    </b>
-                                    <br></br>
-                                  </>
-                                )}
-
                                 <b>
                                   Payment Status :{" "}
                                   {orderDetails?.payment_status}
@@ -455,7 +411,6 @@ const ShowOrderDetails = () => {
 
                       <div className="mt-2">
                         <label
-                          htmlFor="example-text-input"
                           className="col-md-3"
                           style={{
                             color: "#AB8000",
@@ -464,93 +419,51 @@ const ShowOrderDetails = () => {
                         >
                           Payment Details :
                         </label>
+
                         <div className="mb-3 row">
-                          <label
-                            htmlFor="example-text-input"
-                            className="col-md-2 col-form-label"
-                          >
+                          {/* Payment Mode */}
+                          <label className="col-md-2 col-form-label">
                             Payment Type :-
                           </label>
                           <div className="col-md-10 mt-1">
-                            <input
-                              type="text"
-                              name="name"
-                              id="name"
-                              value={orderDetails?.PaymentType}
+                            <select
                               className="form-control"
-                              readOnly
-                            />
+                              value={paymentType}
+                              onChange={(e) => setPaymentType(e.target.value)}
+                            >
+                              <option value="COD">COD</option>
+                              <option value="ONLINE">Online</option>
+                              <option value="BANK">Bank Transfer</option>
+                            </select>
                           </div>
-                          <label
-                            htmlFor="example-text-input"
-                            className="col-md-2 col-form-label"
-                          >
-                            Payment Id :-
+
+                          {/* Payment Status */}
+                          <label className="col-md-2 col-form-label">
+                            Payment Status :-
+                          </label>
+                          <div className="col-md-10 mt-1">
+                            <select
+                              className="form-control"
+                              value={paymentStatus}
+                              onChange={(e) => setPaymentStatus(e.target.value)}
+                            >
+                              <option value="Unpaid">Unpaid</option>
+                              <option value="Paid">Paid</option>
+                              <option value="Failed">Failed</option>
+                            </select>
+                          </div>
+
+                          {/* Payment ID */}
+                          <label className="col-md-2 col-form-label">
+                            Payment ID :-
                           </label>
                           <div className="col-md-10 mt-1">
                             <input
                               type="text"
-                              name="name"
-                              id="name"
-                              value={
-                                orderDetails?.PaymentId !== "0"
-                                  ? orderDetails?.PaymentId
-                                  : null
-                              }
                               className="form-control"
-                              readOnly
-                            />
-                          </div>
-
-                          <label
-                            htmlFor="example-text-input"
-                            className="col-md-2 col-form-label"
-                          >
-                            Tracking Id :-
-                          </label>
-                          <div className="col-md-10 mt-1">
-                            <input
-                              type="text"
-                              name="name"
-                              id="name"
-                              value={
-                                orderDetails?.tracking_id
-                                  ? orderDetails?.tracking_id
-                                  : tracking_id
-                              }
-                              className="form-control"
-                              onChange={(e) => setTracking_id(e.target.value)}
-                            />
-                          </div>
-
-                          <label
-                            htmlFor="example-text-input"
-                            className="col-md-2 col-form-label"
-                          >
-                            Date & time :-
-                          </label>
-                          <div className="col-md-5 mt-1">
-                            <input
-                              type="text"
-                              name="name"
-                              id="name"
-                              value={new Date(
-                                orderDetails?.createdAt
-                              ).toLocaleDateString()}
-                              className="form-control"
-                              readOnly
-                            />
-                          </div>
-                          <div className="col-md-5 mt-1">
-                            <input
-                              type="text"
-                              name="name"
-                              id="name"
-                              value={new Date(
-                                orderDetails?.createdAt
-                              ).toLocaleTimeString()}
-                              className="form-control"
-                              readOnly
+                              placeholder="Transaction ID / Ref No"
+                              value={paymentId}
+                              onChange={(e) => setPaymentId(e.target.value)}
                             />
                           </div>
                         </div>
@@ -567,70 +480,50 @@ const ShowOrderDetails = () => {
                         >
                           Order Status :
                         </label>
-                        {!orderDetails?.OrderType ? (
-                          <p style={{ color: "red", fontSize: "20px" }}>
-                            Failed
-                          </p>
-                        ) : (
-                          <div className="mb-3 row">
-                            <label
-                              htmlFor="example-text-input"
-                              className="col-md-2 col-form-label"
+
+                        <div className="mb-3 row">
+                          <label
+                            htmlFor="example-text-input"
+                            className="col-md-2 col-form-label"
+                          >
+                            Order Status :-
+                          </label>
+                          <div className="col-md-10 mt-1">
+                            <select
+                              name="o_type"
+                              id="o_type"
+                              style={{ width: "30%", height: "100%" }}
+                              className="select2"
+                              value={OrderStatus}
+                              onChange={(e) => setOrderStatus(e.target.value)}
+                              required
                             >
-                              Order Status :-
-                            </label>
-                            <div className="col-md-10 mt-1">
-                              <select
-                                name="o_type"
-                                id="o_type"
-                                style={{ width: "30%", height: "100%" }}
-                                className="select2"
-                                onChange={(e) => {
-                                  setOrderType(e.target.value);
-                                  console.log(e.target.value);
-                                  console.log(orderDetails?.OrderType);
-                                }}
-                                required
-                              >
-                                {createOrderType?.map((orderType, index) => {
-                                  if (orderDetails?.OrderType === orderType) {
-                                    return (
-                                      <option
-                                        key={index}
-                                        value={index + 1}
-                                        selected
-                                      >
-                                        {orderType}
-                                      </option>
-                                    );
-                                  } else {
-                                    return (
-                                      <option key={index} value={index + 1}>
-                                        {orderType}
-                                      </option>
-                                    );
-                                  }
-                                })}
-                              </select>
-                            </div>
-                            <label
-                              htmlFor="example-text-input"
-                              className="col-md-2 col-form-label"
-                            >
-                              Order Cancel Reason :-
-                            </label>
-                            <div className="col-md-10 mt-1">
-                              <input
-                                type="text"
-                                name="name"
-                                id="name"
-                                value={orderDetails?.reason}
-                                className="form-control"
-                                readOnly
-                              />
-                            </div>
+                              <option value="">Select Status</option>
+                              {createOrderStatus.map((status) => (
+                                <option key={status} value={status}>
+                                  {status}
+                                </option>
+                              ))}
+                            </select>
                           </div>
-                        )}
+
+                          <label
+                            htmlFor="example-text-input"
+                            className="col-md-2 col-form-label"
+                          >
+                            Reason :-
+                          </label>
+                          <div className="col-md-10 mt-1">
+                            <input
+                              type="text"
+                              name="name"
+                              id="name"
+                              value={orderDetails?.reason}
+                              onChange={(e) => setReason(e.target.value)}
+                              className="form-control"
+                            />
+                          </div>
+                        </div>
                       </div>
 
                       <div className="row mb-10">
@@ -643,22 +536,13 @@ const ShowOrderDetails = () => {
                               {" "}
                               <i className="fas fa-window-close"></i> Cancel{" "}
                             </a>
-                            {!orderDetails?.OrderType ? (
-                              <a
-                                className="btn btn-success"
-                                onClick={() => navigate("/showOrders")}
-                              >
-                                <i className="fas fa-save"></i> Go to Orders{" "}
-                              </a>
-                            ) : (
-                              <a
-                                className="btn btn-success"
-                                onClick={() => handleUpdateOrderType()}
-                              >
-                                {" "}
-                                <i className="fas fa-save"></i> Save{" "}
-                              </a>
-                            )}
+
+                            <a
+                              className="btn btn-success"
+                              onClick={() => handleUpdateOrderStatus()}
+                            >
+                              <i className="fas fa-save"></i> Save{" "}
+                            </a>
                           </div>
                         </div>
                       </div>

@@ -141,6 +141,11 @@ const ShowOrder = () => {
         <div>{params.row.Coupon ? `£${params.row.CouponPrice}` : "----"}</div>
       ),
     },
+     {
+      field: "order_status",
+      width: 120,
+      headerName: "Order Status",
+    },
     {
       field: "action",
       headerName: "Action",

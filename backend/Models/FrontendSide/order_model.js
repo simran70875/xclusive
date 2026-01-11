@@ -68,16 +68,21 @@ const OrderSchema = mongoose.Schema(
 
     order_status: {
       type: String,
+      default: "Pending",
     },
 
+    PaymentId: {
+      type: String,
+      default: "",
+    },
     payment_status: {
       type: String,
       default: "Unpaid",
     },
     payment_mode: {
       type: String,
+      default: "",
     },
-
   },
   {
     timestamps: true,

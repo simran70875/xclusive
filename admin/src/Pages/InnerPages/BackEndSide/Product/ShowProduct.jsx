@@ -20,7 +20,6 @@ const ShowProduct = () => {
   const adminToken = localStorage.getItem("token");
 
   const [productData, setProductData] = useState([]);
-  console.log("productData ==> ", productData);
 
   const [selectedRows, setSelectedRows] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
