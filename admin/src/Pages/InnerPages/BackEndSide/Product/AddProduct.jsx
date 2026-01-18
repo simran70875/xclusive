@@ -1,703 +1,657 @@
-import axios from "axios";
-import Modal from "react-modal";
+import React, { useState } from "react";
 import Select from "react-select";
 import ReactQuill from "react-quill";
-import { useNavigate } from "react-router-dom";
-import { useEffect, useRef, useState } from "react";
+import { Trash2, Plus, Save, XCircle, Upload, Check } from "lucide-react";
 
-import defualtImage from "../../../../resources/assets/images/add-image.png";
-import AddVariation from "../Variation/AddVariation";
-import AlertBox from "../../../../Components/AlertComp/AlertBox";
+const AddProductDesign = () => {
+  // --- DYNAMIC OPTION STATES ---
+  const [metalTypes, setMetalTypes] = useState(["Gold", "Silver", "Platinum"]);
+  const [purities, setPurities] = useState(["9k", "14k", "18k", "22k", "24k"]);
+  const [sizes, setSizes] = useState([12, 14, 16, 18, 20]);
 
-let url = process.env.REACT_APP_API_URL;
+  const [diamondTypes, setDiamondTypes] = useState(["Diamond", "Sapphire", "Ruby", "Emerald"]);
+  // New State for Diamond Qualities
+  const [diamondQualities, setDiamondQualities] = useState([
+    { value: 'VVS1', label: 'VVS1' }, { value: 'VVS2', label: 'VVS2' },
+    { value: 'VS1', label: 'VS1' }, { value: 'VS2', label: 'VS2' },
+    { value: 'SI1', label: 'SI1' }, { value: 'I1', label: 'I1' }
+  ]);
 
-const AddProduct = () => {
-  const adminToken = localStorage.getItem("token");
-  const Navigate = useNavigate();
+  // --- TAB STATE ---
+  const [activeTab, setActiveTab] = useState(0);
 
-  // product
-  const [productName, setProductName] = useState("");
-  const [SKUCode, setSKUCode] = useState("");
-
-  const [productImages, setProductImages] = useState([]);
-
-  useEffect(() => {
-    console.log("productImages ==>", productImages);
-  }, [productImages]);
-
-  const [selectedCategories, setSelectedCategories] = useState([]);
-  const [categoryOptions, setCategoryOptions] = useState([]);
-  const [data, setData] = useState([]);
-  const [selectedBrand, setSelectedBrand] = useState("");
-  const [selectedCollection, setSelectedCollection] = useState("");
-  const [description, setDescription] = useState("");
-  const [productAddStatus, setProductAddStatus] = useState();
-  const [statusMessage, setStatusMessage] = useState("");
-
-  // variation
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [variations, setVariations] = useState([]);
-
-  useEffect(() => {
-    Modal.setAppElement(document.body); // Set the appElement to document.body
-  }, []);
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    if (productName !== "" && productImages !== "") {
-      if (variations.length <= 0) {
-        setProductAddStatus("warning");
-        setStatusMessage("Please Add atleast one variations");
-      } else {
-        const formData = new FormData();
-        formData.append("Product_Name", productName);
-        formData.append("SKU_Code", SKUCode);
-
-        // 🔥 FIX: append images one-by-one
-        productImages.forEach((img) => {
-          formData.append("images", img);
-        });
-
-        console.log("selectedCategories ==>", selectedCategories);
-        formData.append("Category", selectedCategories.value);
-
-        if (selectedBrand?.dataId) {
-          formData.append("Brand_Name", selectedBrand?.dataId);
-        }
-
-        formData.append("Collection_Name", selectedCollection?.dataId);
-
-        formData.append("Description", description);
-
-        try {
-          let response = await axios.post(`${url}/product/add`, formData, {
-            headers: {
-              Authorization: `${adminToken}`,
-            },
-          });
-
-          if (response.data.type === "success") {
-            setProductAddStatus(response.data.type);
-            let alertBox = document.getElementById("alert-box");
-            alertBox.classList.add("alert-wrapper");
-            setStatusMessage(response.data.message);
-
-            //  for create variations
-            const productId = response?.data?.productId;
-
-            try {
-              for (const variation of variations) {
-                const variationFormData = new FormData();
-                variationFormData.append("Variation_Name", variation?.name);
-
-                variation?.sizes?.forEach((size) => {
-                  variationFormData.append("Size_Name", size?.size);
-                  variationFormData.append("Size_Stock", size?.stock);
-                  variationFormData.append("Size_Price", size?.price);
-                  variationFormData.append("Size_Purity", size?.purity);
-                });
-
-                variation?.images?.forEach((image) => {
-                  variationFormData.append("images", image);
-                });
-
-                const response = await axios.post(
-                  `${url}/product/variation/add/${productId}`,
-                  variationFormData,
-                  {
-                    headers: {
-                      Authorization: `${adminToken}`,
-                    },
-                  }
-                );
-                console.log("Variation added successfully", response);
-                setVariations("");
-              }
-            } catch (error) {
-              console.log(error);
-            }
-
-            setTimeout(() => {
-              Navigate("/showProduct");
-            }, 900);
-          } else {
-            setProductAddStatus(response.data.type);
-            let alertBox = document.getElementById("alert-box");
-            alertBox.classList.add("alert-wrapper");
-            setStatusMessage(response.data.message);
-          }
-        } catch (error) {
-          setProductAddStatus("error");
-          let alertBox = document.getElementById("alert-box");
-          alertBox.classList.add("alert-wrapper");
-          setStatusMessage("Product not Add !");
-        }
-      }
-    }
-  };
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setProductAddStatus("");
-      setStatusMessage("");
-      let alertBox = document?.getElementById("alert-box");
-      alertBox?.classList?.remove("alert-wrapper");
-    }, 1500);
-
-    return () => clearTimeout(timer);
-  }, [productAddStatus, statusMessage]);
-
-  useEffect(() => {
-    // Fetch category data from your API
-    async function fetchCategoryData() {
-      try {
-        const response = await axios.get(`${url}/category/get`, {
-          headers: {
-            Authorization: `${adminToken}`,
-          },
-        });
-
-        const options = response?.data?.category?.map((option) => ({
-          value: option._id,
-          label:
-            option.Category_Name.charAt(0).toUpperCase() +
-            option.Category_Name.slice(1),
-        }));
-
-        setCategoryOptions(options);
-      } catch (error) {
-        console.error("Failed to fetch categories:", error);
-      }
-    }
-    fetchCategoryData();
-  }, []);
-
-  const handleCategoryChange = (selectedOptions) => {
-    setSelectedCategories(selectedOptions);
-  };
-
-  // get all brand , collections
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        const Response = await axios.get(`${url}/data/get`, {
-          headers: {
-            Authorization: `${adminToken}`,
-          },
-        });
-        console.log("Response Data ==>", Response?.data);
-        setData(Response?.data?.data);
-      } catch (error) {
-        console.error("Failed to fetch categories:", error);
-      }
-    }
-    fetchData();
-  }, []);
-
-  const handleOpenModal = () => {
-    setIsModalOpen(true);
-  };
-
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-  };
-
-  const handleDeleteVariation = (index) => {
-    const updatedVariations = [...variations];
-    updatedVariations.splice(index, 1);
-    setVariations(updatedVariations);
-  };
-
-  // Filter data for each data type
-  const brandData = data?.filter((option) => option?.Data_Type === "Brand");
-  const collectionsData = data?.filter(
-    (option) => option?.Data_Type === "Collection"
-  );
-
-  console.log("collectionsData ==>", collectionsData);
-
-  const brandOptions = brandData?.map((option) => {
-    return {
-      dataId: option?._id,
-      label:
-        option?.Data_Name?.charAt(0)?.toUpperCase() +
-        option?.Data_Name?.slice(1),
-    };
+  // --- MASTER PRODUCT STATE ---
+  const [masterData, setMasterData] = useState({
+    name: "",
+    sku: "SKU-" + Math.floor(Math.random() * 100000),
+    description: "",
   });
 
-  const collectionOptions = collectionsData?.map((option) => {
-    return {
-      dataId: option?._id,
-      label:
-        option?.Data_Name?.charAt(0)?.toUpperCase() +
-        option?.Data_Name?.slice(1),
-    };
-  });
-
-  // custom style for react quill
-  const customStyles = {
-    singleValue: (provided) => ({
-      ...provided,
-      color: "black",
-    }),
-    option: (provided, state) => ({
-      ...provided,
-      backgroundColor: state.isFocused ? "white" : "white",
-      color: state.isSelected ? "black" : "black",
-      ":hover": {
-        backgroundColor: "#e6f7ff",
-      },
-    }),
-  };
-
-  //  for react quill (long desc)
-  const editor = useRef();
-
-  const handleTextChange = (value) => {
-    setDescription(value);
-  };
-
-  const tableOptions = [];
-  const maxRows = 8;
-  const maxCols = 5;
-  for (let r = 1; r <= maxRows; r++) {
-    for (let c = 1; c <= maxCols; c++) {
-      tableOptions.push("newtable_" + r + "_" + c);
-    }
-  }
-
-  const editorModules = {
-    toolbar: [
-      [
-        { header: "1" },
-        { header: "2" },
-        { header: [3, 4, 5, 6] },
-        { font: [] },
+  // --- VARIATIONS STATE ---
+  const [variations, setVariations] = useState([
+    {
+      id: 1,
+      variationName: "Yellow Gold",
+      images: [],
+      isDiamondInvolved: false,
+      metalComponents: [
+        { metalType: "Gold", purity: "18k", size: 16, weight: 0, rate: 0 },
       ],
-      [{ size: [] }],
-      ["bold", "italic", "underline", "strike", "blockquote"],
-      [{ list: "ordered" }, { list: "bullet" }],
-      ["link", "video", "image"],
-      ["clean"],
-      ["code-block"],
-      [{ color: [] }, { background: [] }],
-      [{ font: [] }],
-      [{ align: [] }],
-      [{ script: "sub" }, { script: "super" }],
-      [{ indent: "-1" }, { indent: "+1" }],
-      [{ direction: "rtl" }, { table: tableOptions }],
-    ],
+      diamondComponents: [],
+      labourCharge: 0,
+      makingCharge: 0,
+      finalPrice: 0,
+    },
+    {
+      id: 2,
+      variationName: "White Gold",
+      images: [],
+      isDiamondInvolved: false,
+      metalComponents: [
+        { metalType: "Gold", purity: "18k", size: 16, weight: 0, rate: 0 },
+      ],
+      diamondComponents: [],
+      labourCharge: 0,
+      makingCharge: 0,
+      finalPrice: 0,
+    },
+    {
+      id: 3,
+      variationName: "Rose Gold",
+      images: [],
+      isDiamondInvolved: false,
+      metalComponents: [
+        { metalType: "Gold", purity: "18k", size: 16, weight: 0, rate: 0 },
+      ],
+      diamondComponents: [],
+      labourCharge: 0,
+      makingCharge: 0,
+      finalPrice: 0,
+    },
+  ]);
+
+  // --- HANDLERS ---
+  const handleOnTheSpotAdd = (type) => {
+    const val = prompt(`Enter new ${type}:`);
+    if (val) {
+      if (type === "Metal") setMetalTypes([...metalTypes, val]);
+      if (type === "Purity") setPurities([...purities, val]);
+      if (type === "Size") setSizes([...sizes, val]);
+      if (type === "Diamond Type") setDiamondTypes([...diamondTypes, val]);
+      if (type === "Quality") setDiamondQualities([...diamondQualities, { value: val, label: val }]);
+    }
   };
+
+  const deleteVariation = (id, e) => {
+    e.stopPropagation(); // Prevents switching tabs when clicking delete
+    if (variations.length === 1)
+      return alert("You must have at least one variation.");
+    if (window.confirm("Delete this variation?")) {
+      const filtered = variations.filter((v) => v.id !== id);
+      setVariations(filtered);
+      setActiveTab(0);
+    }
+  };
+
+  const calculateTotal = (idx) => {
+    const updated = [...variations];
+    const v = updated[idx];
+    if (!v) return;
+    const mTotal = v.metalComponents.reduce(
+      (acc, m) => acc + Number(m.weight) * Number(m.rate),
+      0,
+    );
+    const dTotal = v.isDiamondInvolved
+      ? v.diamondComponents.reduce(
+          (acc, d) => acc + Number(d.totalCrt) * Number(d.rate || 0),
+          0,
+        )
+      : 0;
+    v.finalPrice =
+      mTotal +
+      dTotal +
+      Number(v.labourCharge || 0) +
+      Number(v.makingCharge || 0);
+    setVariations(updated);
+  };
+
+  const currentVar = variations[activeTab];
 
   return (
-    <>
-      <div className="main-content dark">
-        <div className="page-content">
-          <div className="container-fluid">
-            <div className="row">
-              <div className="col-12">
-                <div className="page-title-box d-flex align-items-center justify-content-between">
-                  <h4 className="mb-0">Add Product</h4>
+    <div className="main-content p-4 bg-light">
+      {/* 1. PRODUCT MASTER INFORMATION */}
+      <div className="card shadow-sm mb-4 border-0">
+        <div className="card-header bg-white py-3">
+          <h5>Product Master Details</h5>
+        </div>
+        <div className="card-body">
+          <div className="row g-3">
+            <div className="col-md-4">
+              <label className="form-label fw-bold small">Product Name</label>
+              <input
+                type="text"
+                className="form-control"
+                placeholder="Elegant Solitaire"
+              />
+            </div>
+            <div className="col-md-2">
+              <label className="form-label fw-bold small">SKU Code</label>
+              <input
+                type="text"
+                className="form-control bg-light"
+                value={masterData.sku}
+                readOnly
+              />
+            </div>
+            <div className="col-md-2">
+              <label className="form-label fw-bold small">Brand</label>
+              <Select options={[{ label: "Royal Jewels", value: 1 }]} />
+            </div>
+            <div className="col-md-2">
+              <label className="form-label fw-bold small">Category</label>
+              <Select options={[{ label: "Rings", value: 1 }]} />
+            </div>
+            <div className="col-md-2">
+              <label className="form-label fw-bold small">Collection</label>
+              <Select options={[{ label: "Bridal", value: 1 }]} />
+            </div>
+            <div className="col-md-12">
+              <label className="form-label fw-bold small">Master Images</label>
+              <input type="file" className="form-control" multiple />
+            </div>
+            <div className="col-12">
+              <label className="form-label fw-bold small">Description</label>
+              <ReactQuill theme="snow" value={masterData.description} />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 2. TABBED VARIATIONS SECTION */}
+      <div className="card shadow-sm border-0">
+        <div className="card-header bg-white pt-3">
+          <div className="d-flex justify-content-between align-items-center mb-3">
+            <h5 className="mb-0 text-primary fw-bold">
+              Variations Information
+            </h5>
+            <button
+              className="btn btn-sm btn-primary"
+              onClick={() => {
+                const newVar = {
+                  id: Date.now(),
+                  variationName: "New Variation",
+                  images: [],
+                  isDiamondInvolved: false,
+                  metalComponents: [
+                    {
+                      metalType: "Gold",
+                      purity: "18k",
+                      size: 16,
+                      weight: 0,
+                      rate: 0,
+                    },
+                  ],
+                  diamondComponents: [],
+                  labourCharge: 0,
+                  makingCharge: 0,
+                  finalPrice: 0,
+                };
+                setVariations([...variations, newVar]);
+                setActiveTab(variations.length);
+              }}
+            >
+              <Plus size={16} /> Add Variation
+            </button>
+          </div>
+
+          <ul className="nav nav-tabs border-0">
+            {variations.map((v, idx) => (
+              <li
+                className="nav-item"
+                key={v.id}
+                style={{ position: "relative" }}
+              >
+                <button
+                  className={`nav-link fw-bold d-flex align-items-center ${activeTab === idx ? "active bg-primary text-white border-primary" : "text-secondary bg-light"}`}
+                  onClick={() => setActiveTab(idx)}
+                  style={{
+                    marginRight: "5px",
+                    borderRadius: "8px 8px 0 0",
+                    paddingRight: "35px",
+                  }}
+                >
+                  {v.variationName || `Var ${idx + 1}`}
+                  <Trash2
+                    size={14}
+                    className="ms-2"
+                    style={{
+                      position: "absolute",
+                      right: "10px",
+                      cursor: "pointer",
+                      opacity: 0.7,
+                    }}
+                    onClick={(e) => deleteVariation(v.id, e)}
+                  />
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div className="card-body bg-white border-top">
+          {currentVar && (
+            <div className="animate__animated animate__fadeIn">
+              <div className="row g-3 mb-4">
+                <div className="col-md-4">
+                  <label className="form-label small fw-bold">
+                    Variation Color/Name
+                  </label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    value={currentVar.variationName}
+                    onChange={(e) => {
+                      const up = [...variations];
+                      up[activeTab].variationName = e.target.value;
+                      setVariations(up);
+                    }}
+                  />
+                </div>
+                <div className="col-md-4">
+                  <label className="form-label small fw-bold">
+                    Manage Variation Images
+                  </label>
+                  <br></br>
+                  <button className="btn btn-sm btn-primary py-2">
+                    <Plus size={16} /> Upload Images
+                  </button>
                 </div>
               </div>
-            </div>
-            <div className="row">
-              <div className="col-12">
-                <div className="card">
-                  <div className="card-body">
-                    <form onSubmit={handleSubmit}>
-                      <div className="mb-3 row">
-                        <label
-                          htmlFor="example-text-input"
-                          className="col-md-2 col-form-label"
+
+              {/* METAL CALCULATIONS */}
+              <div className="d-flex justify-content-between align-items-center mb-2 mt-4">
+                <h6 className="fw-bold text-dark border-start border-primary border-4 ps-2">
+                  METAL COMPONENTS
+                </h6>
+              </div>
+
+              <table className="table table-bordered align-middle">
+                <thead className="table-light small">
+                  <tr>
+                    <th>
+                      <div className="d-flex align-items-center justify-content-between">
+                        Metal Type{" "}
+                        <button
+                          className="btn btn-xxs btn-outline-secondary py-1"
+                          onClick={() => handleOnTheSpotAdd("Metal")}
                         >
-                          Product Name:
-                        </label>
-                        <div className="col-md-10">
-                          <input
-                            required
-                            className="form-control"
-                            type="text"
-                            id="example-text-input"
-                            value={productName}
-                            onChange={(e) => {
-                              setProductName(e.target.value);
-                            }}
-                          />
-                        </div>
+                          +
+                        </button>
                       </div>
-
-                      <div className="mb-3 row">
-                        <label
-                          htmlFor="example-text-input"
-                          className="col-md-2 col-form-label"
+                    </th>
+                    <th>
+                      <div className="d-flex align-items-center justify-content-between">
+                        Purity
+                        <button
+                          className="btn btn-xxs btn-outline-secondary py-1"
+                          onClick={() => handleOnTheSpotAdd("Purity")}
                         >
-                          SKU Code:
-                        </label>
-                        <div className="col-md-10">
-                          <input
-                            required
-                            className="form-control"
-                            type="text"
-                            id="example-text-input"
-                            value={SKUCode}
-                            onChange={(e) => {
-                              setSKUCode(e.target.value);
-                            }}
-                          />
-                        </div>
+                          +
+                        </button>
                       </div>
-
-                      <div className="mb-3 row">
-                        <label
-                          htmlFor="example-text-input"
-                          className="col-md-2 col-form-label"
+                    </th>
+                    <th>
+                      <div className="d-flex align-items-center justify-content-between">
+                        Size{" "}
+                        <button
+                          className="btn btn-xxs btn-outline-secondary py-1"
+                          onClick={() => handleOnTheSpotAdd("Size")}
                         >
-                          Category Name:
-                        </label>
-                        <div className="col-md-10">
-                          <Select
-                            name="categories"
-                            value={selectedCategories}
-                            onChange={handleCategoryChange}
-                            options={categoryOptions}
-                            placeholder="Select Categories"
-                            className="w-full md:w-20rem"
-                          />
-                        </div>
+                          +
+                        </button>
                       </div>
+                    </th>
+                    <th>Weight (g)</th>
 
-                      <div className="mb-3 row">
-                        <label
-                          htmlFor="example-text-input"
-                          className="col-md-2 col-form-label"
+                    <th>Rate/g</th>
+                    <th className="text-end">Cost</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {currentVar.metalComponents.map((m, mIdx) => (
+                    <tr key={mIdx}>
+                      <td>
+                        <select
+                          className="form-select form-select-sm"
+                          value={m.metalType}
+                          onChange={(e) => {
+                            currentVar.metalComponents[mIdx].metalType =
+                              e.target.value;
+                            setVariations([...variations]);
+                          }}
                         >
-                          Brand Name:
-                        </label>
-                        <div className="col-md-10">
-                          <Select
-                            name="brands"
-                            value={selectedBrand}
-                            onChange={(e) => setSelectedBrand(e)}
-                            options={brandOptions}
-                            styles={customStyles}
-                          />
-                        </div>
-                      </div>
+                          {metalTypes.map((opt) => (
+                            <option key={opt} value={opt}>
+                              {opt}
+                            </option>
+                          ))}
+                        </select>
+                      </td>
+                      <td>
+                        <select
+                          className="form-select form-select-sm"
+                          value={m.purity}
+                          onChange={(e) => {
+                            currentVar.metalComponents[mIdx].purity =
+                              e.target.value;
+                            setVariations([...variations]);
+                          }}
+                        >
+                          {purities.map((opt) => (
+                            <option key={opt} value={opt}>
+                              {opt}
+                            </option>
+                          ))}
+                        </select>
+                      </td>
+                      <td>
+                        <select
+                          className="form-select form-select-sm"
+                          value={m.size}
+                          onChange={(e) => {
+                            currentVar.metalComponents[mIdx].size =
+                              e.target.value;
+                            setVariations([...variations]);
+                          }}
+                        >
+                          {sizes.map((opt) => (
+                            <option key={opt} value={opt}>
+                              {opt}
+                            </option>
+                          ))}
+                        </select>
+                      </td>
+                      <td>
+                        <input
+                          type="number"
+                          className="form-control form-control-sm"
+                          value={m.weight}
+                          onChange={(e) => {
+                            currentVar.metalComponents[mIdx].weight =
+                              e.target.value;
+                            calculateTotal(activeTab);
+                          }}
+                        />
+                      </td>
+                      <td>
+                        <input
+                          type="number"
+                          className="form-control form-control-sm"
+                          value={m.rate}
+                          onChange={(e) => {
+                            currentVar.metalComponents[mIdx].rate =
+                              e.target.value;
+                            calculateTotal(activeTab);
+                          }}
+                        />
+                      </td>
+                      <td className="text-end fw-bold">
+                        £{(Number(m.weight) * Number(m.rate)).toFixed(2)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <button
+                className="btn btn-sm btn-outline-primary mb-4"
+                onClick={() => {
+                  currentVar.metalComponents.push({
+                    metalType: "Gold",
+                    purity: "18k",
+                    size: 16,
+                    weight: 0,
+                    rate: 0,
+                  });
+                  setVariations([...variations]);
+                }}
+              >
+                + Add Metal Row
+              </button>
 
-                      <div className="mb-3 row">
-                        <label
-                          htmlFor="example-text-input"
-                          className="col-md-2 col-form-label"
-                        >
-                          Collection :
-                        </label>
-                        <div className="col-md-10">
-                          <Select
-                            name="collections"
-                            value={selectedCollection}
-                            onChange={(e) => setSelectedCollection(e)}
-                            options={collectionOptions}
-                            styles={customStyles}
-                          />
-                        </div>
-                      </div>
-
-                      {/* <div className="mb-3 row">
-                        <label
-                          htmlFor="example-text-input"
-                          className="col-md-2 col-form-label"
-                        >
-                          Original Price:
-                        </label>
-                        <div className="col-md-10">
-                          <input
-                            min="0"
-                            required
-                            className="form-control"
-                            type="number"
-                            id="example-number-input"
-                            value={originalPrice}
-                            onChange={(e) => {
-                              setOriginalPrice(e.target.value);
-                            }}
-                          />
-                        </div>
-                      </div>
-
-                      <div className="mb-3 row">
-                        <label
-                          htmlFor="example-text-input"
-                          className="col-md-2 col-form-label"
-                        >
-                          Discount Price:
-                        </label>
-                        <div className="col-md-10">
-                          <input
-                            min="0"
-                            required
-                            className="form-control"
-                            type="number"
-                            id="example-number-input"
-                            value={discountPrice}
-                            onChange={(e) => {
-                              setDiscountPrice(e.target.value);
-                            }}
-                          />
-                        </div>
-                      </div>
-
-                      <div className="mb-3 row">
-                        <label
-                          htmlFor="example-text-input"
-                          className="col-md-2 col-form-label"
-                        >
-                          Max Selling Price (MSP):
-                        </label>
-                        <div className="col-md-10">
-                          <input
-                            min="0"
-                            required
-                            className="form-control"
-                            type="number"
-                            id="example-number-input"
-                            value={maxDisPrice}
-                            onChange={(e) => {
-                              setMaxDiscPrice(e.target.value);
-                            }}
-                          />
-                        </div>
-                      </div> */}
-
-                      <div className="mb-3 row">
-                        <label
-                          htmlFor="example-text-input"
-                          className="col-md-2 col-form-label"
-                        >
-                          Long Description:
-                        </label>
-                        <div className="col-md-10">
-                          <ReactQuill
-                            ref={editor}
-                            value={description}
-                            onChange={handleTextChange}
-                            modules={editorModules}
-                            className="custom-quill-editor"
-                          />
-                        </div>
-                      </div>
-
-                      <div className="mb-3 row">
-                        <label
-                          htmlFor="example-text-input"
-                          className="col-md-2 col-form-label"
-                        >
-                          Product Images:
-                          <div className="imageSize">
-                            (Recommended Resolution: W-971 X H-1500, W-1295 X
-                            H-2000, W-1618 X H-2500)
-                          </div>
-                        </label>
-                        <div className="col-md-10">
-                          <input
-                            required
-                            className="form-control"
-                            type="file"
-                            multiple
-                            onChange={(e) => {
-                              setProductImages([...e.target.files]);
-                            }}
-                            id="example-text-input"
-                          />
-                          <div
-                            className="fileupload_img col-md-10 mt-3"
-                            style={{ display: "flex", gap: "10px" }}
-                          >
-                            {productImages.length > 0 ? (
-                              productImages.map((img, i) => (
-                                <img
-                                  key={i}
-                                  src={URL.createObjectURL(img)}
-                                  alt="product"
-                                  height={100}
-                                  style={{ objectFit: "cover", width: "auto" }}
-                                />
-                              ))
-                            ) : (
-                              <img
-                                src={defualtImage}
-                                height={100}
-                                width={100}
-                                alt="default"
+              <div className="col-md-4 d-flex align-items-end pb-2 pt-2">
+                <div className="form-check form-switch mb-2">
+                  <input
+                    className="form-check-input"
+                    type="checkbox"
+                    checked={currentVar.isDiamondInvolved}
+                    onChange={(e) => {
+                      const up = [...variations];
+                      up[activeTab].isDiamondInvolved = e.target.checked;
+                      if (
+                        e.target.checked &&
+                        currentVar.diamondComponents.length === 0
+                      ) {
+                        up[activeTab].diamondComponents = [
+                          {
+                            type: "Diamond",
+                            shape: "Round",
+                            mm: "",
+                            count: 0,
+                            average: "",
+                            totalCrt: 0,
+                            rate: 0,
+                          },
+                        ];
+                      }
+                      setVariations(up);
+                      calculateTotal(activeTab);
+                    }}
+                  />
+                  <label className="form-check-label fw-bold">
+                    Involve Diamonds?
+                  </label>
+                </div>
+              </div>
+              {/* DIAMOND CALCULATIONS */}
+              {currentVar.isDiamondInvolved && (
+                <div className="mt-4 animate__animated animate__fadeInUp">
+                  <h6 className="fw-bold text-info border-start border-info border-4 ps-2 mb-3">
+                    DIAMOND COMPONENTS
+                  </h6>
+                  <div className="table-responsive">
+                    <table className="table table-bordered align-middle">
+                      <thead className="table-light small">
+                        <tr>
+                          <th>Type</th>
+                          <th>Quality</th>
+                          <th>Shape</th>
+                          <th>mm</th>
+                          <th>No of stone</th>
+                          <th>Average</th>
+                          <th>Total Crt</th>
+                          <th>Rate/Crt</th>
+                          <th className="text-end">Total cost</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {currentVar.diamondComponents.map((d, dIdx) => (
+                          <tr key={dIdx}>
+                            <td>
+                              {/* Changed from Input to Select with dynamic options */}
+                              <select
+                                className="form-select form-select-sm"
+                                value={d.type}
+                                onChange={(e) => {
+                                  currentVar.diamondComponents[dIdx].type = e.target.value;
+                                  setVariations([...variations]);
+                                }}
+                              >
+                                {diamondTypes.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
+                              </select>
+                            </td>
+                            {/* New Quality Field Dropdown */}
+                            <td>
+                              <select className="form-select form-select-sm" value={d.quality} onChange={(e) => { currentVar.diamondComponents[dIdx].quality = e.target.value; setVariations([...variations]); }}>
+                                {diamondQualities.map((opt) => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+                              </select>
+                            </td>
+                            <td>
+                              <select
+                                className="form-select form-select-sm"
+                                value={d.shape}
+                                onChange={(e) => {
+                                  currentVar.diamondComponents[dIdx].shape =
+                                    e.target.value;
+                                  setVariations([...variations]);
+                                }}
+                              >
+                                <option>Round</option>
+                                <option>Princess</option>
+                                <option>Oval</option>
+                                <option>Square</option>
+                              </select>
+                            </td>
+                            <td>
+                              <input
+                                type="text"
+                                className="form-control form-control-sm"
+                                value={d.mm}
+                                onChange={(e) => {
+                                  currentVar.diamondComponents[dIdx].mm =
+                                    e.target.value;
+                                  setVariations([...variations]);
+                                }}
                               />
-                            )}
-                          </div>
-                        </div>
-                      </div>
+                            </td>
+                            <td>
+                              <input
+                                type="number"
+                                className="form-control form-control-sm"
+                                value={d.count}
+                                onChange={(e) => {
+                                  currentVar.diamondComponents[dIdx].count =
+                                    e.target.value;
+                                  setVariations([...variations]);
+                                }}
+                              />
+                            </td>
+                            <td>
+                              <input
+                                type="text"
+                                className="form-control form-control-sm"
+                                value={d.average}
+                                onChange={(e) => {
+                                  currentVar.diamondComponents[dIdx].average =
+                                    e.target.value;
+                                  setVariations([...variations]);
+                                }}
+                              />
+                            </td>
+                            <td>
+                              <input
+                                type="number"
+                                className="form-control form-control-sm"
+                                value={d.totalCrt}
+                                onChange={(e) => {
+                                  currentVar.diamondComponents[dIdx].totalCrt =
+                                    e.target.value;
+                                  calculateTotal(activeTab);
+                                }}
+                              />
+                            </td>
+                            <td>
+                              <input
+                                type="number"
+                                className="form-control form-control-sm"
+                                value={d.rate}
+                                onChange={(e) => {
+                                  currentVar.diamondComponents[dIdx].rate =
+                                    e.target.value;
+                                  calculateTotal(activeTab);
+                                }}
+                              />
+                            </td>
+                            <td className="text-end fw-bold">
+                              £
+                              {(
+                                Number(d.totalCrt) * Number(d.rate || 0)
+                              ).toFixed(2)}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  <button
+                    className="btn btn-sm btn-outline-info mb-4"
+                    onClick={() => {
+                      currentVar.diamondComponents.push({
+                        type: "Diamond",
+                        shape: "Round",
+                        mm: "",
+                        count: 0,
+                        average: "",
+                        totalCrt: 0,
+                        rate: 0,
+                      });
+                      setVariations([...variations]);
+                    }}
+                  >
+                    + Add Diamond Row
+                  </button>
+                </div>
+              )}
 
-                      <div className="mb-3 mt-3 row">
-                        <label
-                          htmlFor="example-text-input"
-                          className="col-md-2 col-form-label"
-                        >
-                          Add Variation:
-                        </label>
-                        <div className="col-md-10">
-                          <div className="d-flex flex-reverse flex-wrap gap-2">
-                            <a
-                              className="btn btn-primary"
-                              onClick={handleOpenModal}
-                            >
-                              <i className="fas fa-plus-circle"></i> Add{" "}
-                            </a>
-                          </div>
-                        </div>
-                      </div>
-
-                      {!variations.length <= 0 && (
-                        <div className="mb-3 row">
-                          <label
-                            htmlFor="example-text-input"
-                            className="col-md-2 col-form-label"
-                          >
-                            Variation :
-                          </label>
-                          <table>
-                            <tr>
-                              <th>No.</th>
-                              <th>Name</th>
-                              <th>Size</th>
-                              <th>Stock</th>
-                              <th>Action</th>
-                            </tr>
-                            {variations?.map((variation, index) => {
-                              const defaultSize = variation?.sizes?.[0]?.size; // Get the first size as the default value
-
-                              return (
-                                <>
-                                  <tr key={index}>
-                                    <td>{index + 1}</td>
-                                    <td>{variation?.name}</td>
-                                    <td>
-                                      <select
-                                        style={{ width: "50px" }}
-                                        value={
-                                          variation?.selectedSize || defaultSize
-                                        }
-                                        onChange={(e) => {
-                                          const selectedSize = e.target.value;
-                                          const updatedVariations =
-                                            variations.map((v, i) => {
-                                              if (i === index) {
-                                                return {
-                                                  ...v,
-                                                  selectedSize: selectedSize,
-                                                };
-                                              }
-                                              return v;
-                                            });
-                                          setVariations(updatedVariations);
-                                        }}
-                                      >
-                                        {variation?.sizes?.map(
-                                          (vari, sizeIndex) => {
-                                            return (
-                                              <option
-                                                key={sizeIndex}
-                                                value={vari?.size}
-                                              >
-                                                {vari?.size}
-                                              </option>
-                                            );
-                                          }
-                                        )}
-                                      </select>
-                                    </td>
-                                    <td>
-                                      {variation?.sizes?.map((vari) => {
-                                        if (
-                                          vari?.size ===
-                                          (variation?.selectedSize ||
-                                            defaultSize)
-                                        ) {
-                                          return vari?.stock;
-                                        }
-                                        return null;
-                                      })}
-                                    </td>
-                                    <td>
-                                      <i
-                                        class="fa fa-trash"
-                                        onClick={() =>
-                                          handleDeleteVariation(index)
-                                        }
-                                        aria-hidden="true"
-                                        style={{
-                                          color: "red",
-                                          cursor: "pointer",
-                                        }}
-                                      ></i>
-                                    </td>
-                                  </tr>
-                                </>
-                              );
-                            })}
-                          </table>
-                        </div>
-                      )}
-
-                      <div className="mb-3 row">
-                        <div className="col-md-10 offset-md-2">
-                          <div className="row mb-10">
-                            <div className="col ms-auto">
-                              <div className="d-flex flex-reverse flex-wrap gap-2">
-                                <a
-                                  className="btn btn-danger"
-                                  onClick={() => Navigate("/showProduct")}
-                                >
-                                  {" "}
-                                  <i className="fas fa-window-close"></i> Cancel{" "}
-                                </a>
-                                <button
-                                  className="btn btn-success"
-                                  type="submit"
-                                >
-                                  {" "}
-                                  <i className="fas fa-save"></i> Save{" "}
-                                </button>
-                              </div>
-                            </div>
-                          </div>
-                          <AlertBox
-                            status={productAddStatus}
-                            statusMessage={statusMessage}
-                          />
-                        </div>
-                      </div>
-                    </form>
+              {/* TAB FOOTER - SUMMARY */}
+              <div className="row justify-content-end mt-4">
+                <div className="col-md-5">
+                  <div className="card card-body bg-light border-0">
+                    <div className="d-flex justify-content-between mb-2">
+                      <span>Labour Charge</span>
+                      <input
+                        type="number"
+                        className="form-control form-control-sm w-50"
+                        value={currentVar.labourCharge}
+                        onChange={(e) => {
+                          currentVar.labourCharge = e.target.value;
+                          calculateTotal(activeTab);
+                        }}
+                      />
+                    </div>
+                    <div className="d-flex justify-content-between mb-2">
+                      <span>Making Charge</span>
+                      <input
+                        type="number"
+                        className="form-control form-control-sm w-50"
+                        value={currentVar.makingCharge}
+                        onChange={(e) => {
+                          currentVar.makingCharge = e.target.value;
+                          calculateTotal(activeTab);
+                        }}
+                      />
+                    </div>
+                    <div className="d-flex justify-content-between fw-bold fs-4 border-top pt-2 mt-2 text-dark">
+                      <span>Variation Total</span>
+                      <span className="text-success">
+                        £{Number(currentVar.finalPrice || 0).toFixed(2)}
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
+          )}
         </div>
-
-        <Modal
-          className="main-content dark"
-          isOpen={isModalOpen}
-          onRequestClose={handleCloseModal}
-        >
-          <AddVariation
-            variations={variations}
-            setVariations={setVariations}
-            handleCloseModal={handleCloseModal}
-            addOnBtnClick={false}
-          />
-        </Modal>
       </div>
-    </>
+
+      <div className="d-flex gap-3 justify-content-end mt-5 mb-5 pb-5">
+        <button className="btn btn-outline-danger px-5">Cancel</button>
+        <button className="btn btn-success btn-lg px-5 shadow">
+          <Save size={20} className="me-2" /> Save Product
+        </button>
+      </div>
+    </div>
   );
 };
 
-export default AddProduct;
+export default AddProductDesign;

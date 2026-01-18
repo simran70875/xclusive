@@ -9,7 +9,6 @@ import EditCategory from "../InnerPages/BackEndSide/Category/EditCategory";
 import AddBanner from "../InnerPages/BackEndSide/Banner/AddBanner";
 import ShowBanner from "../InnerPages/BackEndSide/Banner/ShowBanner";
 import EditBanner from "../InnerPages/BackEndSide/Banner/EditBanner";
-import AddProduct from "../InnerPages/BackEndSide/Product/AddProduct";
 import AddData from "../InnerPages/BackEndSide/Data/AddData";
 import ShowData from "../InnerPages/BackEndSide/Data/ShowData";
 import EditData from "../InnerPages/BackEndSide/Data/EditData";
@@ -44,6 +43,7 @@ import AddPopBanner from "../InnerPages/BackEndSide/Banner_popup/AddPopBanner";
 import EditPopBanner from "../InnerPages/BackEndSide/Banner_popup/EditPopBanner";
 import AddMarquee from "../SettingsPages/marquee";
 import CreateNewOrder from "../InnerPages/FrontEndSide/Order/CreateOrder";
+import AddProduct from "../InnerPages/BackEndSide/Product/AddProduct";
 
 let url = process.env.REACT_APP_API_URL;
 
