@@ -419,6 +419,8 @@ const LeftSide = () => {
                 </a>
               </li>
 
+              <li className="menu-title">Banners</li>
+
               <li
                 className={`${
                   activeMenu === `showBanner` ||

@@ -1,24 +1,38 @@
-import React, { useState } from "react";
+import { useEffect, useState } from "react";
 import Select from "react-select";
 import ReactQuill from "react-quill";
-import { Trash2, Plus, Save, XCircle, Upload, Check } from "lucide-react";
+import { Trash2, Plus, Save, PlusCircle } from "lucide-react";
 
 const AddProductDesign = () => {
   // --- DYNAMIC OPTION STATES ---
+  const [sizes, setSizes] = useState([
+    { _id: "1", sizeName: "12" },
+    { _id: "2", sizeName: "14" },
+    { _id: "3", sizeName: "16" },
+    { _id: "4", sizeName: "18" },
+    { _id: "5", sizeName: "20" },
+    { _id: "6", sizeName: "21" },
+    { _id: "7", sizeName: "22" },
+    { _id: "8", sizeName: "23" },
+  ]);
+  
   const [metalTypes, setMetalTypes] = useState(["Gold", "Silver", "Platinum"]);
   const [purities, setPurities] = useState(["9k", "14k", "18k", "22k", "24k"]);
-  const [sizes, setSizes] = useState([12, 14, 16, 18, 20]);
-
-  const [diamondTypes, setDiamondTypes] = useState(["Diamond", "Sapphire", "Ruby", "Emerald"]);
-  // New State for Diamond Qualities
-  const [diamondQualities, setDiamondQualities] = useState([
-    { value: 'VVS1', label: 'VVS1' }, { value: 'VVS2', label: 'VVS2' },
-    { value: 'VS1', label: 'VS1' }, { value: 'VS2', label: 'VS2' },
-    { value: 'SI1', label: 'SI1' }, { value: 'I1', label: 'I1' }
+  
+  const [diamondTypes, setDiamondTypes] = useState([
+    "Diamond",
+    "Sapphire",
+    "Ruby",
+    "Emerald",
   ]);
 
   // --- TAB STATE ---
-  const [activeTab, setActiveTab] = useState(0);
+  const [activeVariation, setActiveVariation] = useState({});
+  const [sizeActiveTabs, setSizeActiveTabs] = useState([]);
+
+  useEffect(() => {
+    console.log("activeVariation", activeVariation);
+  }, [activeVariation]);
 
   // --- MASTER PRODUCT STATE ---
   const [masterData, setMasterData] = useState({
@@ -30,25 +44,92 @@ const AddProductDesign = () => {
   // --- VARIATIONS STATE ---
   const [variations, setVariations] = useState([
     {
-      id: 1,
+      _id: "1",
       variationName: "Yellow Gold",
       images: [],
       isDiamondInvolved: false,
-      metalComponents: [
-        { metalType: "Gold", purity: "18k", size: 16, weight: 0, rate: 0 },
+      sizes: [
+        {
+          _id: "1",
+          sizeName: "16",
+          metalComponents: [
+            { metalType: "Gold", purity: "18k", weight: 0, rate: 0 },
+          ],
+        },
+        {
+          _id: "2",
+          sizeName: "17",
+          metalComponents: [
+            { metalType: "Gold", purity: "18k", weight: 0, rate: 0 },
+          ],
+        },
+        {
+          _id: "3",
+          sizeName: "18",
+          metalComponents: [
+            { metalType: "Gold", purity: "18k", weight: 0, rate: 0 },
+          ],
+        },
+        {
+          _id: "4",
+          sizeName: 19,
+          metalComponents: [
+            { metalType: "Gold", purity: "18k", weight: 0, rate: 0 },
+          ],
+        },
+        {
+          _id: "5",
+          sizeName: "20",
+          metalComponents: [
+            { metalType: "Gold", purity: "18k", weight: 0, rate: 0 },
+          ],
+        },
       ],
-      diamondComponents: [],
+      diamondSizes: [
+        {
+          _id: "1",
+          sizeName: "16",
+          diamondComponents: [],
+        },
+        {
+          _id: "2",
+          sizeName: "16",
+          diamondComponents: [],
+        },
+      ],
+      qualities: [
+        {
+          quality: "1",
+          crt: "24",
+          totalPrice: "2500",
+        },
+        {
+          quality: "2",
+          crt: "24",
+          totalPrice: "2500",
+        },
+        {
+          quality: "3",
+          crt: "24",
+          totalPrice: "2500",
+        },
+        {
+          quality: "4",
+          crt: "24",
+          totalPrice: "2500",
+        },
+      ],
       labourCharge: 0,
       makingCharge: 0,
       finalPrice: 0,
     },
     {
-      id: 2,
+      _id: "2",
       variationName: "White Gold",
       images: [],
       isDiamondInvolved: false,
       metalComponents: [
-        { metalType: "Gold", purity: "18k", size: 16, weight: 0, rate: 0 },
+        { metalType: "Gold", purity: "18k", weight: 0, rate: 0 },
       ],
       diamondComponents: [],
       labourCharge: 0,
@@ -56,12 +137,12 @@ const AddProductDesign = () => {
       finalPrice: 0,
     },
     {
-      id: 3,
+      _id: "3",
       variationName: "Rose Gold",
       images: [],
       isDiamondInvolved: false,
       metalComponents: [
-        { metalType: "Gold", purity: "18k", size: 16, weight: 0, rate: 0 },
+        { metalType: "Gold", purity: "18k", weight: 0, rate: 0 },
       ],
       diamondComponents: [],
       labourCharge: 0,
@@ -69,6 +150,26 @@ const AddProductDesign = () => {
       finalPrice: 0,
     },
   ]);
+
+  //active first variation by default
+  useEffect(() => {
+    if (!variations || variations.length === 0) return;
+    const firstVariation = variations[0];
+    setActiveVariation(firstVariation);
+  }, []);
+
+  useEffect(() => {
+    if (
+      !activeVariation ||
+      !activeVariation.sizes ||
+      activeVariation.sizes?.length === 0
+    )
+      return;
+    setSizeActiveTabs((previousTabs) => ({
+      ...previousTabs,
+      [0]: activeVariation?.sizes[0]._id,
+    }));
+  }, [activeVariation]);
 
   // --- HANDLERS ---
   const handleOnTheSpotAdd = (type) => {
@@ -78,7 +179,6 @@ const AddProductDesign = () => {
       if (type === "Purity") setPurities([...purities, val]);
       if (type === "Size") setSizes([...sizes, val]);
       if (type === "Diamond Type") setDiamondTypes([...diamondTypes, val]);
-      if (type === "Quality") setDiamondQualities([...diamondQualities, { value: val, label: val }]);
     }
   };
 
@@ -87,9 +187,17 @@ const AddProductDesign = () => {
     if (variations.length === 1)
       return alert("You must have at least one variation.");
     if (window.confirm("Delete this variation?")) {
-      const filtered = variations.filter((v) => v.id !== id);
+      const filtered = variations.filter((v) => v._id !== id);
       setVariations(filtered);
-      setActiveTab(0);
+      setActiveVariation({});
+    }
+  };
+
+  const deleteSize = (id, e) => {
+    e.stopPropagation(); // Prevents switching tabs when clicking delete
+    if (window.confirm("Delete this size?")) {
+      const filtered = activeVariation?.sizes?.filter((s) => s._id !== id);
+      setVariations(filtered);
     }
   };
 
@@ -115,7 +223,7 @@ const AddProductDesign = () => {
     setVariations(updated);
   };
 
-  const currentVar = variations[activeTab];
+  const currentVar = variations[activeVariation];
 
   return (
     <div className="main-content p-4 bg-light">
@@ -178,26 +286,112 @@ const AddProductDesign = () => {
               className="btn btn-sm btn-primary"
               onClick={() => {
                 const newVar = {
-                  id: Date.now(),
+                  _id: "1",
                   variationName: "New Variation",
                   images: [],
                   isDiamondInvolved: false,
-                  metalComponents: [
+                  sizes: [
                     {
-                      metalType: "Gold",
-                      purity: "18k",
-                      size: 16,
-                      weight: 0,
-                      rate: 0,
+                      _id: "1",
+                      sizeName: "16",
+                      metalComponents: [
+                        {
+                          metalType: "Gold",
+                          purity: "18k",
+                          weight: 0,
+                          rate: 0,
+                        },
+                      ],
+                    },
+                    {
+                      _id: "2",
+                      sizeName: "17",
+                      metalComponents: [
+                        {
+                          metalType: "Gold",
+                          purity: "18k",
+                          weight: 0,
+                          rate: 0,
+                        },
+                      ],
+                    },
+                    {
+                      _id: "3",
+                      sizeName: "18",
+                      metalComponents: [
+                        {
+                          metalType: "Gold",
+                          purity: "18k",
+                          weight: 0,
+                          rate: 0,
+                        },
+                      ],
+                    },
+                    {
+                      _id: "4",
+                      sizeName: 19,
+                      metalComponents: [
+                        {
+                          metalType: "Gold",
+                          purity: "18k",
+                          weight: 0,
+                          rate: 0,
+                        },
+                      ],
+                    },
+                    {
+                      _id: "5",
+                      sizeName: "20",
+                      metalComponents: [
+                        {
+                          metalType: "Gold",
+                          purity: "18k",
+                          weight: 0,
+                          rate: 0,
+                        },
+                      ],
                     },
                   ],
-                  diamondComponents: [],
+                  diamondSizes: [
+                    {
+                      _id: "1",
+                      sizeName: "16",
+                      diamondComponents: [],
+                    },
+                    {
+                      _id: "2",
+                      sizeName: "16",
+                      diamondComponents: [],
+                    },
+                  ],
+                  qualities: [
+                    {
+                      quality: "1",
+                      crt: "24",
+                      totalPrice: "2500",
+                    },
+                    {
+                      quality: "2",
+                      crt: "24",
+                      totalPrice: "2500",
+                    },
+                    {
+                      quality: "3",
+                      crt: "24",
+                      totalPrice: "2500",
+                    },
+                    {
+                      quality: "4",
+                      crt: "24",
+                      totalPrice: "2500",
+                    },
+                  ],
                   labourCharge: 0,
                   makingCharge: 0,
                   finalPrice: 0,
                 };
                 setVariations([...variations, newVar]);
-                setActiveTab(variations.length);
+                // setActiveVariation(variations.length);
               }}
             >
               <Plus size={16} /> Add Variation
@@ -205,36 +399,148 @@ const AddProductDesign = () => {
           </div>
 
           <ul className="nav nav-tabs border-0">
-            {variations.map((v, idx) => (
-              <li
-                className="nav-item"
-                key={v.id}
-                style={{ position: "relative" }}
-              >
-                <button
-                  className={`nav-link fw-bold d-flex align-items-center ${activeTab === idx ? "active bg-primary text-white border-primary" : "text-secondary bg-light"}`}
-                  onClick={() => setActiveTab(idx)}
-                  style={{
-                    marginRight: "5px",
-                    borderRadius: "8px 8px 0 0",
-                    paddingRight: "35px",
-                  }}
+            {variations?.map((v, idx) => {
+              const varId = v._id;
+              return (
+                <li
+                  className="nav-item"
+                  key={varId}
+                  style={{ position: "relative" }}
                 >
-                  {v.variationName || `Var ${idx + 1}`}
-                  <Trash2
-                    size={14}
-                    className="ms-2"
+                  <button
+                    className={`nav-link fw-bold d-flex align-items-center ${activeVariation?._id === varId ? "active bg-primary text-white border-primary" : "text-secondary bg-light"}`}
+                    onClick={() => setActiveVariation(v)}
                     style={{
-                      position: "absolute",
-                      right: "10px",
-                      cursor: "pointer",
-                      opacity: 0.7,
+                      marginRight: "5px",
+                      borderRadius: "8px 8px 0 0",
+                      paddingRight: "35px",
                     }}
-                    onClick={(e) => deleteVariation(v.id, e)}
-                  />
-                </button>
-              </li>
-            ))}
+                  >
+                    {v.variationName || `Var ${idx + 1}`}
+                    <Trash2
+                      size={14}
+                      className="ms-2"
+                      style={{
+                        position: "absolute",
+                        right: "10px",
+                        cursor: "pointer",
+                        opacity: 0.7,
+                      }}
+                      onClick={(e) => deleteVariation(v._id, e)}
+                    />
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+
+          <div
+            style={{
+              padding: 10,
+            }}
+          ></div>
+          <ul className="nav nav-tabs border-0">
+            <li
+              className="nav-item"
+              key={"add new size"}
+              style={{ position: "relative" }}
+            >
+              <button
+                className={`nav-link fw-bold d-flex align-items-center text-secondary bg-light`}
+                style={{
+                  marginRight: "5px",
+                  borderRadius: "8px 8px 0 0",
+                  paddingRight: "35px",
+                }}
+              >
+                Add New Size
+                <PlusCircle
+                  size={14}
+                  className="ms-2"
+                  style={{
+                    position: "absolute",
+                    right: "10px",
+                    cursor: "pointer",
+                    opacity: 0.7,
+                  }}
+                />
+              </button>
+            </li>
+
+            <li
+              className="nav-item"
+              key={"default sizes"}
+              style={{ position: "relative" }}
+            >
+              <button
+                className={`nav-link fw-bold d-flex align-items-center text-secondary bg-light`}
+                onClick={() => {
+                  setSizeActiveTabs([]);
+                  const allSizes = activeVariation?.sizes || [];
+                  console.log(allSizes);
+                  const newSizeTabs = allSizes.reduce((acc, size, index) => {
+                    acc[index] = size?._id;
+                    return acc;
+                  });
+                  setSizeActiveTabs(newSizeTabs);
+                }}
+                style={{
+                  marginRight: "5px",
+                  borderRadius: "8px 8px 0 0",
+                  paddingRight: "35px",
+                }}
+              >
+                Set Deafult Size
+                <PlusCircle
+                  size={14}
+                  className="ms-2"
+                  style={{
+                    position: "absolute",
+                    right: "10px",
+                    cursor: "pointer",
+                    opacity: 0.7,
+                  }}
+                />
+              </button>
+            </li>
+            {activeVariation?.sizes?.map((s, idx) => {
+              const sizeId = s?._id;
+              return (
+                <li
+                  className="nav-item"
+                  key={sizeId}
+                  style={{ position: "relative" }}
+                >
+                  <button
+                    className={`nav-link fw-bold d-flex align-items-center ${sizeActiveTabs[idx] === sizeId ? "active bg-primary text-white border-primary" : "text-secondary bg-light"}`}
+                    onClick={() =>
+                      setSizeActiveTabs((previousTabs) => ({
+                        ...previousTabs,
+                        [idx]: previousTabs[idx] === sizeId ? null : sizeId,
+                      }))
+                    }
+                    style={{
+                      marginRight: "5px",
+                      borderRadius: "8px 8px 0 0",
+                      paddingRight: "35px",
+                    }}
+                  >
+                    {s.sizeName || `Size ${idx + 1}`}
+                    <Trash2
+                      size={14}
+                      className="ms-2"
+                      style={{
+                        position: "absolute",
+                        right: "10px",
+                        cursor: "pointer",
+                        opacity: 0.7,
+                      }}
+                      onClick={(e) => deleteSize(sizeId, e)}
+                    />
+                  </button>
+                </li>
+              );
+            })}
           </ul>
         </div>
 
@@ -252,7 +558,7 @@ const AddProductDesign = () => {
                     value={currentVar.variationName}
                     onChange={(e) => {
                       const up = [...variations];
-                      up[activeTab].variationName = e.target.value;
+                      up[activeVariation].variationName = e.target.value;
                       setVariations(up);
                     }}
                   />
@@ -300,17 +606,7 @@ const AddProductDesign = () => {
                         </button>
                       </div>
                     </th>
-                    <th>
-                      <div className="d-flex align-items-center justify-content-between">
-                        Size{" "}
-                        <button
-                          className="btn btn-xxs btn-outline-secondary py-1"
-                          onClick={() => handleOnTheSpotAdd("Size")}
-                        >
-                          +
-                        </button>
-                      </div>
-                    </th>
+
                     <th>Weight (g)</th>
 
                     <th>Rate/g</th>
@@ -354,23 +650,7 @@ const AddProductDesign = () => {
                           ))}
                         </select>
                       </td>
-                      <td>
-                        <select
-                          className="form-select form-select-sm"
-                          value={m.size}
-                          onChange={(e) => {
-                            currentVar.metalComponents[mIdx].size =
-                              e.target.value;
-                            setVariations([...variations]);
-                          }}
-                        >
-                          {sizes.map((opt) => (
-                            <option key={opt} value={opt}>
-                              {opt}
-                            </option>
-                          ))}
-                        </select>
-                      </td>
+
                       <td>
                         <input
                           type="number"
@@ -379,7 +659,7 @@ const AddProductDesign = () => {
                           onChange={(e) => {
                             currentVar.metalComponents[mIdx].weight =
                               e.target.value;
-                            calculateTotal(activeTab);
+                            calculateTotal(activeVariation);
                           }}
                         />
                       </td>
@@ -391,7 +671,7 @@ const AddProductDesign = () => {
                           onChange={(e) => {
                             currentVar.metalComponents[mIdx].rate =
                               e.target.value;
-                            calculateTotal(activeTab);
+                            calculateTotal(activeVariation);
                           }}
                         />
                       </td>
@@ -426,12 +706,12 @@ const AddProductDesign = () => {
                     checked={currentVar.isDiamondInvolved}
                     onChange={(e) => {
                       const up = [...variations];
-                      up[activeTab].isDiamondInvolved = e.target.checked;
+                      up[activeVariation].isDiamondInvolved = e.target.checked;
                       if (
                         e.target.checked &&
                         currentVar.diamondComponents.length === 0
                       ) {
-                        up[activeTab].diamondComponents = [
+                        up[activeVariation].diamondComponents = [
                           {
                             type: "Diamond",
                             shape: "Round",
@@ -444,7 +724,7 @@ const AddProductDesign = () => {
                         ];
                       }
                       setVariations(up);
-                      calculateTotal(activeTab);
+                      calculateTotal(activeVariation);
                     }}
                   />
                   <label className="form-check-label fw-bold">
@@ -463,7 +743,6 @@ const AddProductDesign = () => {
                       <thead className="table-light small">
                         <tr>
                           <th>Type</th>
-                          <th>Quality</th>
                           <th>Shape</th>
                           <th>mm</th>
                           <th>No of stone</th>
@@ -482,19 +761,19 @@ const AddProductDesign = () => {
                                 className="form-select form-select-sm"
                                 value={d.type}
                                 onChange={(e) => {
-                                  currentVar.diamondComponents[dIdx].type = e.target.value;
+                                  currentVar.diamondComponents[dIdx].type =
+                                    e.target.value;
                                   setVariations([...variations]);
                                 }}
                               >
-                                {diamondTypes.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
+                                {diamondTypes.map((opt) => (
+                                  <option key={opt} value={opt}>
+                                    {opt}
+                                  </option>
+                                ))}
                               </select>
                             </td>
-                            {/* New Quality Field Dropdown */}
-                            <td>
-                              <select className="form-select form-select-sm" value={d.quality} onChange={(e) => { currentVar.diamondComponents[dIdx].quality = e.target.value; setVariations([...variations]); }}>
-                                {diamondQualities.map((opt) => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
-                              </select>
-                            </td>
+
                             <td>
                               <select
                                 className="form-select form-select-sm"
@@ -555,7 +834,7 @@ const AddProductDesign = () => {
                                 onChange={(e) => {
                                   currentVar.diamondComponents[dIdx].totalCrt =
                                     e.target.value;
-                                  calculateTotal(activeTab);
+                                  calculateTotal(activeVariation);
                                 }}
                               />
                             </td>
@@ -567,7 +846,7 @@ const AddProductDesign = () => {
                                 onChange={(e) => {
                                   currentVar.diamondComponents[dIdx].rate =
                                     e.target.value;
-                                  calculateTotal(activeTab);
+                                  calculateTotal(activeVariation);
                                 }}
                               />
                             </td>
@@ -614,7 +893,7 @@ const AddProductDesign = () => {
                         value={currentVar.labourCharge}
                         onChange={(e) => {
                           currentVar.labourCharge = e.target.value;
-                          calculateTotal(activeTab);
+                          calculateTotal(activeVariation);
                         }}
                       />
                     </div>
@@ -626,7 +905,7 @@ const AddProductDesign = () => {
                         value={currentVar.makingCharge}
                         onChange={(e) => {
                           currentVar.makingCharge = e.target.value;
-                          calculateTotal(activeTab);
+                          calculateTotal(activeVariation);
                         }}
                       />
                     </div>
