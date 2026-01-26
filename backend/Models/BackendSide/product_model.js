@@ -1,61 +1,101 @@
 const mongoose = require("mongoose");
 
 // Variation Schema
-const variationSchema = mongoose.Schema(
+const variationSchema = new mongoose.Schema(
   {
-    Variation_Images: [
+    variationName: String, // Yellow Gold, White Gold
+    VariationStock: {
+      type: String, // "Available", "Few Left", "Last Piece"
+    }, //this could be string , admin can add anithing here.
+
+    // ======================
+    // VARIATION IMAGES
+    // ======================
+    variationImages: [
       {
-        filename: {
-          type: String,
-        },
-        path: {
-          type: String,
-        },
-        originalname: {
-          type: String,
-        },
+        filename: String,
+        path: String,
+        originalname: String,
       },
     ],
 
-    // Yellow Gold, Rose Gold, White Gold
-    Variation_Name: {
-      type: String,
-      required: true,
-    },
-
-    // SIZE LEVEL
-    Variation_Size: [
-      {
-        Size_Name: {
-          type: String, // XS (13.5-14.5)
-        },
-        Size_purity: {
-          // 9K / 18K
-          type: String,
-        },
-        Size_Stock: {
-          type: Number,
-        },
-        Size_Price: {
-          type: Number,
-        },
-        Size_Status: {
-          type: Boolean,
-          default: true,
-        },
-      },
-    ],
-    Variation_Label: {
-      type: String,
-    },
-    Variation_Status: {
+    // ======================
+    // VARIATION STATUS
+    // ======================
+    variationStatus: {
       type: Boolean,
       default: true,
     },
+
+    // ======================
+    // METAL SIZES (UI LEVEL)
+    // ======================
+    metalSizes: [
+      {
+        _uiId: String,
+        sizeLabel: String, // 12, 14, 16 OR Small / Medium
+        active: { type: Boolean, default: true },
+
+        // ======================
+        // METAL COMPONENTS
+        // ======================
+        metalComponents: [
+          {
+            metalType: String, // Gold, Silver
+            purity: String, // 18, 22, 925
+
+            size: String, // size used for calculation (can match sizeLabel)
+            weight: Number, // grams
+          },
+        ],
+
+        metalCharges: {
+          labour: Number,
+          making: Number,
+        },
+      },
+    ],
+
+    // ======================
+    // DIAMOND TOGGLE
+    // ======================
+    diamondInvolved: {
+      type: Boolean,
+      default: false,
+    },
+
+    // ======================
+    // DIAMOND SIZES
+    // ======================
+    diamondSizes: [
+      {
+        _uiId: String,
+        sizeLabel: String, // Small / Medium / Large OR 0.5 / 1.0 / 1.5
+        active: { type: Boolean, default: true },
+
+        diamondComponents: [
+          {
+            type: { type: String, default: "Diamond" },
+            shape: String, // Round
+            mmSize: Number, // 1.5
+            stones: Number, // count
+            qualityVariants: [
+              {
+                quality: String, // LAB VVS/VS, Natural FG VS
+                active: Boolean,
+              },
+            ],
+          },
+        ],
+
+        diamondCharges: {
+          labour: Number,
+          making: Number,
+        },
+      },
+    ],
   },
-  {
-    timestamps: true,
-  }
+  { timestamps: true },
 );
 
 // Product Schema
@@ -134,7 +174,7 @@ const productSchema = mongoose.Schema(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 const Product = mongoose.model("Products", productSchema);

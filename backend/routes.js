@@ -27,7 +27,9 @@ const SubAdminRoute = require("./Routes/Admin/subAdmin_route");
 const AuthRoute = require("./Routes/Admin/auth_route");
 const NotificationRoute = require("./Routes/FrontendSide/Notification/notification_route");
 const NewsletterRoute = require("./Routes/FrontendSide/Newsletter/newsletter_route");
-const couponRoute = require("./Routes/FrontendSide/Coupon/coupon_route")
+const couponRoute = require("./Routes/FrontendSide/Coupon/coupon_route");
+const metalRoute = require("./Routes/FrontendSide/Metal/metal_route")
+const diamondRoute = require("./Routes/FrontendSide/diamond/diamond_routes.js")
 
 route.use("", MarqueeRouter)
 route.use("/category", CategoryRoute);
@@ -55,5 +57,7 @@ route.use("/auth", AuthRoute);
 route.use("/notification", NotificationRoute);
 route.use("/newsletter", NewsletterRoute);
 route.use("/coupon", couponRoute);
+route.use("/metal", metalRoute);
+route.use("/diamond", diamondRoute);
 
 module.exports = route;

@@ -44,6 +44,10 @@ import EditPopBanner from "../InnerPages/BackEndSide/Banner_popup/EditPopBanner"
 import AddMarquee from "../SettingsPages/marquee";
 import CreateNewOrder from "../InnerPages/FrontEndSide/Order/CreateOrder";
 import AddProduct from "../InnerPages/BackEndSide/Product/AddProduct";
+import MetalMaster from "../InnerPages/BackEndSide/Master_Data/MetalMaster";
+import DiamondMaster from "../InnerPages/BackEndSide/Master_Data/DiamondMaster";
+import AddEditDiamondPricing from "../InnerPages/BackEndSide/Master_Data/AddEditDiamond";
+
 
 let url = process.env.REACT_APP_API_URL;
 
@@ -165,7 +169,6 @@ const HomePage = () => {
         <Route exact path="/addCoupon" element={<AddCoupon />} />
         <Route exact path="/editCoupon" element={<EditCoupon />} />
 
-
         {/* DashBoard */}
         <Route exact path="/" element={<DashBoard />} />
 
@@ -174,6 +177,12 @@ const HomePage = () => {
 
         {/* Notification */}
         <Route exact path="/showNewsletter" element={<ShowNewsletter />} />
+
+        {/* product master data */}
+        <Route exact path="/manageMetal" element={<MetalMaster />} />
+        <Route exact path="/manageDiamond" element={<DiamondMaster />} />
+        <Route exact path="/addDiamond" element={<AddEditDiamondPricing />} />
+
 
         {/* Sub Admins */}
         {isAdmin ? (

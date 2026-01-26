@@ -194,8 +194,8 @@ route.post(
             if (firstRow.Product_Images) {
               productImagesArray = await Promise.all(
                 firstRow.Product_Images.split("|").map((img) =>
-                  copyLocalImage(img, uploadFolder)
-                )
+                  copyLocalImage(img, uploadFolder),
+                ),
               );
 
               productImagesArray = productImagesArray.filter(Boolean);
@@ -229,6 +229,7 @@ route.post(
               Shipping: firstRow.Shipping || "PRE LAUNCH",
             });
 
+
             // 6️⃣ GROUP VARIATIONS BY Variation_Name
             const variationGroups = productRows.reduce((acc, row) => {
               const name = row.Variation_Name?.trim();
@@ -254,8 +255,8 @@ route.post(
               if (rowsInVariation[0].Variation_Images) {
                 variationImages = await Promise.all(
                   rowsInVariation[0].Variation_Images.split("|").map((img) =>
-                    copyLocalImage(img, uploadFolder)
-                  )
+                    copyLocalImage(img, uploadFolder),
+                  ),
                 );
 
                 variationImages = variationImages.filter(Boolean);
@@ -319,8 +320,26 @@ route.post(
           });
         }
       });
-  }
+  },
 );
+
+async function generateSKU() {
+  const today = new Date();
+  const datePart = today.toISOString().slice(0, 10).replace(/-/g, ""); // YYYYMMDD
+
+  const lastProduct = await Product.findOne({
+    SKU_Code: { $regex: `^XD-${datePart}` },
+  }).sort({ createdAt: -1 });
+
+  let nextNumber = 1;
+
+  if (lastProduct) {
+    const lastSKU = lastProduct.SKU_Code.split("-").pop();
+    nextNumber = parseInt(lastSKU, 10) + 1;
+  }
+
+  return `XD-${datePart}-${String(nextNumber).padStart(4, "0")}`;
+}
 
 // 🚀 CREATE PRODUCT WITH MULTIPLE IMAGES
 route.post(
@@ -331,44 +350,39 @@ route.post(
     try {
       let {
         Product_Name,
-        SKU_Code,
         Category,
         Brand_Name,
         Collection_Name,
         Description,
+        existingImages, // ✅ already uploaded images
       } = req.body;
 
-      if (!req.files || req.files.length === 0) {
-        return res.status(202).json({
-          type: "warning",
-          message: "Add atleast one product image",
-        });
-      }
-
-      // ✅ normalize SKU
-      SKU_Code = SKU_Code.trim().toUpperCase();
-
+      /* ---------- CATEGORY ---------- */
       const categoryIds = Array.isArray(Category)
         ? Category
-        : Category.split(",");
+        : Category?.split(",");
 
-      /* ---------- SKU CHECK (SECONDARY SAFETY) ---------- */
-      const existingProduct = await Product.findOne({ SKU_Code });
+      /* ---------- AUTO SKU ---------- */
+      const SKU_Code = await generateSKU();
 
-      if (existingProduct) {
-        req.files.forEach((f) => f?.path && fs.unlinkSync(f.path));
-
-        return res.status(202).json({
-          type: "warning",
-          message: "Product with same SKU already exists.",
-        });
+      /* ---------- PARSE EXISTING IMAGES ---------- */
+      let selectedImages = [];
+      if (existingImages) {
+        try {
+          selectedImages = JSON.parse(existingImages);
+        } catch {
+          return res.status(400).json({
+            type: "error",
+            message: "Invalid existingImages format",
+          });
+        }
       }
 
-      /* ---------- HANDLE IMAGES ---------- */
-      const Product_Images = req.files.map((file) => {
+      /* ---------- NEW UPLOADED IMAGES ---------- */
+      const uploadedImages = (req.files || []).map((file) => {
         const ext = path.extname(file.originalname);
         const imageFilename = `${Product_Name.replace(/\s/g, "_")}_${Date.now()}_${Math.floor(
-          Math.random() * 9999
+          Math.random() * 9999,
         )}${ext}`;
 
         const newPath = `imageUploads/backend/product/${imageFilename}`;
@@ -380,6 +394,16 @@ route.post(
           originalname: file.originalname,
         };
       });
+
+      /* ---------- FINAL IMAGE LIST ---------- */
+      const Product_Images = [...selectedImages, ...uploadedImages];
+
+      if (Product_Images.length === 0) {
+        return res.status(202).json({
+          type: "warning",
+          message: "Add at least one product image",
+        });
+      }
 
       /* ---------- CREATE PRODUCT ---------- */
       const product = await Product.create({
@@ -396,17 +420,20 @@ route.post(
       return res.status(200).json({
         type: "success",
         message: "Product added successfully!",
-        productId: product._id,
+        data: {
+          productId: product._id,
+          SKU_Code,
+        },
       });
-
     } catch (error) {
+      // cleanup new uploads
       req.files?.forEach((f) => f?.path && fs.unlinkSync(f.path));
 
-      // 🔥 HANDLE DUPLICATE KEY ERROR
+      // duplicate SKU safety
       if (error.code === 11000) {
         return res.status(202).json({
           type: "warning",
-          message: "Product with same SKU already exists.",
+          message: "SKU conflict, please retry",
         });
       }
 
@@ -416,9 +443,59 @@ route.post(
         message: "Server Error!",
       });
     }
-  }
+  },
 );
 
+// root folder where images exist
+const IMAGE_ROOT = path.join(
+  __dirname,
+  "../../../imageUploads/backend"
+);
+
+// folders to scan
+const IMAGE_FOLDERS = [
+  "product",
+  "variation",
+];
+
+route.get("/get-all-images", checkAdminOrRole2, async (req, res) => {
+  try {
+    const result = {};
+
+    IMAGE_FOLDERS.forEach((folder) => {
+      const folderPath = path.join(IMAGE_ROOT, folder);
+
+      if (!fs.existsSync(folderPath)) {
+        result[folder] = [];
+        return;
+      }
+
+      const files = fs
+        .readdirSync(folderPath)
+        .filter((file) =>
+          /\.(jpg|jpeg|png|webp|gif)$/i.test(file)
+        );
+
+      result[folder] = files.map((file) => ({
+        filename: file,
+        path: `imageUploads/backend/${folder}/${file}`,
+        url: `${process.env.IP_ADDRESS}/imageUploads/backend/${folder}/${file}`,
+      }));
+    });
+
+    res.status(200).json({
+      type: "success",
+      message: "Images fetched successfully",
+      data: result,
+    });
+  } catch (error) {
+    console.error("Fetch images error:", error);
+    res.status(500).json({
+      type: "error",
+      message: "Failed to fetch images",
+    });
+  }
+});
 
 // get all product
 route.get("/get", async (req, res) => {
@@ -432,8 +509,8 @@ route.get("/get", async (req, res) => {
           from: "categories",
           localField: "Category",
           foreignField: "_id",
-          as: "Category"
-        }
+          as: "Category",
+        },
       },
 
       { $unwind: { path: "$Category", preserveNullAndEmptyArrays: true } },
@@ -445,17 +522,17 @@ route.get("/get", async (req, res) => {
           startWith: "$Category.Parent_Category",
           connectFromField: "Parent_Category",
           connectToField: "_id",
-          as: "categoryHierarchy"
-        }
+          as: "categoryHierarchy",
+        },
       },
 
       /* ---------- ORDER TOP → CHILD ---------- */
       {
         $addFields: {
           categoryHierarchy: {
-            $reverseArray: "$categoryHierarchy"
-          }
-        }
+            $reverseArray: "$categoryHierarchy",
+          },
+        },
       },
 
       /* ---------- STRING PATH ---------- */
@@ -469,23 +546,23 @@ route.get("/get", async (req, res) => {
                     $map: {
                       input: "$categoryHierarchy",
                       as: "cat",
-                      in: "$$cat.Category_Name"
-                    }
+                      in: "$$cat.Category_Name",
+                    },
                   },
-                  ["$Category.Category_Name"]
-                ]
+                  ["$Category.Category_Name"],
+                ],
               },
               initialValue: "",
               in: {
                 $cond: [
                   { $eq: ["$$value", ""] },
                   "$$this",
-                  { $concat: ["$$value", " > ", "$$this"] }
-                ]
-              }
-            }
-          }
-        }
+                  { $concat: ["$$value", " > ", "$$this"] },
+                ],
+              },
+            },
+          },
+        },
       },
 
       /* ---------- POPULATE BRAND ---------- */
@@ -494,8 +571,8 @@ route.get("/get", async (req, res) => {
           from: "datas",
           localField: "Brand_Name",
           foreignField: "_id",
-          as: "Brand_Name"
-        }
+          as: "Brand_Name",
+        },
       },
       { $unwind: { path: "$Brand_Name", preserveNullAndEmptyArrays: true } },
 
@@ -505,16 +582,16 @@ route.get("/get", async (req, res) => {
           from: "datas",
           localField: "Collections",
           foreignField: "_id",
-          as: "Collections"
-        }
+          as: "Collections",
+        },
       },
-      { $unwind: { path: "$Collections", preserveNullAndEmptyArrays: true } }
+      { $unwind: { path: "$Collections", preserveNullAndEmptyArrays: true } },
     ]);
 
     if (!products.length) {
       return res.status(404).json({
         type: "warning",
-        message: "Products not found!"
+        message: "Products not found!",
       });
     }
 
@@ -527,12 +604,12 @@ route.get("/get", async (req, res) => {
 
       Brand: {
         _id: p.Brand_Name?._id,
-        Brand_Name: p.Brand_Name?.Data_Name
+        Brand_Name: p.Brand_Name?.Data_Name,
       },
 
       Collections: {
         _id: p.Collections?._id,
-        Collections: p.Collections?.Data_Name
+        Collections: p.Collections?.Data_Name,
       },
 
       Variation_Count: p.Variation?.length || 0,
@@ -551,7 +628,7 @@ route.get("/get", async (req, res) => {
       brand: p.Brand_Name?.Data_Name,
       collection: p.Collections?.Data_Name,
       createdAt: p.createdAt,
-      updatedAt:p.updatedAt
+      updatedAt: p.updatedAt,
     }));
 
     /* ================= FRONTEND PRODUCTS ================= */
@@ -564,7 +641,7 @@ route.get("/get", async (req, res) => {
         Product_Label: p.Product_Label,
 
         // optional but useful for frontend
-        category_path: p.category_path
+        category_path: p.category_path,
       }));
 
     /* ================= RESPONSE ================= */
@@ -572,18 +649,16 @@ route.get("/get", async (req, res) => {
       type: "success",
       message: "Products found successfully!",
       product: adminProducts,
-      product_data: frontendProducts
+      product_data: frontendProducts,
     });
-
   } catch (error) {
     console.error(error);
     res.status(500).json({
       type: "error",
-      message: "Failed to fetch products"
+      message: "Failed to fetch products",
     });
   }
 });
-
 
 // get all products or perform universal search
 route.get("/list/getAll", async (req, res) => {
@@ -636,8 +711,9 @@ route.get("/list/getAll", async (req, res) => {
         _id: product._id,
         Product_Name: product.Product_Name,
         SKU_Code: product.SKU_Code,
-        Product_Image: `http://${process.env.IP_ADDRESS
-          }/${product?.Product_Image?.path?.replace(/\\/g, "/")}`,
+        Product_Image: `http://${
+          process.env.IP_ADDRESS
+        }/${product?.Product_Image?.path?.replace(/\\/g, "/")}`,
         Brand: {
           _id: product?.Brand_Name?._id,
           Brand_Name: product.Brand_Name?.Data_Name,
@@ -688,8 +764,9 @@ route.get("/mob/demo/get", async (req, res) => {
       const adminProducts = products.map((product) => ({
         _id: product._id,
         Product_Name: product.Product_Name,
-        Product_Image: `${process.env.IP_ADDRESS
-          }/${product?.Product_Image?.path?.replace(/\\/g, "/")}`,
+        Product_Image: `${
+          process.env.IP_ADDRESS
+        }/${product?.Product_Image?.path?.replace(/\\/g, "/")}`,
         Category_Name: product.Category[0]?.Category_Name,
         CategoryId: product?.Category[0]?._id,
       }));
@@ -757,24 +834,7 @@ route.get("/get/:id", checkAdminOrRole2, async (req, res) => {
         Description: products.Description,
         Product_Label: products.Product_Label,
         Variation_Count: products.Variation.length,
-        Variation: products?.Variation?.map((variation) => ({
-          _id: variation?._id,
-          variation_Name: variation?.Variation_Name,
-          variation_Label: variation?.Variation_Label,
-          size_count: variation?.Variation_Size?.length,
-          variation_Sizes: variation?.Variation_Size?.map((variation) => ({
-            _id: variation?._id,
-            name: variation?.Size_Name,
-            stock: variation?.Size_Stock,
-            price: variation?.Size_Price,
-            purity: variation?.Size_purity,
-          })),
-          variation_Images: variation?.Variation_Images?.map((variation) => ({
-            variation_Image: `${process.env.IP_ADDRESS
-              }/${variation?.path?.replace(/\\/g, "/")}`,
-          })),
-          variation_Status: variation?.Variation_Status,
-        })),
+        Variation: products?.Variation,
         Popular_pick: products.Popular_pick,
         Trendy_collection: products.Trendy_collection,
       };
@@ -850,8 +910,9 @@ route.get("/mob/get/productlist/:id", async (req, res) => {
         _id: product._id,
         Product_Name: product.Product_Name,
         SKU_Code: product.SKU_Code,
-        Product_Image: `${process.env.IP_ADDRESS
-          }/${product?.Product_Image?.path?.replace(/\\/g, "/")}`,
+        Product_Image: `${
+          process.env.IP_ADDRESS
+        }/${product?.Product_Image?.path?.replace(/\\/g, "/")}`,
         Category: product.Category[0]?.Category_Name,
         Brand_Name: product?.Brand_Name?.Data_Name,
         Collections: product?.Collections?.Data_Name,
@@ -921,8 +982,9 @@ route.get("/mob/get/features/productlist", async (req, res) => {
 
         // ✅ MAIN PRODUCT IMAGE (from variation)
         Product_Image: firstVariation?.Variation_Images?.[0]?.path
-          ? `${process.env.IP_ADDRESS
-          }/${firstVariation.Variation_Images[0].path.replace(/\\/g, "/")}`
+          ? `${
+              process.env.IP_ADDRESS
+            }/${firstVariation.Variation_Images[0].path.replace(/\\/g, "/")}`
           : null,
 
         // ✅ PRICE DETAILS
@@ -981,7 +1043,7 @@ async function getRatings(productId) {
 
   const totalRating = reviewsForProduct.reduce(
     (sum, review) => sum + parseFloat(review.rating),
-    0
+    0,
   );
 
   let rating = totalRating / reviewsForProduct.length;
@@ -1009,7 +1071,9 @@ route.get("/mob/get/single/:id", async (req, res) => {
       .populate("Collections", "Data_Name");
 
     if (!product) {
-      return res.status(200).json({ type: "warning", message: "No products found!", products: [] });
+      return res
+        .status(200)
+        .json({ type: "warning", message: "No products found!", products: [] });
     } else {
       const result = {
         _id: product._id,
@@ -1027,7 +1091,7 @@ route.get("/mob/get/single/:id", async (req, res) => {
         variation: product?.Variation?.reduce(
           (filteredVariations, variation) => {
             const filteredSizes = variation?.Variation_Size?.filter(
-              (size) => size?.Size_Stock > 0
+              (size) => size?.Size_Stock > 0,
             );
 
             if (filteredSizes.length > 0) {
@@ -1043,16 +1107,17 @@ route.get("/mob/get/single/:id", async (req, res) => {
                 })),
                 variation_Images: variation?.Variation_Images?.map(
                   (variation) => ({
-                    variation_Image: `${process.env.IP_ADDRESS
-                      }/${variation?.path?.replace(/\\/g, "/")}`,
-                  })
+                    variation_Image: `${
+                      process.env.IP_ADDRESS
+                    }/${variation?.path?.replace(/\\/g, "/")}`,
+                  }),
                 ),
               });
             }
 
             return filteredVariations;
           },
-          []
+          [],
         ),
         Popular_pick: product.Popular_pick,
         HomePage: product.HomePage,
@@ -1061,10 +1126,18 @@ route.get("/mob/get/single/:id", async (req, res) => {
         ratings: ratings,
       };
 
-      res.status(200).json({ type: "success", message: "Products found successfully!", product: result });
+      res
+        .status(200)
+        .json({
+          type: "success",
+          message: "Products found successfully!",
+          product: result,
+        });
     }
   } catch (error) {
-    res.status(200).json({ type: "error", message: "Server Error!", errorMessage: error });
+    res
+      .status(200)
+      .json({ type: "error", message: "Server Error!", errorMessage: error });
   }
 });
 
@@ -1134,7 +1207,7 @@ route.delete("/deletes", checkAdminOrRole2, async (req, res) => {
 
     // Get the IDs of all variations associated with the products
     const variationIds = products.flatMap((product) =>
-      product.Variation.map((variation) => variation._id)
+      product.Variation.map((variation) => variation._id),
     );
 
     // Get the image paths of all variations and product images
@@ -1274,7 +1347,7 @@ route.patch(
           ? Category
           : Category.split(",");
         existingProduct.Category = categoryIds.map(
-          (id) => new mongoose.Types.ObjectId(id)
+          (id) => new mongoose.Types.ObjectId(id),
         );
       }
 
@@ -1298,13 +1371,11 @@ route.patch(
 
       /* ---------- UPDATE FIELDS ---------- */
       if (Product_Name) existingProduct.Product_Name = Product_Name;
-      if (SKU_Code)
-        existingProduct.SKU_Code = SKU_Code.trim().toUpperCase();
+      if (SKU_Code) existingProduct.SKU_Code = SKU_Code.trim().toUpperCase();
 
       if (Brand_Name) existingProduct.Brand_Name = Brand_Name;
       if (Collections) existingProduct.Collections = Collections;
-      if (Description !== undefined)
-        existingProduct.Description = Description;
+      if (Description !== undefined) existingProduct.Description = Description;
 
       /* ---------- HANDLE EXISTING IMAGES ---------- */
       let finalImages = [];
@@ -1318,7 +1389,7 @@ route.patch(
           const ext = path.extname(file.originalname);
           const filename = `${existingProduct.Product_Name.replace(
             /\s/g,
-            "_"
+            "_",
           )}_${Date.now()}${ext}`;
 
           const imagePath = `imageUploads/backend/product/${filename}`;
@@ -1349,9 +1420,8 @@ route.patch(
         message: "Server Error!",
       });
     }
-  }
+  },
 );
-
 
 route.get("/lowstockproducts/get", checkAdminOrRole2, async (req, res) => {
   try {
@@ -1376,13 +1446,14 @@ route.get("/lowstockproducts/get", checkAdminOrRole2, async (req, res) => {
     for (const product of products) {
       for (const variation of product.Variation) {
         const lowStockSizes = variation.Variation_Size.filter(
-          (size) => size.Size_Stock >= 0 && size.Size_Stock <= 2
+          (size) => size.Size_Stock >= 0 && size.Size_Stock <= 2,
         );
 
         if (lowStockSizes.length > 0) {
           // const imagePath = constructImagePath(process.env.IP_ADDRESS, process.env.PORT, variation.Variation_Image?.path);
-          const imagePath = `${process.env.IP_ADDRESS
-            }/${variation?.Variation_Images[0]?.path?.replace(/\\/g, "/")}`;
+          const imagePath = `${
+            process.env.IP_ADDRESS
+          }/${variation?.Variation_Images[0]?.path?.replace(/\\/g, "/")}`;
 
           lowStockVariationSizes.push(
             ...lowStockSizes.map((size) => ({
@@ -1396,7 +1467,7 @@ route.get("/lowstockproducts/get", checkAdminOrRole2, async (req, res) => {
               Size_Name: size.Size_Name,
               Size_Stock: size.Size_Stock,
               Size_Id: size._id,
-            }))
+            })),
           );
         }
       }
@@ -1433,7 +1504,7 @@ route.put(
       }
 
       const sizeIndex = variation.Variation_Size.findIndex(
-        (size) => size._id.toString() === sizeId
+        (size) => size._id.toString() === sizeId,
       );
 
       if (sizeIndex === -1) {
@@ -1456,7 +1527,7 @@ route.put(
         .status(500)
         .json({ type: "error", message: "Failed to update stock" });
     }
-  }
+  },
 );
 
 route.get("/download/:filename", (req, res) => {

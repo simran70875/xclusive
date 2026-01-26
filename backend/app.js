@@ -10,6 +10,7 @@ const port = process.env.PORT;
 app.use(cors());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+require("./Routes/Cron/updateMetalPrices.cron.js");
 
 
 // Database connection

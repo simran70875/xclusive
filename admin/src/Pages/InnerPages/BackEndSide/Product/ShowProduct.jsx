@@ -216,24 +216,7 @@ const ShowProduct = () => {
       sortable: false,
       hide: false,
     },
-    {
-      field: "Variation",
-      headerName: "Variation",
-      width: 90,
-      renderCell: (params) => (
-        <Stack direction="row">
-          <IconButton
-            aria-label="delete"
-            onClick={() => handleVariationView(params.row)}
-          >
-            <i className="fas fa-eye font-Icon-view" />
-          </IconButton>
-        </Stack>
-      ),
-      filterable: false,
-      sortable: false,
-      hide: false,
-    },
+    
   ];
 
   async function getProduct() {

@@ -54,12 +54,12 @@ function PrivateRoute({ element }) {
 
 function App() {
   return (
-    <Router>
+    <Router 
+    // basename="/admin"
+    >
       <ScrollToTopOnRouteChange />
       <ThemeProvider theme={theme}>
-        <Routes
-        // basename="/admin"
-        >
+        <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route path="error" element={<ErrorPage />} />
 

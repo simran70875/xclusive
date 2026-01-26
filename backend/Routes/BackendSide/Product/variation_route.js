@@ -7,6 +7,8 @@ const {
 } = require("../../../Models/BackendSide/product_model");
 const fs = require("fs");
 const checkAdminOrRole2 = require("../../../Middleware/checkAdminOrRole2");
+const diamondPriceMaster = require("../../../Models/FrontendSide/diamondPriceMaster");
+const metalPriceMaster = require("../../../Models/FrontendSide/metalPriceMaster");
 
 // Set up multer storage and limits
 const storage = multer.diskStorage({
@@ -17,7 +19,7 @@ const storage = multer.diskStorage({
     const extension = file.originalname.split(".").pop();
     cb(
       null,
-      `${Date.now()}_${Math.random().toString(36).substr(2, 9)}.${extension}`
+      `${Date.now()}_${Math.random().toString(36).substr(2, 9)}.${extension}`,
     );
   },
 });
@@ -30,171 +32,393 @@ route.post(
   upload.array("images", 5),
   async (req, res) => {
     try {
-      const {
-        Variation_Name,
-        Variation_Label,
-        Size_Name,
-        Size_Stock,
-        Size_Price,
-        Size_Purity,
-      } = req.body;
-
       const productId = req.params.productId;
 
-      const images = req.files.map((file) => ({
+      if (!productId || productId === "undefined") {
+        return res.status(400).json({
+          type: "error",
+          message: "Invalid productId",
+        });
+      }
+      const {
+        variationName,
+        variationStock, // ✅ STRING
+        metalSizes,
+        diamondInvolved,
+        diamondSizes,
+        existingImages, // ✅ JSON array
+      } = req.body;
+
+      // 1️⃣ Find product
+      const product = await Product.findById(productId);
+      if (!product) {
+        return res.status(404).json({
+          type: "error",
+          message: "Product not found",
+        });
+      }
+
+      // 2️⃣ Newly uploaded images
+      const uploadedImages = (req.files || []).map((file) => ({
         filename: file.filename,
         path: file.path,
         originalname: file.originalname,
       }));
 
-      const variationSizes = Array.isArray(Size_Name)
-        ? Size_Name.map((size, index) => ({
-            Size_Name: size,
-            Size_Stock: Size_Stock[index],
-            Size_Price: Size_Price[index],
-            Size_purity: Size_Purity[index],
-          }))
-        : [
-            {
-              Size_Name: Size_Name,
-              Size_Stock: Size_Stock,
-              Size_Price: Size_Price,
-              Size_purity: Size_Purity,
-            },
-          ];
-
-      const product = await Product.findById(productId);
-      if (!product) {
-        return res
-          .status(404)
-          .json({ type: "error", message: "Product not found!" });
+      // 3️⃣ Existing images (parse JSON safely)
+      let selectedImages = [];
+      if (existingImages) {
+        try {
+          selectedImages = JSON.parse(existingImages);
+        } catch (err) {
+          return res.status(400).json({
+            type: "error",
+            message: "Invalid existingImages format",
+          });
+        }
       }
 
-      const newVariation = new Variation({
-        Variation_Name: Variation_Name,
-        Variation_Images: images,
-        Variation_Size: variationSizes,
-        Variation_Label: Variation_Label,
+      // 4️⃣ Merge both image sources
+      const finalImages = [...selectedImages, ...uploadedImages];
+
+      // 5️⃣ Create variation
+      const variation = await Variation.create({
+        variationName,
+        VariationStock: variationStock, // ✅ string
+        variationImages: finalImages,
+        metalSizes: metalSizes ? JSON.parse(metalSizes) : [],
+        diamondInvolved: diamondInvolved === "true",
+        diamondSizes: diamondSizes ? JSON.parse(diamondSizes) : [],
       });
 
-      await newVariation.save();
-
-      product.Variation.unshift(newVariation._id);
+      // 6️⃣ Attach variation to product
+      product.Variation.push(variation._id);
       await product.save();
 
-      res
-        .status(200)
-        .json({
-          type: "success",
-          message: "Variation added successfully!",
-          variation: newVariation,
-        });
+      res.status(200).json({
+        type: "success",
+        message: "Variation added successfully",
+        data: variation,
+      });
     } catch (error) {
-      console.error("Failed to add variation:", error);
-      res
-        .status(500)
-        .json({ type: "error", message: "Failed to add variation" });
+      console.error("Add variation error:", error);
+
+      // 🔥 DELETE ONLY NEWLY UPLOADED FILES
+      if (req.files?.length) {
+        req.files.forEach((file) => {
+          try {
+            fs.unlinkSync(file.path);
+          } catch (err) {
+            console.warn("Failed to cleanup file:", file.path);
+          }
+        });
+      }
+
+      res.status(500).json({
+        type: "error",
+        message: "Failed to add variation",
+      });
     }
-  }
+  },
 );
+
+function calculateMetalPrice(metalComponent, metalMaster) {
+  const { purity, weight } = metalComponent;
+
+  const basePurity = metalMaster.basePurity; // usually 24
+  const baseRate = metalMaster.baseRate; // live rate per gram (24K)
+
+  const purityFactor = purity / basePurity;
+
+  const price = baseRate * purityFactor * weight;
+
+  return Number(price.toFixed(2));
+}
+
+function calculateRoundDiamond(component, diamondPriceMaster) {
+  const { shape, mmSize, stones, qualityVariants } = component;
+
+  const master = diamondPriceMaster.find(
+    (d) => d.shape === shape && d.mmFrom <= mmSize && d.mmTo >= mmSize,
+  );
+
+  if (!master) return null;
+
+  const avgCaratPerStone = (master.caratWeightFrom + master.caratWeightTo) / 2;
+
+  const totalCarat = avgCaratPerStone * stones;
+
+  const calculatedQualities = qualityVariants.map((q) => {
+    const ratePerCrt = master.qualityRates[q.quality] || 0;
+
+    return {
+      quality: q.quality,
+      pricePerCrt: ratePerCrt,
+      finalPrice: Number((ratePerCrt * totalCarat).toFixed(2)),
+      active: q.active,
+    };
+  });
+
+  return {
+    avgCaratPerStone: Number(avgCaratPerStone.toFixed(4)),
+    totalCrt: Number(totalCarat.toFixed(3)),
+    qualityVariants: calculatedQualities,
+  };
+}
 
 // get all variation
 route.get("/get", checkAdminOrRole2, async (req, res) => {
   try {
-    const variation = await Variation.find().sort({ createdAt: -1 });
-    if (variation) {
-      const result = variation.map((variation) => ({
-        _id: variation._id,
-        Variation_Name: variation.Variation_Name,
-        Variation_Images: variation?.Variation_Images?.map((image) => ({
-          Variation_Image: `${process.env.IP_ADDRESS}/${image?.path?.replace(
-            /\\/g,
-            "/"
-          )}`,
-        })),
-        Size: variation?.Variation_Size,
-        Variation_Label: variation.Variation_Label,
-        Variation_Status: variation.Variation_Status,
-      }));
-      return res
-        .status(201)
-        .json({
-          type: "success",
-          message: " Variation found successfully!",
-          variation: result || [],
+    // 1️⃣ Load all master data
+    const metalMasters = await metalPriceMaster.find(); // Gold, Silver, etc.
+    const diamondMasters = await diamondPriceMaster.find(); // Round slabs
+
+    const variations = await Variation.find().sort({ createdAt: -1 });
+
+    const result = variations.map((variation) => {
+      // ===============================
+      // METAL SIZE CALCULATIONS
+      // ===============================
+      const calculatedMetalSizes = variation.metalSizes.map((size) => {
+        let metalSubTotal = 0;
+
+        const calculatedComponents = size.metalComponents.map((component) => {
+          const metalMaster = metalMasters.find(
+            (m) =>
+              m.metalName.toLowerCase() === component.metalType.toLowerCase(),
+          );
+
+          if (!metalMaster) {
+            return {
+              ...component,
+              price: 0,
+            };
+          }
+
+          const price = calculateMetalPrice(component, metalMaster);
+          metalSubTotal += price;
+
+          return {
+            ...component,
+            price,
+          };
         });
-    }
+
+        const labour = size.metalCharges?.labour || 0;
+        const making = size.metalCharges?.making || 0;
+
+        return {
+          sizeLabel: size.sizeLabel,
+          active: size.active,
+          metalComponents: calculatedComponents,
+          metalCharges: {
+            subTotalPrice: Number(metalSubTotal.toFixed(2)),
+            labour,
+            making,
+            finalPrice: Number((metalSubTotal + labour + making).toFixed(2)),
+          },
+        };
+      });
+
+      // ===============================
+      // DIAMOND SIZE CALCULATIONS
+      // ===============================
+      const calculatedDiamondSizes = variation.diamondSizes.map((size) => {
+        const calculatedComponents = size.diamondComponents.map((component) => {
+          if (component.shape !== "Round") return component;
+
+          const calc = calculateRoundDiamond(component, diamondMasters);
+
+          return {
+            ...component,
+            ...calc,
+          };
+        });
+
+        return {
+          sizeLabel: size.sizeLabel,
+          active: size.active,
+          diamondComponents: calculatedComponents,
+          diamondCharges: size.diamondCharges,
+        };
+      });
+
+      // ===============================
+      // FINAL VARIATION RESPONSE
+      // ===============================
+      return {
+        _id: variation._id,
+        variationName: variation.variationName,
+        VariationStock: variation.VariationStock,
+        variationStatus: variation.variationStatus,
+
+        variationImages: (variation.variationImages || []).map((img) => ({
+          url: `${process.env.IP_ADDRESS}/${img.path.replace(/\\/g, "/")}`,
+          filename: img.filename,
+        })),
+
+        metalSizes: calculatedMetalSizes,
+        diamondInvolved: variation.diamondInvolved,
+        diamondSizes: calculatedDiamondSizes,
+
+        createdAt: variation.createdAt,
+      };
+    });
+
+    res.status(200).json({
+      type: "success",
+      message: "Variations fetched successfully",
+      data: result,
+    });
   } catch (error) {
-    res
-      .status(500)
-      .json({ type: "error", message: "Server Error!", errorMessage: error });
+    console.error(error);
+    res.status(500).json({
+      type: "error",
+      message: "Server error",
+      errorMessage: error.message,
+    });
   }
 });
 
 // find variation by id
 route.get("/get/:id", checkAdminOrRole2, async (req, res) => {
-  const variationId = req.params.id;
-
   try {
-    const variation = await Variation.findById(variationId);
-    if (variation) {
-      const result = {
-        _id: variation._id,
-        Variation_Name: variation.Variation_Name,
-        Variation_Images: variation?.Variation_Images?.map((image) => ({
-          Variation_Image: `${process.env.IP_ADDRESS}/${image?.path?.replace(
-            /\\/g,
-            "/"
-          )}`,
-        })),
-        Size: variation?.Variation_Size,
-        Variation_Label: variation.Variation_Label,
-        Variation_Status: variation.Variation_Status,
-      };
-      return res
-        .status(201)
-        .json({
-          type: "success",
-          message: "Variation found successfully!",
-          variation: result || [],
-        });
-    } else {
-      res
-        .status(404)
-        .json({ type: "warning", message: "Variation not found !" });
+    // 1️⃣ Load masters
+    const metalMasters = await metalPriceMaster.find();
+    const diamondMasters = await diamondPriceMaster.find();
+
+    // 2️⃣ Load variation
+    const variation = await Variation.findById(req.params.id);
+    if (!variation) {
+      return res.status(404).json({
+        type: "warning",
+        message: "Variation not found",
+      });
     }
+
+    // ===============================
+    // METAL SIZE CALCULATIONS
+    // ===============================
+    const calculatedMetalSizes = variation.metalSizes.map((size) => {
+      let metalSubTotal = 0;
+
+      const calculatedComponents = size.metalComponents.map((component) => {
+        const metalMaster = metalMasters.find(
+          (m) =>
+            m.metalName.toLowerCase() === component.metalType.toLowerCase(),
+        );
+
+        if (!metalMaster) {
+          return {
+            ...component,
+            price: 0,
+          };
+        }
+
+        const price = calculateMetalPrice(component, metalMaster);
+        metalSubTotal += price;
+
+        return {
+          ...component,
+          price,
+        };
+      });
+
+      const labour = size.metalCharges?.labour || 0;
+      const making = size.metalCharges?.making || 0;
+
+      return {
+        sizeLabel: size.sizeLabel,
+        active: size.active,
+        metalComponents: calculatedComponents,
+        metalCharges: {
+          subTotalPrice: Number(metalSubTotal.toFixed(2)),
+          labour,
+          making,
+          finalPrice: Number((metalSubTotal + labour + making).toFixed(2)),
+        },
+      };
+    });
+
+    // ===============================
+    // DIAMOND SIZE CALCULATIONS
+    // ===============================
+    const calculatedDiamondSizes = variation.diamondSizes.map((size) => {
+      const calculatedComponents = size.diamondComponents.map((component) => {
+        if (component.shape !== "Round") return component;
+
+        const calc = calculateRoundDiamond(component, diamondMasters);
+
+        return {
+          ...component,
+          ...calc,
+        };
+      });
+
+      return {
+        sizeLabel: size.sizeLabel,
+        active: size.active,
+        diamondComponents: calculatedComponents,
+        diamondCharges: size.diamondCharges,
+      };
+    });
+
+    // ===============================
+    // FINAL RESPONSE
+    // ===============================
+    res.status(200).json({
+      type: "success",
+      message: "Variation found",
+      data: {
+        _id: variation._id,
+        variationName: variation.variationName,
+        VariationStock: variation.VariationStock,
+        variationStatus: variation.variationStatus,
+
+        variationImages: (variation.variationImages || []).map((img) => ({
+          url: `${process.env.IP_ADDRESS}/${img.path.replace(/\\/g, "/")}`,
+          filename: img.filename,
+        })),
+
+        metalSizes: calculatedMetalSizes,
+        diamondInvolved: variation.diamondInvolved,
+        diamondSizes: calculatedDiamondSizes,
+
+        createdAt: variation.createdAt,
+      },
+    });
   } catch (error) {
-    res
-      .status(500)
-      .json({ type: "error", message: "Server Error!", errorMessage: error });
-    console.log(error);
+    console.error(error);
+    res.status(500).json({
+      type: "error",
+      message: "Server error",
+      errorMessage: error.message,
+    });
   }
 });
 
-// Delete all variations
-route.delete("/delete", checkAdminOrRole2, async (req, res) => {
+// Delete variation by ID
+route.delete("/:id", checkAdminOrRole2, async (req, res) => {
   try {
-    const variations = await Variation.find();
+    const variation = await Variation.findByIdAndDelete(req.params.id);
 
-    for (const variation of variations) {
-      for (const image of variation?.Variation_Images) {
-        if (fs.existsSync(image?.path)) {
-          fs.unlinkSync(image?.path);
-        }
-      }
+    if (!variation) {
+      return res.status(404).json({
+        type: "warning",
+        message: "Variation not found",
+      });
     }
 
-    await Variation.deleteMany();
-    res
-      .status(200)
-      .json({
-        type: "success",
-        message: "All Variations deleted successfully!",
-      });
+    res.status(200).json({
+      type: "success",
+      message: "Variation deleted successfully",
+    });
   } catch (error) {
-    res
-      .status(500)
-      .json({ type: "error", message: "Server Error!", errorMessage: error });
+    res.status(500).json({
+      type: "error",
+      message: "Server error",
+      errorMessage: error.message,
+    });
   }
 });
 
@@ -202,266 +426,166 @@ route.delete("/delete", checkAdminOrRole2, async (req, res) => {
 route.delete("/deletes", checkAdminOrRole2, async (req, res) => {
   try {
     const { ids } = req.body;
-    const variations = await Variation.find({ _id: { $in: ids } });
 
-    for (const variation of variations) {
-      for (const image of variation?.Variation_Images) {
-        if (fs.existsSync(image?.path)) {
-          fs.unlinkSync(image?.path);
-        }
-      }
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({
+        type: "warning",
+        message: "No variation IDs provided",
+      });
     }
 
     await Variation.deleteMany({ _id: { $in: ids } });
-    res
-      .status(200)
-      .json({
-        type: "success",
-        message: "All Variations deleted successfully!",
-      });
-  } catch (error) {
-    res
-      .status(500)
-      .json({ type: "error", message: "Server Error!", errorMessage: error });
-  }
-});
 
-// Delete variation by ID
-route.delete("/delete/:id", checkAdminOrRole2, async (req, res) => {
-  const variationId = req.params.id;
-  try {
-    const variation = await Variation.findById(variationId);
-    if (!variation) {
-      res.status(404).json({ type: "error", message: "Variation not found!" });
-    } else {
-      // Delete the variation images from the folder
-      for (const image of variation.Variation_Images) {
-        if (fs.existsSync(image?.Variation_Image)) {
-          fs.unlinkSync(image?.Variation_Image);
-        }
-      }
-
-      await Variation.findByIdAndDelete(variationId);
-      res
-        .status(200)
-        .json({ type: "success", message: "Variation deleted successfully!" });
-    }
-  } catch (error) {
-    res
-      .status(500)
-      .json({ type: "error", message: "Server Error!", errorMessage: error });
-  }
-});
-
-// Delete multiple variations by IDs
-route.delete("/deletes", checkAdminOrRole2, async (req, res) => {
-  const { ids } = req.body;
-  try {
-    const variations = await Variation.find({ _id: { $in: ids } });
-
-    // Delete images from the folder for each variation
-    variations.forEach((variation) => {
-      variation?.Variation_Images?.forEach((image) => {
-        if (fs.existsSync(image?.Variation_Image)) {
-          fs.unlinkSync(image?.Variation_Image);
-        }
-      });
+    res.status(200).json({
+      type: "success",
+      message: "Selected variations deleted successfully",
     });
-
-    // Delete the variations from the database
-    await Variation.deleteMany({ _id: { $in: ids } });
-
-    res
-      .status(200)
-      .json({ type: "success", message: "Variations deleted successfully!" });
   } catch (error) {
-    res
-      .status(500)
-      .json({ type: "error", message: "Server Error!", errorMessage: error });
+    res.status(500).json({
+      type: "error",
+      message: "Server error",
+      errorMessage: error.message,
+    });
+  }
+});
+
+// Delete all variations
+route.delete("/delete", checkAdminOrRole2, async (req, res) => {
+  try {
+    await Variation.deleteMany();
+
+    res.status(200).json({
+      type: "success",
+      message: "All variations deleted successfully",
+    });
+  } catch (error) {
+    res.status(500).json({
+      type: "error",
+      message: "Server error",
+      errorMessage: error.message,
+    });
   }
 });
 
 // update only status
 route.patch("/update/status/:id", checkAdminOrRole2, async (req, res) => {
-  const variationId = await req.params.id;
-
   try {
-    const { variation_Status } = req.body;
-    const newVariation = await Variation.findByIdAndUpdate(variationId);
-    newVariation.Variation_Status = await variation_Status;
+    const { variationStatus } = req.body;
 
-    await newVariation.save();
-    res
-      .status(200)
-      .json({
-        type: "success",
-        message: "Variation Status update successfully!",
+    const variation = await Variation.findByIdAndUpdate(
+      req.params.id,
+      { variationStatus },
+      { new: true },
+    );
+
+    if (!variation) {
+      return res.status(404).json({
+        type: "error",
+        message: "Variation not found",
       });
+    }
+
+    res.status(200).json({
+      type: "success",
+      message: "Variation status updated",
+    });
   } catch (error) {
-    res
-      .status(500)
-      .json({ type: "error", message: "Server Error!", errorMessage: error });
+    res.status(500).json({
+      type: "error",
+      message: "Server error",
+      errorMessage: error.message,
+    });
   }
 });
 
-// update only size status
+// update only metal size status
 route.patch(
-  "/update/size/status/:variationId/:sizeId",
+  "/update/metal-size/status/:variationId/:sizeId",
   checkAdminOrRole2,
   async (req, res) => {
-    const variationId = req.params.variationId;
-    const sizeId = req.params.sizeId;
-
     try {
-      const { Size_Status } = req.body;
+      const { active } = req.body;
 
-      // Find the variation by ID
-      const variation = await Variation.findById(variationId);
+      const variation = await Variation.findById(req.params.variationId);
       if (!variation) {
-        return res
-          .status(404)
-          .json({ type: "error", message: "Variation not found!" });
+        return res.status(404).json({ message: "Variation not found" });
       }
 
-      // Find the size in the Variation_Size array with the given sizeId
-      const sizeToUpdate = variation.Variation_Size.find(
-        (size) => size._id.toString() === sizeId
-      );
-      if (!sizeToUpdate) {
-        return res
-          .status(404)
-          .json({ type: "error", message: "Size not found in the variation!" });
+      const size = variation.metalSizes.id(req.params.sizeId);
+      if (!size) {
+        return res.status(404).json({ message: "Metal size not found" });
       }
 
-      // Update the Size_Status of the size
-      sizeToUpdate.Size_Status = Size_Status;
-
-      // Save the updated variation
+      size.active = active;
       await variation.save();
 
-      res
-        .status(200)
-        .json({ type: "success", message: "Size Status update successfully!" });
+      res.status(200).json({
+        type: "success",
+        message: "Metal size status updated",
+      });
     } catch (error) {
-      res
-        .status(500)
-        .json({ type: "error", message: "Server Error!", errorMessage: error });
+      res.status(500).json({ message: error.message });
     }
-  }
+  },
 );
 
-// delete a particular size
-route.delete(
-  "/delete/size/:variationId/:sizeId",
+// add new metal size
+route.post(
+  "/add/metal-size/:variationId",
   checkAdminOrRole2,
   async (req, res) => {
-    const variationId = req.params.variationId;
-    const sizeId = req.params.sizeId;
-
     try {
-      // Find the variation by ID
-      const variation = await Variation.findById(variationId);
+      const { sizeLabel, metalComponents, metalCharges } = req.body;
+
+      const variation = await Variation.findById(req.params.variationId);
       if (!variation) {
-        return res
-          .status(404)
-          .json({ type: "error", message: "Variation not found!" });
+        return res.status(404).json({ message: "Variation not found" });
       }
 
-      // Filter out the size to delete from the Variation_Size array
-      const updatedSizes = variation.Variation_Size.filter(
-        (size) => size._id.toString() !== sizeId
-      );
+      variation.metalSizes.push({
+        sizeLabel,
+        metalComponents,
+        metalCharges,
+        active: true,
+      });
 
-      // Check if the size exists in the array
-      if (variation.Variation_Size.length === updatedSizes.length) {
-        return res
-          .status(404)
-          .json({ type: "error", message: "Size not found in the variation!" });
-      }
-
-      // Update the Variation_Size array with the filtered sizes
-      variation.Variation_Size = updatedSizes;
-
-      // Save the updated variation
       await variation.save();
 
-      res
-        .status(200)
-        .json({ type: "success", message: "Size deleted successfully!" });
+      res.status(201).json({
+        type: "success",
+        message: "Metal size added successfully",
+      });
     } catch (error) {
-      res
-        .status(500)
-        .json({ type: "error", message: "Server Error!", errorMessage: error });
+      res.status(500).json({ message: error.message });
     }
-  }
+  },
 );
 
-// Delete multiple sizes from a variation
-// route.delete("/deletes/sizes/:variationId", async (req, res) => {
-//     const variationId = req.params.variationId;
-//     const { sizeIds } = req.body;
-
-//     try {
-//         // Find the variation by ID
-//         const variation = await Variation.findById(variationId);
-//         if (!variation) {
-//             return res.status(404).json({ type: "error", message: "Variation not found!" });
-//         }
-
-//         // Filter out the sizes to delete from the Variation_Size array
-//         const updatedSizes = variation.Variation_Size.filter((size) => !sizeIds.includes(size._id.toString()));
-
-//         // Check if all sizeIds exist in the Variation_Size array
-//         if (variation.Variation_Size.length === updatedSizes.length + sizeIds.length) {
-//             return res.status(404).json({ type: "error", message: "Sizes not found in the variation!" });
-//         }
-
-//         // Update the Variation_Size array with the filtered sizes
-//         variation.Variation_Size = updatedSizes;
-
-//         // Save the updated variation
-//         await variation.save();
-
-//         res.status(200).json({ type: "success", message: "Sizes deleted successfully!" });
-//     } catch (error) {
-//         res.status(500).json({ type: "error", message: "Server Error!", errorMessage: error });
-//     }
-// });
-
-// Delete multiple sizes from a variation
+// Delete metal size
 route.delete(
-  "/deletes/sizes/:variationId",
+  "/delete/metal-size/:variationId/:sizeId",
   checkAdminOrRole2,
   async (req, res) => {
-    const variationId = req.params.variationId;
-    const { sizeIds } = req.body;
-
     try {
-      // Find the variation by ID
-      const variation = await Variation.findById(variationId);
+      const variation = await Variation.findById(req.params.variationId);
       if (!variation) {
-        return res
-          .status(404)
-          .json({ type: "error", message: "Variation not found!" });
+        return res.status(404).json({ message: "Variation not found" });
       }
 
-      // Filter out the sizes to delete from the Variation_Size array
-      variation.Variation_Size = variation.Variation_Size.filter(
-        (size) => !sizeIds.includes(size._id.toString())
+      variation.metalSizes = variation.metalSizes.filter(
+        (s) => s._id.toString() !== req.params.sizeId,
       );
 
-      // Save the updated variation
       await variation.save();
 
-      res
-        .status(200)
-        .json({ type: "success", message: "Sizes deleted successfully!" });
+      res.status(200).json({
+        type: "success",
+        message: "Metal size deleted",
+      });
     } catch (error) {
-      res
-        .status(500)
-        .json({ type: "error", message: "Server Error!", errorMessage: error });
+      res.status(500).json({ message: error.message });
     }
-  }
+  },
 );
 
 // Update variation by id
@@ -471,148 +595,97 @@ route.patch(
   upload.array("images", 5),
   async (req, res) => {
     try {
-      const { Variation_Name } = req.body;
-      const variationId = req.params.variationId;
+      const { variationName, VariationStock, existingImages } = req.body;
 
-      const images = req.files.map((file) => {
-        const originalFilename = file.originalname;
-        const extension = originalFilename.substring(
-          originalFilename.lastIndexOf(".")
-        );
-        const random = Math.random() * 100;
-        const imageFilename = `${Variation_Name.replace(
-          /\s/g,
-          "_"
-        )}_${Date.now()}_${random}${extension}`;
-        const imagePath = "imageUploads/backend/variation/" + imageFilename;
+      const variation = await Variation.findById(req.params.variationId);
+      if (!variation) {
+        return res.status(404).json({ message: "Variation not found" });
+      }
 
-        fs.renameSync(file?.path, imagePath);
+      // Existing images (from media library)
+      let images = [];
+      if (existingImages) {
+        images = JSON.parse(existingImages);
+      }
 
-        return {
-          filename: imageFilename,
-          path: imagePath,
-          originalname: originalFilename,
-        };
+      // New uploads
+      if (req.files?.length) {
+        const uploaded = req.files.map((file) => ({
+          filename: file.filename,
+          path: file.path,
+          originalname: file.originalname,
+        }));
+        images.push(...uploaded);
+      }
+
+      variation.variationName = variationName;
+      variation.VariationStock = VariationStock;
+      variation.variationImages = images;
+
+      await variation.save();
+
+      res.status(200).json({
+        type: "success",
+        message: "Variation updated successfully",
       });
-
-      // Find the variation by ID
-      const variation = await Variation.findById(variationId);
-      if (!variation) {
-        return res
-          .status(404)
-          .json({ type: "error", message: "Variation not found!" });
-      }
-
-      // Update the variation fields
-      variation.Variation_Name = Variation_Name;
-      if (req.files.length <= 0) {
-      } else {
-        variation.Variation_Images = images;
-      }
-      // variation.Variation_Label = Variation_Name;
-
-      // Save the updated variation to the database
-      await variation.save();
-
-      res
-        .status(200)
-        .json({ type: "success", message: "Variation updated successfully!" });
     } catch (error) {
-      console.error("Failed to update variation:", error);
-      res.status(500).json({ error: "Failed to update variation" });
+      res.status(500).json({ message: error.message });
     }
-  }
-);
-
-// Update a variation size by ID
-route.patch(
-  "/update/size/:variationId/:sizeId",
-  checkAdminOrRole2,
-  async (req, res) => {
-    try {
-      const variationId = req.params.variationId;
-      const sizeId = req.params.sizeId;
-      const { Size_Name, Size_Stock, Size_Price, Size_purity } = req.body;
-
-      const variation = await Variation.findById(variationId);
-      if (!variation) {
-        return res
-          .status(404)
-          .json({ type: "error", message: "Variation not found!" });
-      }
-
-      const sizeIndex = variation.Variation_Size.findIndex(
-        (size) => size._id.toString() === sizeId
-      );
-      if (sizeIndex === -1) {
-        return res
-          .status(404)
-          .json({ type: "error", message: "Variation size not found!" });
-      }
-
-      // Update the variation size data
-      variation.Variation_Size[sizeIndex].Size_Name = Size_Name;
-      variation.Variation_Size[sizeIndex].Size_Stock = Size_Stock;
-      variation.Variation_Size[sizeIndex].Size_Price = Size_Price;
-      variation.Variation_Size[sizeIndex].Size_purity = Size_purity;
-
-      // Save the updated variation to the database
-      await variation.save();
-
-      res
-        .status(200)
-        .json({
-          type: "success",
-          message: "Variation size updated successfully!",
-        });
-    } catch (error) {
-      console.error("Failed to update variation size:", error);
-      res
-        .status(500)
-        .json({ type: "error", message: "Failed to update variation size" });
-    }
-  }
+  },
 );
 
 // Add a new size to a variation
-route.post("/add/size/:variationId", checkAdminOrRole2, async (req, res) => {
-  try {
-    const variationId = req.params.variationId;
-    const { Size_Name, Size_Stock, Size_Price, Size_Purity } = req.body;
+route.post(
+  "/add/:productId",
+  checkAdminOrRole2,
+  upload.array("images", 5),
+  async (req, res) => {
+    try {
+      const {
+        variationName,
+        VariationStock,
+        metalSizes,
+        diamondInvolved,
+        diamondSizes,
+        qualityVariants,
+        existingImages,
+      } = req.body;
 
-    const variation = await Variation.findById(variationId);
-    if (!variation) {
-      return res
-        .status(404)
-        .json({ type: "error", message: "Variation not found!" });
-    }
+      let images = existingImages ? JSON.parse(existingImages) : [];
 
-    // Create a new size object
-    const newSize = {
-      Size_Name,
-      Size_Stock,
-      Size_Price,
-      Size_purity: Size_Purity,
-      Size_Status: true, // Set the default status to true (enabled)
-    };
+      if (req.files?.length) {
+        images.push(
+          ...req.files.map((f) => ({
+            filename: f.filename,
+            path: f.path,
+            originalname: f.originalname,
+          })),
+        );
+      }
 
-    // Add the new size to the Variation_Size array
-    variation.Variation_Size.unshift(newSize);
-
-    // Save the updated variation to the database
-    await variation.save();
-
-    res
-      .status(201)
-      .json({
-        type: "success",
-        message: "Size added successfully!",
-        size: newSize,
+      const variation = await Variation.create({
+        variationName,
+        VariationStock,
+        variationImages: images,
+        metalSizes: JSON.parse(metalSizes || "[]"),
+        diamondInvolved,
+        diamondSizes: JSON.parse(diamondSizes || "[]"),
+        qualityVariants: JSON.parse(qualityVariants || "[]"),
       });
-  } catch (error) {
-    console.error("Failed to add size:", error);
-    res.status(500).json({ type: "error", message: "Failed to add size" });
-  }
-});
+
+      await Product.findByIdAndUpdate(req.params.productId, {
+        $push: { Variation: variation._id },
+      });
+
+      res.status(201).json({
+        type: "success",
+        message: "Variation added successfully",
+        variation,
+      });
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  },
+);
 
 module.exports = route;

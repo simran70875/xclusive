@@ -419,6 +419,64 @@ const LeftSide = () => {
                 </a>
               </li>
 
+              <li className="menu-title">Master Data Tables</li>
+
+              <li
+                className={`${
+                  activeMenu === `manageMetal` ||
+                  activeMenu === `manageMetal` ||
+                  activeMenu === `manageMetal`
+                    ? "mm-active"
+                    : ""
+                }`}
+                onClick={() => {
+                  Navigate("/manageMetal");
+                }}
+              >
+                <a
+                  className={`${
+                    activeMenu === `manageMetal` ||
+                    activeMenu === `manageMetal` ||
+                    activeMenu === `manageMetal`
+                      ? "active"
+                      : ""
+                  } waves-effect`}
+                >
+                  <i className="uil-book-alt">
+                    <i className="fas fa-clipboard-list"></i>
+                  </i>
+                  <span>Metal Components</span>
+                </a>
+              </li>
+
+              <li
+                className={`${
+                  activeMenu === `manageDiamond` ||
+                  activeMenu === `manageDiamond` ||
+                  activeMenu === `manageDiamond`
+                    ? "mm-active"
+                    : ""
+                }`}
+                onClick={() => {
+                  Navigate("/manageDiamond");
+                }}
+              >
+                <a
+                  className={`${
+                    activeMenu === `manageDiamond` ||
+                    activeMenu === `manageDiamond` ||
+                    activeMenu === `manageDiamond`
+                      ? "active"
+                      : ""
+                  } waves-effect`}
+                >
+                  <i className="uil-book-alt">
+                    <i className="fas fa-clipboard-list"></i>
+                  </i>
+                  <span>Diamond Components</span>
+                </a>
+              </li>
+
               <li className="menu-title">Banners</li>
 
               <li
